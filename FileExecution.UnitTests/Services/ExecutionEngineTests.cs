@@ -118,7 +118,7 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(RandomValues.CreateDirectoryName());
+				.Returns(TestPath.Combine(RandomValues.CreateDirectoryName()));
 
 			processLauncher
 				.OpenFile(Arg.Any<string>())
@@ -187,6 +187,78 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: the folder of a file that is gone from the sandbox is erased with what the
+	/// program left in it, and the lock of the missing file is neither asked for nor waited for.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Erases_The_Folder_Of_A_File_That_Is_Gone()
+	{
+		// Arrange
+		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		IFileLockChecker fileLockChecker = Substitute.For<IFileLockChecker>();
+
+		MockFileSystem files = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(directoryPath);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance(fileLockChecker);
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// The program has renamed its file, so only a copy under another name is left in the folder.
+		string filePath = files
+			.Directory
+			.GetFiles(directoryPath)[0];
+
+		files
+			.File
+			.Move(filePath, filePath + "~");
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
+		fileLockChecker
+			.DidNotReceive()
+			.IsLocked(Arg.Any<string>());
+
+		await fileLockChecker
+			.DidNotReceive()
+			.WaitUntilUnlockedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteDirectory(directoryPath);
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.CloseAsync" />: kills the process and erases the folder of the file whole, with the files
 	/// the program left beside it.
 	/// </summary>
@@ -247,6 +319,67 @@ internal class ExecutionEngineTests
 			.Received(1)
 			.Kill();
 
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteDirectory(directoryPath);
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: a lock check that fails does not stop the folder of the file from being
+	/// erased.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Erases_The_Folder_When_The_Lock_Check_Fails()
+	{
+		// Arrange
+		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileLockChecker fileLockChecker = Substitute.For<IFileLockChecker>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(directoryPath);
+
+			// The file goes away between the check that it exists and the check of its lock.
+			fileLockChecker
+				.IsLocked(Arg.Any<string>())
+				.Throws(new FileNotFoundException());
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance(fileLockChecker);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// Act
+		await sut.CloseAsync(dto.Id);
+
+		// Assert
 		fileEraser
 			.Received(1)
 			.EraseAndDeleteDirectory(directoryPath);
@@ -461,10 +594,10 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.CloseAsync" />: a file that is gone from the sandbox is not erased again.
+	/// <see cref="ExecutionEngine.CloseAsync" />: a folder that is gone from the sandbox is not erased again.
 	/// </summary>
 	[Test]
-	public async Task CloseAsync_Leaves_A_File_That_Is_Gone_Alone()
+	public async Task CloseAsync_Leaves_A_Folder_That_Is_Gone_Alone()
 	{
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
@@ -473,7 +606,7 @@ internal class ExecutionEngineTests
 
 		MockFileSystem files = new();
 
-		string directoryPath = RandomValues.CreateDirectoryName();
+		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -501,7 +634,7 @@ internal class ExecutionEngineTests
 
 		await sut.ExecuteAsync(parameters);
 
-		// The file is gone from the sandbox by the time it is closed.
+		// The folder is gone from the sandbox by the time the file is closed.
 		files
 			.Directory
 			.Delete(directoryPath, recursive: true);
@@ -656,7 +789,7 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(RandomValues.CreateDirectoryName());
+				.Returns(TestPath.Combine(RandomValues.CreateDirectoryName()));
 
 			fileLockChecker
 				.IsLocked(Arg.Any<string>())
@@ -723,7 +856,7 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(RandomValues.CreateDirectoryName());
+				.Returns(TestPath.Combine(RandomValues.CreateDirectoryName()));
 
 			processLauncher
 				.OpenFile(Arg.Any<string>())
@@ -774,17 +907,75 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="ExecutionEngine.DisposeAsync" />: a file that is gone from the sandbox is not erased again.
+	/// <see cref="ExecutionEngine.DisposeAsync" />: the folder of a file that is gone from the sandbox is erased with what
+	/// the program left in it.
 	/// </summary>
 	[Test]
-	public async Task DisposeAsync_Leaves_A_File_That_Is_Gone_Alone()
+	public async Task DisposeAsync_Erases_The_Folder_Of_A_File_That_Is_Gone()
 	{
 		// Arrange
 		IFileEraser fileEraser = Substitute.For<IFileEraser>();
 
 		MockFileSystem files = new();
 
-		string directoryPath = RandomValues.CreateDirectoryName();
+		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(directoryPath);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
+
+			builder.RegisterInstance(sandbox);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		// The program has renamed its file, so only a copy under another name is left in the folder.
+		string filePath = files
+			.Directory
+			.GetFiles(directoryPath)[0];
+
+		files
+			.File
+			.Move(filePath, filePath + "~");
+
+		// Act
+		await sut.DisposeAsync();
+
+		// Assert
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteDirectory(directoryPath);
+	}
+
+	/// <summary>
+	/// <see cref="ExecutionEngine.DisposeAsync" />: a folder that is gone from the sandbox is not erased again.
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_Leaves_A_Folder_That_Is_Gone_Alone()
+	{
+		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		MockFileSystem files = new();
+
+		string directoryPath = TestPath.Combine(RandomValues.CreateDirectoryName());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -812,7 +1003,7 @@ internal class ExecutionEngineTests
 
 		await sut.ExecuteAsync(parameters);
 
-		// The file is gone from the sandbox by the time the engine is disposed.
+		// The folder is gone from the sandbox by the time the engine is disposed.
 		files
 			.Directory
 			.Delete(directoryPath, recursive: true);
