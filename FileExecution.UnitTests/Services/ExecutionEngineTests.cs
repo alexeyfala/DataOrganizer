@@ -282,6 +282,11 @@ internal class ExecutionEngineTests
 				.HasExited
 				.Returns(true);
 
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+
 			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(sandbox);
