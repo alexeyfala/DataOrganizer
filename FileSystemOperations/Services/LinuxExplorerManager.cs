@@ -261,7 +261,9 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	/// <inheritdoc />
 	public bool TryRevealFile(string filePath)
 	{
-		if (string.IsNullOrEmpty(filePath) || !_fileSystem.File.Exists(filePath))
+		if (string.IsNullOrEmpty(filePath) || !_fileSystem
+			.File
+			.Exists(filePath))
 		{
 			return false;
 		}
@@ -362,7 +364,9 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		{
 			string commPath = $"/proc/{pid}/comm";
 
-			if (!_fileSystem.File.Exists(commPath))
+			if (!_fileSystem
+				.File
+				.Exists(commPath))
 			{
 				return false;
 			}

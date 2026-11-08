@@ -74,7 +74,9 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 	{
 		for (int attempt = 1; attempt <= MaxAttemptCount; attempt++)
 		{
-			if (!_fileSystem.DirectoryExists(DirectoryPath))
+			if (!_fileSystem
+				.Directory
+				.Exists(DirectoryPath))
 			{
 				return;
 			}

@@ -465,7 +465,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 			uiName = Path.GetFileNameWithoutExtension(appPath);
 		}
 
-		if (!_fileSystem.FileExists(appPath))
+		if (!_fileSystem
+			.File
+			.Exists(appPath))
 		{
 			_logger.LogDebug($@"Application ""{uiName}"" is not offered: it names no program file to start");
 

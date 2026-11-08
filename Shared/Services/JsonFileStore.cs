@@ -47,7 +47,9 @@ public sealed class JsonFileStore : IJsonFileStore
 	public void Write<T>(T value, string filePath)
 	{
 		// Windows refuses to overwrite a hidden file.
-		if (_fileSystem.FileExists(filePath))
+		if (_fileSystem
+			.File
+			.Exists(filePath))
 		{
 			_fileSystem.SetFileHidden(filePath, false);
 		}

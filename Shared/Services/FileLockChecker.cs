@@ -1,4 +1,3 @@
-using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.IO;
@@ -72,7 +71,9 @@ public sealed class FileLockChecker : IFileLockChecker
 	/// <inheritdoc />
 	public async ValueTask<bool> WaitUntilUnlockedAsync(string filePath, CancellationToken token = default)
 	{
-		while (_fileSystem.FileExists(filePath) && IsLocked(filePath))
+		while (_fileSystem
+			.File
+			.Exists(filePath) && IsLocked(filePath))
 		{
 			if (token.IsCancellationRequested)
 			{

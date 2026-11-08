@@ -79,7 +79,9 @@ public sealed class NotepadStore : INotepadStore
 	{
 		string filePath = GetFilePath(number);
 
-		if (!_fileSystem.FileExists(filePath))
+		if (!_fileSystem
+			.File
+			.Exists(filePath))
 		{
 			return;
 		}
@@ -97,7 +99,9 @@ public sealed class NotepadStore : INotepadStore
 	/// <inheritdoc />
 	public int[] FindNumbers()
 	{
-		if (!_fileSystem.DirectoryExists(_directoryPath))
+		if (!_fileSystem
+			.Directory
+			.Exists(_directoryPath))
 		{
 			return [];
 		}
@@ -125,7 +129,7 @@ public sealed class NotepadStore : INotepadStore
 
 		try
 		{
-			return _fileSystem.FileExists(filePath)
+			return _fileSystem.File.Exists(filePath)
 				? _fileSystem.File.ReadAllBytes(filePath)
 				: [];
 		}
@@ -141,7 +145,9 @@ public sealed class NotepadStore : INotepadStore
 	/// <inheritdoc />
 	public NotepadViewSettings? ReadSettings()
 	{
-		if (!_fileSystem.FileExists(_settingsFilePath))
+		if (!_fileSystem
+			.File
+			.Exists(_settingsFilePath))
 		{
 			return null;
 		}

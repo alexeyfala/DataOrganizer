@@ -28,15 +28,14 @@ internal class NotepadStoreTests
 	private const string NotepadFolderName = "notepad";
 
 	/// <summary>
-	/// Directory the texts of the tabs live in.
-	/// </summary>
-	private static readonly string NotepadFolder = TestPath.Combine(NotepadFolderName);
-
-	/// <summary>
 	/// Name of the directory the settings live in.
 	/// </summary>
 	private const string SettingsFolderName = "settings";
 
+	/// <summary>
+	/// Directory the texts of the tabs live in.
+	/// </summary>
+	private static readonly string NotepadFolder = TestPath.Combine(NotepadFolderName);
 	/// <summary>
 	/// Directory the settings live in.
 	/// </summary>
@@ -197,17 +196,11 @@ internal class NotepadStoreTests
 				.NotepadDirectoryPath
 				.Returns(NotepadFolder);
 
-			// The mock cannot fail the listing of a folder, so the folder is faked: it exists, its name matches in case,
-			// and listing it fails.
+			// The mock cannot fail the listing of a folder, so the folder is faked: it exists, and listing it fails.
 			fileSystem
 				.Directory
 				.Exists(NotepadFolder)
 				.Returns(true);
-
-			fileSystem
-				.Directory
-				.EnumerateDirectories(TestPath.Root)
-				.Returns([NotepadFolder]);
 
 			fileSystem
 				.Directory

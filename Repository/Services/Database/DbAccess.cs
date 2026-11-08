@@ -58,11 +58,11 @@ public sealed class DbAccess :
 	/// <inheritdoc cref="IExplorerItemRepository" />
 	private readonly IExplorerItemRepository _explorerItemRepository;
 
-	/// <inheritdoc cref="IFileRepository" />
-	private readonly IFileRepository _fileRepository;
-
 	/// <inheritdoc cref="IFileEraser" />
 	private readonly IFileEraser _fileEraser;
+
+	/// <inheritdoc cref="IFileRepository" />
+	private readonly IFileRepository _fileRepository;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -237,7 +237,9 @@ public sealed class DbAccess :
 
 			TryErasePendingBackups();
 
-			bool hasDatabaseFile = _fileSystem.FileExists(_dbContextService.GetDbFilePath());
+			bool hasDatabaseFile = _fileSystem
+				.File
+				.Exists(_dbContextService.GetDbFilePath());
 
 			DbConnectionStatus status = hasDatabaseFile
 				? await GetSchemaStatusAsync(token).ConfigureAwait(false)
@@ -317,7 +319,9 @@ public sealed class DbAccess :
 
 		string dbFilePath = GetDbFilePath();
 
-		if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
+		if (!_fileSystem
+			.File
+			.Exists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
 		{
 			return null;
 		}
@@ -339,7 +343,9 @@ public sealed class DbAccess :
 		CopyDatabase(parameters);
 
 		// Stryker disable once Block,Statement : the backup API writes the file or throws
-		if (!_fileSystem.FileExists(backupFilePath))
+		if (!_fileSystem
+			.File
+			.Exists(backupFilePath))
 		{
 			return null;
 		}

@@ -156,7 +156,9 @@ public class FileChangeTracker : IFileChangeTracker
 		bool mayMiss,
 		CancellationToken token)
 	{
-		if (!_fileSystem.FileExists(parameters.FilePath))
+		if (!_fileSystem
+			.File
+			.Exists(parameters.FilePath))
 		{
 			// Stryker disable once String : wording of a message
 			return MissFile(parameters, mayMiss, $@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");

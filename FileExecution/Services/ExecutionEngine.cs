@@ -615,7 +615,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	{
 		try
 		{
-			if (!_fileSystem.DirectoryExists(directoryPath))
+			if (!_fileSystem
+				.Directory
+				.Exists(directoryPath))
 			{
 				return;
 			}
@@ -664,7 +666,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 		try
 		{
 			// A file gone from the sandbox has no lock to wait for, but its folder may still hold files of the program.
-			if (!_fileSystem.FileExists(filePath) || !_fileLockChecker.IsLocked(filePath))
+			if (!_fileSystem
+				.File
+				.Exists(filePath) || !_fileLockChecker.IsLocked(filePath))
 			{
 				return;
 			}

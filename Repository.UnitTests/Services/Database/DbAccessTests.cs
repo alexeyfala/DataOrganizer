@@ -487,6 +487,11 @@ internal class DbAccessTests
 				.Returns(useMigrations);
 
 			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -523,7 +528,15 @@ internal class DbAccessTests
 		// Arrange
 		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbMaintenance));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -550,7 +563,15 @@ internal class DbAccessTests
 		// Arrange
 		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dbMaintenance));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -580,6 +601,11 @@ internal class DbAccessTests
 				.ThrowsAsync(new OperationCanceledException());
 
 			builder.RegisterInstance(dbContextService);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -716,6 +742,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(dbContextService);
 
 			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -757,6 +788,11 @@ internal class DbAccessTests
 			builder.RegisterInstance(fileRepository);
 
 			builder.RegisterInstance(folderRepository);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -866,6 +902,11 @@ internal class DbAccessTests
 				.ThrowsAsync(new IOException());
 
 			builder.RegisterInstance(dbMaintenance);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();

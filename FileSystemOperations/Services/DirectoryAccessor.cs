@@ -121,7 +121,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		{
 			// The target may be a file or, on macOS, an .app bundle (a directory) — accept both.
 			if (string.IsNullOrEmpty(filePath)
-				|| (!_fileSystem.FileExists(filePath) && !_fileSystem.DirectoryExists(filePath)))
+				|| (!_fileSystem
+					.File
+					.Exists(filePath) && !_fileSystem.Directory.Exists(filePath)))
 			{
 				if (Path.GetDirectoryName(filePath) is { Length: > 0 } fallbackDirectory)
 				{
@@ -164,7 +166,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		// An AppImage runs from a temporary mount, so the file to show is the AppImage itself.
 		if (_platform.IsLinux
 			&& _appProcess.GetEnvironmentVariable(AppImageVariable) is { Length: > 0 } appImagePath
-			&& _fileSystem.FileExists(appImagePath))
+			&& _fileSystem.File.Exists(appImagePath))
 		{
 			return appImagePath;
 		}
@@ -172,7 +174,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		// The shared dotnet host runs an application from its entry assembly and is not a file of the application.
 		if (_appProcess.ProcessPath is { Length: > 0 } processPath
 			&& !_appProcess.IsRunByDotnetHost()
-			&& _fileSystem.FileExists(processPath))
+			&& _fileSystem.File.Exists(processPath))
 		{
 			return processPath;
 		}
@@ -186,12 +188,14 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			_appProcess.BaseDirectory,
 			appName + (_platform.IsWindows ? KnownFileExtensions.Exe : string.Empty));
 
-		if (_fileSystem.FileExists(appHostPath))
+		if (_fileSystem
+			.File
+			.Exists(appHostPath))
 		{
 			return appHostPath;
 		}
 
-		return _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath && _fileSystem.FileExists(entryAssemblyPath)
+		return _appProcess.GetEntryAssemblyPath() is { } entryAssemblyPath && _fileSystem.File.Exists(entryAssemblyPath)
 			? entryAssemblyPath
 			: null;
 	}
