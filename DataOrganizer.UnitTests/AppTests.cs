@@ -24,10 +24,8 @@ using Notifications.Constants;
 using Notifications.Dto;
 using Notifications.Interfaces;
 using NSubstitute;
-using Repository.Services.Database;
 using Serilog;
 using Settings.Interfaces;
-using Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,14 +42,9 @@ internal partial class AppTests
 {
 	#region Data
 	/// <summary>
-	/// Assemblies whose types the application registers itself.
+	/// Company that every assembly of the solution carries.
 	/// </summary>
-	private static readonly Assembly[] OwnAssemblies =
-	[
-		typeof(App).Assembly,
-		typeof(DbAccess).Assembly,
-		typeof(FileEraser).Assembly
-	];
+	private static readonly string? OwnCompany = GetCompany(typeof(App).Assembly);
 	#endregion
 
 	#region Methods
@@ -586,6 +579,16 @@ internal partial class AppTests
 	}
 
 	/// <summary>
+	/// Company named in the attributes of an assembly.
+	/// </summary>
+	private static string? GetCompany(Assembly assembly)
+	{
+		return assembly
+			.GetCustomAttribute<AssemblyCompanyAttribute>()?
+			.Company;
+	}
+
+	/// <summary>
 	/// Type a registration builds, or <c>null</c> when it hands out an instance or a factory.
 	/// </summary>
 	private static Type? GetImplementationType(ServiceDescriptor descriptor)
@@ -600,8 +603,7 @@ internal partial class AppTests
 	/// </summary>
 	private static bool IsOwnType(Type? type)
 	{
-		return type is { ContainsGenericParameters: false }
-			&& OwnAssemblies.Contains(type.Assembly);
+		return type is { ContainsGenericParameters: false } && GetCompany(type.Assembly) == OwnCompany;
 	}
 	#endregion
 }
