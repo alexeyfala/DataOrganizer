@@ -24,6 +24,7 @@
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);License=$(License)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+		<DefineConstants>$(DefineConstants);SetupProductName=$(SetupProductName)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="Predefines.wxi" />
