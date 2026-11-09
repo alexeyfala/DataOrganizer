@@ -54,7 +54,6 @@ using Settings.Enums;
 using Settings.Interfaces;
 using Settings.Services;
 using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -19,7 +19,6 @@ using Settings.Dto;
 using Settings.Enums;
 using Settings.Interfaces;
 using Settings.Services;
-using Shared.Interfaces;
 using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Views;

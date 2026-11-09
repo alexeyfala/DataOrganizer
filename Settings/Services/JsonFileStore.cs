@@ -1,3 +1,4 @@
+using Settings.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -5,7 +6,7 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 
-namespace Shared.Services;
+namespace Settings.Services;
 
 /// <inheritdoc cref="IJsonFileStore" />
 public sealed class JsonFileStore : IJsonFileStore

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Shared.Interfaces;
+namespace HierarchyExchange.Interfaces;
 
 /// <summary>
 /// Serializes and deserializes Xml through <see cref="System.Xml.Serialization" />.

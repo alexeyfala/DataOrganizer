@@ -1,3 +1,4 @@
+using FileExecution.Interfaces;
 using Shared.Interfaces;
 using System;
 using System.IO;
@@ -5,7 +6,7 @@ using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shared.Services;
+namespace FileExecution.Services;
 
 /// <inheritdoc cref="IFileLockChecker" />
 public sealed class FileLockChecker : IFileLockChecker

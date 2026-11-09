@@ -1,4 +1,4 @@
-using Shared.Interfaces;
+using HierarchyExchange.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -7,7 +7,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
-namespace Shared.Services;
+namespace HierarchyExchange.Services;
 
 public sealed class SystemXmlSerializer : IXmlSerializer
 {
