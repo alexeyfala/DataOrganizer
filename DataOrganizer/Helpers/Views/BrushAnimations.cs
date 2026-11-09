@@ -1,7 +1,7 @@
 using Avalonia.Animation;
 using Avalonia.Media;
 using Avalonia.Styling;
-using Shared.Extensions;
+using DataOrganizer.Extensions;
 using System;
 using System.Linq.Expressions;
 using System.Threading;

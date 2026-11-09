@@ -1,8 +1,8 @@
+using AppUpdates.Helpers;
 using AwesomeAssertions;
-using Shared.Helpers;
 using System;
 
-namespace Shared.UnitTests.Helpers;
+namespace AppUpdates.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TransportSecurity)}"" type")]
 internal class TransportSecurityTests

@@ -5,7 +5,7 @@ using Avalonia.Xaml.Interactivity;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.Behaviors.Styling;
+namespace DataOrganizer.Behaviors;
 
 // Nuget: Avalonia.Themes.Fluent
 

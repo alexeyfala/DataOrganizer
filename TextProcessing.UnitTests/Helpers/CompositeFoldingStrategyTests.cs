@@ -20,6 +20,27 @@ internal class CompositeFoldingStrategyTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: a block of a way that crosses a block found before is left
+	/// out, as the found blocks nest by the same rule.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Drops_A_Block_That_Crosses_A_Found_One()
+	{
+		// Arrange
+		TextDocument document = new(Text);
+
+		CompositeFoldingStrategy sut = new(new FixedFoldingStrategy(CreateBlock(document, 2, 4)));
+
+		// Act
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, [CreateBlock(document, 1, 3)]);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 3));
+	}
+
+	/// <summary>
 	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: a block that starts inside another and ends after it is
 	/// left out, as blocks have to nest.
 	/// </summary>
@@ -34,12 +55,33 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 2, 4)));
 
 		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		GetLines(document, foldings)
 			.Should()
 			.Equal((1, 3));
+	}
+
+	/// <summary>
+	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: the blocks found before join those of the ways, sorted by
+	/// their start.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Joins_The_Found_Blocks_With_Those_Of_The_Ways()
+	{
+		// Arrange
+		TextDocument document = new(Text);
+
+		CompositeFoldingStrategy sut = new(new FixedFoldingStrategy(CreateBlock(document, 1, 2)));
+
+		// Act
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, [CreateBlock(document, 3, 4)]);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2), (3, 4));
 	}
 
 	/// <summary>
@@ -57,7 +99,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 2, 3)));
 
 		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		GetLines(document, foldings)
@@ -89,7 +131,7 @@ internal class CompositeFoldingStrategyTests
 			}));
 
 		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		foldings
@@ -111,7 +153,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 2, 3), CreateBlock(document, 4, 5)));
 
 		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		GetLines(document, foldings)
@@ -141,12 +183,42 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(first));
 
 		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		foldings
 			.Should()
 			.Equal(first);
+	}
+
+	/// <summary>
+	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: of two blocks with the same bounds the block found before
+	/// stays.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Keeps_The_Found_Block_When_A_Way_Finds_One_Alike()
+	{
+		// Arrange
+		TextDocument document = new(Text);
+
+		// The names tell the alike blocks apart.
+		TextFolding found = CreateBlock(document, 1, 2) with
+		{
+			Name = "found"
+		};
+
+		CompositeFoldingStrategy sut = new(new FixedFoldingStrategy(CreateBlock(document, 1, 2) with
+		{
+			Name = "way"
+		}));
+
+		// Act
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, [found]);
+
+		// Assert
+		foldings
+			.Should()
+			.Equal(found);
 	}
 
 	/// <summary>
@@ -163,7 +235,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 1, 3)));
 
 		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		GetLines(document, foldings)
@@ -187,7 +259,7 @@ internal class CompositeFoldingStrategyTests
 		CompositeFoldingStrategy sut = new(first, second);
 
 		// Act
-		sut.CreateNewFoldings(document.Text);
+		sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		second.Texts
@@ -212,7 +284,7 @@ internal class CompositeFoldingStrategyTests
 			new FixedFoldingStrategy(CreateBlock(document, 1, 2)));
 
 		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text);
+		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
 
 		// Assert
 		GetLines(document, foldings)

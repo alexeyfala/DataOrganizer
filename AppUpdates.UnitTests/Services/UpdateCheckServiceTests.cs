@@ -634,6 +634,55 @@ internal class UpdateCheckServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="UpdateCheckService.CheckAsync" />: does nothing in a Debug build.
+	/// </summary>
+	[Test]
+	public async Task CheckAsync_Skips_In_Debug_Build()
+	{
+		// Arrange
+		IHttpClientFactory factory = Substitute.For<IHttpClientFactory>();
+
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IBuildInfo buildInfo = Substitute.For<IBuildInfo>();
+
+			buildInfo
+				.IsDebug
+				.Returns(true);
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			builder.RegisterInstance(buildInfo);
+
+			builder.RegisterInstance(factory);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		UpdateCheckService sut = mock.Create<UpdateCheckService>();
+
+		// Act
+		UpdateCheckResult result = await sut.CheckAsync();
+
+		// Assert
+		result.IsUpdateAvailable
+			.Should()
+			.BeFalse();
+
+		factory
+			.DidNotReceive()
+			.CreateClient(Arg.Any<string>());
+
+		settingsStore
+			.DidNotReceive()
+			.Save();
+	}
+
+	/// <summary>
 	/// <see cref="UpdateCheckService.CheckAsync" />: does not offer a version that was already offered.
 	/// </summary>
 	[Test]

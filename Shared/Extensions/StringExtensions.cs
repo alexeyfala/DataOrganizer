@@ -1,4 +1,3 @@
-using Cysharp.Text;
 using System;
 using System.Text.RegularExpressions;
 
@@ -16,30 +15,6 @@ public static partial class StringExtensions
 	/// Determines whether a string is a valid <see cref="Uri" />.
 	/// </summary>
 	public static bool IsUriFormat(this string? value) => Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
-
-	/// <summary>
-	/// Repeats a string the required number of times.
-	/// </summary>
-	public static string Repeat(this string value, int count, string separator)
-	{
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		for (int i = 0; i < count; i++)
-		{
-			if (i == count - 1)
-			{
-				builder.Append(value);
-			}
-			else
-			{
-				builder.Append(value);
-
-				builder.Append(separator);
-			}
-		}
-
-		return builder.ToString();
-	}
 
 	/// <summary>
 	/// Wraps the string in quotes if necessary.

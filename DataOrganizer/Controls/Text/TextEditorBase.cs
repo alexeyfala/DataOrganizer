@@ -42,7 +42,10 @@ internal abstract class TextEditorBase : TextEditor
 	/// <summary>
 	/// Scroll viewer of the text; <c>null</c> until the template is applied.
 	/// </summary>
-	public ScrollViewer? ScrollViewer { get; private set; }
+	/// <remarks>
+	/// The engine puts the text area into the scroll viewer of its template, while its own reference to it is internal.
+	/// </remarks>
+	public ScrollViewer? ScrollViewer => TextArea.Parent as ScrollViewer;
 
 	/// <inheritdoc />
 	protected override Type StyleKeyOverride { get; } = typeof(TextEditor);
@@ -114,11 +117,6 @@ internal abstract class TextEditorBase : TextEditor
 	/// Width of the column with the scroll marks at the right edge.
 	/// </summary>
 	private const double ScrollMarksWidth = 10.0;
-
-	/// <summary>
-	/// Name of the scroll viewer in the template of <see cref="TextEditor" />.
-	/// </summary>
-	private const string ScrollViewerPartName = "PART_ScrollViewer";
 
 	/// <summary>
 	/// Width of the gap before the text as a share of the font size.
@@ -284,10 +282,6 @@ internal abstract class TextEditorBase : TextEditor
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 	{
 		base.OnApplyTemplate(e);
-
-		ScrollViewer = e
-			.NameScope
-			.Find<ScrollViewer>(ScrollViewerPartName);
 
 		// A template replaces all the visual children, the scroll marks included.
 		VisualChildren.Add(_scrollMarkMargin);

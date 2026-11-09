@@ -19,11 +19,11 @@ using Hierarchy.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Interfaces.Database;
-using Shared.Common;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Views;
 

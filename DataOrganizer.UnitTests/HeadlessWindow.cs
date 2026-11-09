@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Behaviors.Styling;
+using DataOrganizer.Behaviors;
 
 namespace DataOrganizer.UnitTests;
 

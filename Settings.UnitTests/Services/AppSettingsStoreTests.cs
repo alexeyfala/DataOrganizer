@@ -8,7 +8,6 @@ using Settings.Enums;
 using Settings.Interfaces;
 using Settings.Services;
 using Settings.UnitTests.Factories;
-using Shared.Interfaces;
 using TestSupport.Common;
 
 namespace Settings.UnitTests.Services;

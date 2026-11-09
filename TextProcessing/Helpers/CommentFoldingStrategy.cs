@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using TextProcessing.Constants;
 using TextProcessing.Dto;
 using TextProcessing.Interfaces;
 
@@ -96,7 +95,7 @@ public sealed class CommentFoldingStrategy : ILineFoldingStrategy
 					blocks.Add(new TextFolding
 					{
 						EndOffset = close.End,
-						Name = CreateName(content),
+						Name = CommentBanner.Create(content),
 						StartOffset = text.GetLineStart(number) + indentLength
 					});
 				}
@@ -149,11 +148,6 @@ public sealed class CommentFoldingStrategy : ILineFoldingStrategy
 
 	#region Helpers
 	/// <summary>
-	/// Returns the name that the box of a folded comment shows: its first line with dots after it, as in Visual Studio.
-	/// </summary>
-	private static string CreateName(ReadOnlySpan<char> content) => $"{content.TrimEnd()} {Glyphs.ThreeDots}";
-
-	/// <summary>
 	/// Returns the line where a block comment that opens before an index of a line closes, with the offset after its end
 	/// token; <c>null</c> when the comment stays open to the end of the text.
 	/// </summary>
@@ -203,7 +197,7 @@ public sealed class CommentFoldingStrategy : ILineFoldingStrategy
 		blocks.Add(new TextFolding
 		{
 			EndOffset = end,
-			Name = summary ?? CreateName(line[indentLength..]),
+			Name = summary ?? CommentBanner.Create(line[indentLength..]),
 			StartOffset = start
 		});
 	}

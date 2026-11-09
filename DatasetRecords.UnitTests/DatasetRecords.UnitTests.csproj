@@ -26,6 +26,11 @@
 		<ProjectReference Include="..\DatasetRecords\DatasetRecords.csproj" />
 	</ItemGroup>
 
+	<!-- A helper of TestSupport compiled here from the same file, so the project needs no database layer. -->
+	<ItemGroup>
+		<Compile Include="..\TestSupport\Common\RandomString.cs" Link="Common\RandomString.cs" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Using Include="NUnit.Framework" />
 	</ItemGroup>

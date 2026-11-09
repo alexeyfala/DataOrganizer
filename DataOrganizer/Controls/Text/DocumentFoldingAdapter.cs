@@ -1,5 +1,6 @@
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
+using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,11 +34,8 @@ internal sealed class DocumentFoldingAdapter : IFoldingStrategy
 		firstErrorOffset = -1;
 
 		return [.. _strategy
-			.CreateNewFoldings(document.Text)
-			.Select(static x => new NewFolding(x.StartOffset, x.EndOffset)
-			{
-				Name = x.Name
-			})];
+			.CreateNewFoldings(document.Text, [])
+			.Select(static x => x.ToNewFolding())];
 	}
 	#endregion
 }

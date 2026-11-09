@@ -1,6 +1,6 @@
 using AppUpdates.Dto;
+using AppUpdates.Helpers;
 using AppUpdates.Interfaces;
-using Shared.Helpers;
 using Shared.Interfaces;
 using Shared.Properties;
 using System;

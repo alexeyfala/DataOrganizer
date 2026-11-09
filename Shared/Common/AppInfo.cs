@@ -32,9 +32,6 @@ public static class AppInfo
 
 	/// <inheritdoc cref="IsDebugMode" />
 	public static bool IsDebug { get; } = IsDebugMode();
-
-	/// <inheritdoc cref="IsReleaseMode" />
-	public static bool IsRelease { get; } = IsReleaseMode();
 	#endregion
 
 	#region Constructors
@@ -68,21 +65,6 @@ public static class AppInfo
 
 		[Conditional("DEBUG")]
 		static void Determine(ref bool isDebug) => isDebug = true;
-	}
-
-	/// <summary>
-	/// <c>True</c> when the application is in release mode.
-	/// </summary>
-	private static bool IsReleaseMode()
-	{
-		bool isRelease = false;
-
-		Determine(ref isRelease);
-
-		return isRelease;
-
-		[Conditional("RELEASE")]
-		static void Determine(ref bool isRelease) => isRelease = true;
 	}
 	#endregion
 }

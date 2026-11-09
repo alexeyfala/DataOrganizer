@@ -10,6 +10,8 @@
 		<OutputBaseName>$(AppName)-$(AppVersion)</OutputBaseName>
 		<MsiOutputName>$(OutputBaseName)-win-$(Platform)$(_DebugSuffix)</MsiOutputName>
 		<SetupCulture>en-us</SetupCulture>
+		<SetupProductName>$(AppDisplayName)</SetupProductName>
+		<SetupProductName Condition="'$(Configuration)' != 'Release'">$(AppDisplayName) (Debug)</SetupProductName>
 	</PropertyGroup>
 
 	<!--

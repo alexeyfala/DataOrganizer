@@ -1,6 +1,5 @@
 using AppInstance.Interfaces;
 using Settings.Interfaces;
-using Shared.Interfaces;
 
 namespace Settings.Services;
 

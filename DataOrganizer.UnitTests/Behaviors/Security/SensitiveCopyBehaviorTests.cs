@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using Clipboard.Interfaces;
 using DataOrganizer.Behaviors.Security;
 using NSubstitute;
-using Shared.Common;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Behaviors.Security;
 

@@ -1,5 +1,4 @@
 using DataProtection.Helpers;
-using Shared.Common;
 using System;
 using TestSupport.Common;
 using TextProcessing.Constants;

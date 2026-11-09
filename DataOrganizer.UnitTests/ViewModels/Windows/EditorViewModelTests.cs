@@ -57,7 +57,6 @@ using Settings.Enums;
 using Settings.Interfaces;
 using Settings.Services;
 using Settings.UnitTests.Factories;
-using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

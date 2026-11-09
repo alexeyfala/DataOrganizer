@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using Settings.Services;
 using Shared.Interfaces;
 using Shared.Services;
 using System.IO;
@@ -8,7 +9,7 @@ using System.IO.Abstractions;
 using Testably.Abstractions.Testing;
 using TestSupport.Common;
 
-namespace Shared.UnitTests.Services;
+namespace Settings.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(JsonFileStore)}"" type")]
 internal class JsonFileStoreTests

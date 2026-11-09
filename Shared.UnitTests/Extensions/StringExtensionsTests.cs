@@ -91,51 +91,6 @@ internal class StringExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="StringExtensions.Repeat" />: does not append a trailing separator for a single occurrence.
-	/// </summary>
-	[Test]
-	public void Repeat_Does_Not_Append_Trailing_Separator_For_Single_Count()
-	{
-		// Act
-		string result = "ab".Repeat(1, "-");
-
-		// Assert
-		result
-			.Should()
-			.Be("ab");
-	}
-
-	/// <summary>
-	/// <see cref="StringExtensions.Repeat" />: places the separator only between occurrences.
-	/// </summary>
-	[Test]
-	public void Repeat_Joins_Value_With_Separator_Between_Occurrences()
-	{
-		// Act
-		string result = "ab".Repeat(3, "-");
-
-		// Assert
-		result
-			.Should()
-			.Be("ab-ab-ab");
-	}
-
-	/// <summary>
-	/// <see cref="StringExtensions.Repeat" />: returns an empty string for a zero count.
-	/// </summary>
-	[Test]
-	public void Repeat_Returns_Empty_For_Zero_Count()
-	{
-		// Act
-		string result = "ab".Repeat(0, "-");
-
-		// Assert
-		result
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="StringExtensions.SurroundWithQuotesIfNeeded" />: leaves an already-quoted value unchanged.
 	/// </summary>
 	[Test]

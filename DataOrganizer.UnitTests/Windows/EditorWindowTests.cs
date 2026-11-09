@@ -48,6 +48,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 using WindowContracts.Interfaces;
 
 namespace DataOrganizer.UnitTests.Windows;

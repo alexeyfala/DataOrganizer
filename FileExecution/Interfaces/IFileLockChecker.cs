@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shared.Interfaces;
+namespace FileExecution.Interfaces;
 
 /// <summary>
 /// Tells whether another process holds a file and waits for it to let the file go.

@@ -5,8 +5,8 @@ using DataOrganizer.ViewModels.Dialogs;
 using NSubstitute;
 using Settings.Dto;
 using Settings.Interfaces;
-using Shared.Common;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 

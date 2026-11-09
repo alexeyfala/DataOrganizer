@@ -618,6 +618,21 @@ internal class TextEditorBaseTests
 	}
 
 	/// <summary>
+	/// <see cref="TextEditorBase.ScrollViewer" />: there is none before the template is applied.
+	/// </summary>
+	[AvaloniaTest]
+	public void ScrollViewer_Is_None_Before_The_Template()
+	{
+		// Arrange, Act
+		TestTextEditor sut = new();
+
+		// Assert
+		sut.ScrollViewer
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="TextEditorBase.SelectAllCommand" />: there is something to select only when the document has text.
 	/// </summary>
 	[AvaloniaTest]

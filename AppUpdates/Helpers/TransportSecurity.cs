@@ -1,6 +1,6 @@
 using System;
 
-namespace Shared.Helpers;
+namespace AppUpdates.Helpers;
 
 /// <summary>
 /// Transport-security checks for outgoing connections.

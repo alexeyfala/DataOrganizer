@@ -1,4 +1,4 @@
-namespace Shared.Interfaces;
+namespace Settings.Interfaces;
 
 /// <summary>
 /// Keeps values in Json files.

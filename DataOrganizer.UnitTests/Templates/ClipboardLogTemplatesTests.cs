@@ -11,7 +11,6 @@ using AwesomeAssertions;
 using Clipboard.Models;
 using Clipboard.UnitTests.Factories;
 using DataOrganizer.Behaviors.Text;
-using Shared.Common;
 using System;
 using System.Linq;
 using TestSupport.Common;

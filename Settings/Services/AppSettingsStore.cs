@@ -2,7 +2,6 @@ using AppInstance.Interfaces;
 using Settings.Dto;
 using Settings.Interfaces;
 using Shared.Extensions;
-using Shared.Interfaces;
 
 namespace Settings.Services;
 

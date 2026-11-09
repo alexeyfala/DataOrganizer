@@ -24,10 +24,8 @@ using Notifications.Constants;
 using Notifications.Dto;
 using Notifications.Interfaces;
 using NSubstitute;
-using Repository.Services.Database;
 using Serilog;
 using Settings.Interfaces;
-using Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,14 +42,9 @@ internal partial class AppTests
 {
 	#region Data
 	/// <summary>
-	/// Assemblies whose types the application registers itself.
+	/// Company that every assembly of the solution carries.
 	/// </summary>
-	private static readonly Assembly[] OwnAssemblies =
-	[
-		typeof(App).Assembly,
-		typeof(DbAccess).Assembly,
-		typeof(FileEraser).Assembly
-	];
+	private static readonly string? OwnCompany = GetCompany(typeof(App).Assembly);
 	#endregion
 
 	#region Methods
@@ -196,6 +189,46 @@ internal partial class AppTests
 		result
 			.Should()
 			.BeSameAs(SyntaxRegistry.Instance);
+	}
+
+	/// <summary>
+	/// <see cref="App.RegisterServices" />: every singleton of the application registered by its type keeps state of its
+	/// own, so a service without state stays a transient.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Keeps_Only_Stateful_Singletons()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		Type[] singletons =
+		[
+			.. services
+				.Where(static x => x.Lifetime == ServiceLifetime.Singleton)
+				.Select(GetImplementationType)
+				.OfType<Type>()
+				.Where(IsOwnType)
+				.Distinct()
+		];
+
+		// Act
+		string[] stateless =
+		[
+			.. singletons
+				.Where(static x => !HasState(x))
+				.Select(static x => x.Name)
+		];
+
+		// Assert
+		singletons
+			.Should()
+			.NotBeEmpty();
+
+		stateless
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -586,6 +619,16 @@ internal partial class AppTests
 	}
 
 	/// <summary>
+	/// Company named in the attributes of an assembly.
+	/// </summary>
+	private static string? GetCompany(Assembly assembly)
+	{
+		return assembly
+			.GetCustomAttribute<AssemblyCompanyAttribute>()?
+			.Company;
+	}
+
+	/// <summary>
 	/// Type a registration builds, or <c>null</c> when it hands out an instance or a factory.
 	/// </summary>
 	private static Type? GetImplementationType(ServiceDescriptor descriptor)
@@ -596,12 +639,41 @@ internal partial class AppTests
 	}
 
 	/// <summary>
+	/// <c>True</c> when the class or one of its bases keeps a field that can be reassigned or whose type none of its
+	/// constructors receives.
+	/// </summary>
+	private static bool HasState(Type type)
+	{
+		for (Type? current = type; current is not null && current != typeof(object); current = current.BaseType)
+		{
+			HashSet<Type> received =
+			[
+				.. current
+					.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+					.SelectMany(static x => x.GetParameters())
+					.Select(static x => x.ParameterType)
+			];
+
+			FieldInfo[] fields = current.GetFields(BindingFlags.Instance
+				| BindingFlags.Public
+				| BindingFlags.NonPublic
+				| BindingFlags.DeclaredOnly);
+
+			if (fields.Any(x => !x.IsInitOnly || !received.Contains(x.FieldType)))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
 	/// <c>True</c> for a closed type of the application itself.
 	/// </summary>
 	private static bool IsOwnType(Type? type)
 	{
-		return type is { ContainsGenericParameters: false }
-			&& OwnAssemblies.Contains(type.Assembly);
+		return type is { ContainsGenericParameters: false } && GetCompany(type.Assembly) == OwnCompany;
 	}
 	#endregion
 }

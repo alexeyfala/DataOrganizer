@@ -22,6 +22,7 @@
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Runtime (v$(DotNetVersion)) - Windows x64</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
+		<DefineConstants>$(DefineConstants);SetupProductName=$(SetupProductName)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="Themes\HyperlinkTheme.xml" />

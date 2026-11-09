@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Shared.Extensions;
+namespace DataOrganizer.Extensions;
 
 public static class ExpressionExtensions
 {
