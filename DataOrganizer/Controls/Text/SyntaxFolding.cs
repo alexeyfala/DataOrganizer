@@ -244,15 +244,15 @@ internal sealed class SyntaxFolding : IDisposable
 
 	#region Helpers
 	/// <summary>
-	/// Returns the way of finding the blocks that the rules name: by headings and comments, by tags, or by indentation,
-	/// imports and comments.
+	/// Returns the way of finding the blocks that the rules name: by headings and comments, by tags and regions, or by
+	/// indentation, imports and comments.
 	/// </summary>
 	private static IFoldingStrategy CreateStrategy(SyntaxFoldingRules rules, int tabSize) => rules.Kind switch
 	{
 		SyntaxFoldingKind.Headings => new DocumentFoldingAdapter(new CompositeFoldingStrategy(
 			new MarkdownFoldingStrategy(rules, tabSize),
 			new CommentFoldingStrategy(rules))),
-		SyntaxFoldingKind.Tags => new XmlTagFoldingStrategy(),
+		SyntaxFoldingKind.Tags => new XmlTagFoldingStrategy(rules),
 		_ => new DocumentFoldingAdapter(new CompositeFoldingStrategy(
 			new IndentFoldingStrategy(rules, tabSize),
 			new ImportFoldingStrategy(rules),

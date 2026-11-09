@@ -16,7 +16,7 @@ public enum SyntaxFoldingKind
 	Headings,
 
 	/// <summary>
-	/// Elements by their tags, as in XML.
+	/// Elements by their tags, with the regions, as in XML.
 	/// </summary>
 	Tags
 }
