@@ -159,6 +159,7 @@ public sealed class App : Application
 		services.AddTransient<IAvaloniaClipboard, AvaloniaClipboard>();
 		services.AddTransient<IBackedUpWriter, BackedUpWriter>();
 		services.AddTransient<IBackgroundServices, BackgroundServices>();
+		services.AddTransient<IBuildInfo, BuildInfo>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IClipboardHistoryUnlocker, ClipboardHistoryUnlocker>();
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();

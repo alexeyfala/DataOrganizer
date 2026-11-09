@@ -35,6 +35,9 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	/// </summary>
 	private static readonly TimeSpan CheckInterval = TimeSpan.FromDays(1.0);
 
+	/// <inheritdoc cref="IBuildInfo" />
+	private readonly IBuildInfo _buildInfo;
+
 	/// <inheritdoc cref="IHttpClientFactory" />
 	private readonly IHttpClientFactory _httpClientFactory;
 
@@ -56,6 +59,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 
 	#region Constructors
 	public UpdateCheckService(
+		IBuildInfo buildInfo,
 		IHttpClientFactory httpClientFactory,
 		IAppSettingsStore settingsStore,
 		IJsonSerializer jsonSerializer,
@@ -63,6 +67,8 @@ public sealed class UpdateCheckService : IUpdateCheckService
 		ILogger logger,
 		IAppVersionProvider versionProvider)
 	{
+		_buildInfo = buildInfo;
+
 		_httpClientFactory = httpClientFactory;
 
 		_settingsStore = settingsStore;
@@ -83,7 +89,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	{
 		AppSettings settings = _settingsStore.Settings;
 
-		if (!settings.CheckForUpdates)
+		if (_buildInfo.IsDebug || !settings.CheckForUpdates)
 		{
 			return UpdateCheckResult.None;
 		}
