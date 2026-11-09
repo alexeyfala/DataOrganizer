@@ -9,7 +9,8 @@ using System.Linq;
 namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
-/// Expands and collapses the attached <see cref="Expander" /> on a double click of its header.
+/// Lets the header of an <see cref="Expander" /> that it is attached to expand and collapse it only on a double click,
+/// while the buttons inside the header keep their single clicks.
 /// </summary>
 internal sealed class ExpanderDoubleClickToggleBehavior : Behavior<Interactive>
 {
@@ -21,9 +22,10 @@ internal sealed class ExpanderDoubleClickToggleBehavior : Behavior<Interactive>
 		object? sender,
 		PointerPressedEventArgs e)
 	{
+		// A button inside the header takes its own clicks, while the expander's button lies outside the header.
 		if (e.ClickCount == 2
 			|| e.Source is not Visual visual
-			|| visual.GetLogicalAncestors().OfType<Button>().Any(x => !string.Equals(x.Name, "PART_ToggleButton")))
+			|| visual.GetSelfAndLogicalAncestors().TakeWhile(x => x != AssociatedObject).OfType<Button>().Any())
 		{
 			return;
 		}

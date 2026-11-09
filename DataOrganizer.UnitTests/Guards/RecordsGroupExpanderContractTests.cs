@@ -10,7 +10,6 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
-using DataOrganizer.Behaviors.Styling;
 using DataOrganizer.UnitTests.Factories;
 using System.Linq;
 
@@ -20,11 +19,6 @@ namespace DataOrganizer.UnitTests.Guards;
 internal class RecordsGroupExpanderContractTests
 {
 	#region Data
-	/// <summary>
-	/// Name of the button that Material's expander shows its header in.
-	/// </summary>
-	private const string HeaderButtonName = "PART_ToggleButton";
-
 	/// <summary>
 	/// Name of the root of the header that the template builds.
 	/// </summary>
@@ -67,8 +61,7 @@ internal class RecordsGroupExpanderContractTests
 	}
 
 	/// <summary>
-	/// <see cref="ExpanderToggleCursorBehavior" />: Material's header button shows the arrow rather than the hand of the
-	/// theme.
+	/// <c>RecordsGroupExpanderStyle</c>: Material's header button shows the arrow rather than the hand of the theme.
 	/// </summary>
 	[AvaloniaTest]
 	public void Header_Button_Shows_The_Arrow_Cursor()
@@ -93,29 +86,6 @@ internal class RecordsGroupExpanderContractTests
 		cursor
 			.Should()
 			.Be(nameof(StandardCursorType.Arrow));
-	}
-
-	/// <summary>
-	/// <see cref="ExpanderDoubleClickToggleBehavior" />: the header sits in Material's header button under the name the
-	/// behaviors look for.
-	/// </summary>
-	[AvaloniaTest]
-	public void Header_Sits_In_The_Button_The_Behaviors_Look_For()
-	{
-		// Arrange
-		Expander sut = CreateExpander();
-
-		// Act
-		HeadlessWindow.Show(sut);
-
-		// Assert
-		GetHeader(sut).Parent
-			.Should()
-			.BeOfType<ToggleButton>()
-			.Which
-			.Name
-			.Should()
-			.Be(HeaderButtonName);
 	}
 
 	/// <summary>
@@ -149,8 +119,8 @@ internal class RecordsGroupExpanderContractTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates an expander set up as the one of a records group: the style and the cursor behavior on the expander, and
-	/// the double click behavior on a header that a template builds from data.
+	/// Creates an expander set up as the one of a records group: the style on the expander, and the double click behavior
+	/// on a header that a template builds from data.
 	/// </summary>
 	private static Expander CreateExpander()
 	{
@@ -185,10 +155,6 @@ internal class RecordsGroupExpanderContractTests
 				return header;
 			})
 		};
-
-		Interaction
-			.GetBehaviors(expander)
-			.Add(new ExpanderToggleCursorBehavior());
 
 		return expander;
 	}

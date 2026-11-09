@@ -124,8 +124,10 @@
 	<Style Selector="Expander.RecordsGroupExpanderStyle">
 		<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
 
+		<!--  The class makes this a style trigger, which outranks the hand cursor that Material sets in its template.  -->
 		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton">
 			<Setter Property="AutomationProperties.Name" Value="{Binding $parent[Expander].(AutomationProperties.Name), Mode=OneWay}" />
+			<Setter Property="Cursor" Value="Arrow" />
 			<Setter Property="MinHeight" Value="0.0" />
 			<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
 		</Style>
