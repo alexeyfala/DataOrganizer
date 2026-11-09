@@ -8,7 +8,6 @@
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
-	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
@@ -222,8 +221,6 @@
 				</Expander.ContextFlyout>
 
 				<Interaction.Behaviors>
-					<styling:ExpanderToggleCursorBehavior />
-
 					<input:ExpanderToggledByUserBehavior Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}" />
 				</Interaction.Behaviors>
 			</Expander>

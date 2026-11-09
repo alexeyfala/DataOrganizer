@@ -6,8 +6,8 @@ using TextProcessing.Interfaces;
 namespace TextProcessing.Helpers;
 
 /// <summary>
-/// Joins the blocks of several ways over one reading of the text, with one block per line and no block that crosses
-/// another.
+/// Joins the blocks of several ways over one reading of the text, and the blocks found in it before, with one block per
+/// line and no block that crosses another.
 /// </summary>
 public sealed class CompositeFoldingStrategy
 {
@@ -27,15 +27,16 @@ public sealed class CompositeFoldingStrategy
 
 	#region Methods
 	/// <summary>
-	/// Returns the blocks of a text sorted by their start.
+	/// Returns the blocks of a text sorted by their start: those of the ways, joined with the blocks found in the text
+	/// before, such as those of a parser, which come before those of the ways.
 	/// </summary>
-	public List<TextFolding> CreateNewFoldings(string text)
+	public List<TextFolding> CreateNewFoldings(string text, IEnumerable<TextFolding> foundBlocks)
 	{
 		using FoldingText lines = new(text);
 
 		// Of the blocks that start together the outer one comes first, and the sort keeps the order of the ways for the rest.
-		IEnumerable<TextFolding> blocks = _strategies
-			.SelectMany(x => x.CreateNewFoldings(lines))
+		IEnumerable<TextFolding> blocks = foundBlocks
+			.Concat(_strategies.SelectMany(x => x.CreateNewFoldings(lines)))
 			.OrderBy(static x => x.StartOffset)
 			.ThenByDescending(static x => x.EndOffset);
 

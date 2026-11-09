@@ -28,4 +28,16 @@
 	<String
 		Id="LaunchApplication"
 		Value="Запустить !(wix.AppDisplayName)" />
+
+	<String
+		Id="MainFeatureDescription"
+		Value="Файлы программы. Устанавливаются всегда." />
+
+	<String
+		Id="MainFeatureTitle"
+		Value="!(wix.AppDisplayName)" />
+
+	<String
+		Id="ShortcutDescription"
+		Value="Запускает !(wix.AppDisplayName)" />
 </WixLocalization>

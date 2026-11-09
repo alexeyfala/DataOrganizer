@@ -292,7 +292,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 		base.OnPointerPressed(e);
 
 		if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed
-			|| FindScrollViewer() is not { } scrollViewer
+			|| _editor.ScrollViewer is not { } scrollViewer
 			|| TextView is not { DocumentHeight: > 0.0 } textView)
 		{
 			return;
@@ -509,16 +509,12 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 	}
 
 	/// <summary>
-	/// Finds the scroll viewer around the text area.
-	/// </summary>
-	private ScrollViewer? FindScrollViewer() => TextArea?.FindAncestorOfType<ScrollViewer>();
-
-	/// <summary>
 	/// Returns the top and the height of the track of the vertical scroll bar, or of the whole margin without it.
 	/// </summary>
 	private (double Top, double Height) GetTrackRange()
 	{
-		Track? track = FindScrollViewer()?
+		Track? track = _editor
+			.ScrollViewer?
 			.GetTemplateDescendants()
 			.OfType<ScrollBar>()
 			.FirstOrDefault(static x => x.Orientation == Orientation.Vertical)?

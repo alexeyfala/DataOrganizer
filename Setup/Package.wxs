@@ -40,7 +40,7 @@
 	xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 	<Package
 		Manufacturer="$(var.Manufacturer)"
-		Name="$(var.FullName)"
+		Name="$(var.SetupProductName)"
 		UpgradeCode="$(var.UpgradeCode)"
 		Version="$(var.AppVersion)">
 
@@ -319,9 +319,9 @@
 			AllowAbsent="no"
 			AllowAdvertise="no"
 			ConfigurableDirectory="APPLICATIONFOLDER"
-			Description="The core elements that must be installed"
+			Description="!(loc.MainFeatureDescription)"
 			Id="Main"
-			Title="$(var.AppDisplayName) Application">
+			Title="!(loc.MainFeatureTitle)">
 			<ComponentGroupRef Id="Components" />
 		</Feature>
 

@@ -16,7 +16,6 @@ using Repository.Interfaces;
 using Repository.Interfaces.Database;
 using Repository.Services;
 using Repository.Services.Database;
-using Shared.Common;
 using System;
 using System.Threading.Tasks;
 using TestSupport.Common;

@@ -1,6 +1,6 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using Shared.Services;
+using HierarchyExchange.Services;
 using System;
 using System.IO;
 using System.Text;
@@ -9,7 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
-namespace Shared.UnitTests.Services;
+namespace HierarchyExchange.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SystemXmlSerializer)}"" type")]
 internal class SystemXmlSerializerTests

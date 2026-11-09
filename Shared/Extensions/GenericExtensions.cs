@@ -12,11 +12,6 @@ public static class GenericExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Converts an object into an array along with other objects.
-	/// </summary>
-	public static T[] AsArray<T>(this T value, params T[] others) => [.. value.ToEnumerable(others)];
-
-	/// <summary>
 	/// Copies the values ​​of writable passed properties in objects of different types via reflection.
 	/// </summary>
 	public static void CopyPropertiesTo<TSource, TTarget>(

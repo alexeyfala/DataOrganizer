@@ -4,8 +4,8 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using NSubstitute;
 using Settings.Dto;
+using Settings.Interfaces;
 using Settings.Services;
-using Shared.Interfaces;
 using TestSupport.Common;
 
 namespace Settings.UnitTests.Services;

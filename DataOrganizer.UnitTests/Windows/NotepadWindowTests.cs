@@ -33,13 +33,13 @@ using NotepadDocuments.Services;
 using Notifications.Constants;
 using NSubstitute;
 using Settings.Dto;
-using Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 using Threading.Interfaces;
 using WindowContracts.Interfaces;
 

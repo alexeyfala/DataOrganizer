@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace Shared.Common;
+namespace TestSupport.Common;
 
 /// <summary>
 /// Source of random strings.

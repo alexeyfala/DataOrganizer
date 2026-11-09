@@ -2,11 +2,11 @@ using AwesomeAssertions;
 using Microsoft.Data.Sqlite;
 using Repository.IntegrationTests.Fixtures;
 using Repository.Interceptors;
-using Shared.Common;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using TestSupport.Common;
 
 namespace Repository.IntegrationTests.Interceptors;
 

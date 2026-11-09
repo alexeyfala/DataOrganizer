@@ -15,7 +15,6 @@ using Repository.Interfaces;
 using Repository.Interfaces.Database;
 using Repository.Services;
 using Repository.Services.Database;
-using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

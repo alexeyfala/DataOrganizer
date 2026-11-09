@@ -8,8 +8,8 @@ using Notifications.Interfaces;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Exceptions;
-using Shared.Common;
 using System;
+using TestSupport.Common;
 
 namespace Diagnostics.UnitTests.Services;
 

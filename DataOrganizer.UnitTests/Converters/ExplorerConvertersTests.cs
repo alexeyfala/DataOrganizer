@@ -54,7 +54,7 @@ internal class ExplorerConvertersTests
 	/// <summary>
 	/// Runs a converter over the hotkeys of a file and their count, as the binding hands them over.
 	/// </summary>
-	private static object? Convert(IMultiValueConverter converter, HotkeyDto[] hotkeys)
+	private static object? Convert(FuncMultiValueConverter<object?, string?> converter, HotkeyDto[] hotkeys)
 	{
 		return converter.Convert(
 			[hotkeys, hotkeys.Length],

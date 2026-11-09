@@ -10,7 +10,7 @@ using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
-using DataOrganizer.Behaviors.Styling;
+using DataOrganizer.Behaviors;
 using System;
 using System.Reactive.Linq;
 

@@ -7,7 +7,6 @@ using Hierarchy.UnitTests.Factories;
 using HierarchyNotes.Interfaces;
 using HierarchyNotes.Services;
 using NSubstitute;
-using Shared.Common;
 using TestSupport.Common;
 
 namespace HierarchyNotes.UnitTests.Services;

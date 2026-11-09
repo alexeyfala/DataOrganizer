@@ -4,8 +4,8 @@ using AwesomeAssertions;
 using Clipboard.Interfaces;
 using Clipboard.Services;
 using NSubstitute;
-using Shared.Common;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace Clipboard.UnitTests.Services;
 

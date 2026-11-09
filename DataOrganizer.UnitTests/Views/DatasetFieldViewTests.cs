@@ -8,9 +8,9 @@ using AwesomeAssertions;
 using Clipboard.Interfaces;
 using DataOrganizer.Views;
 using NSubstitute;
-using Shared.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Views;
 

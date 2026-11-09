@@ -1,10 +1,10 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using FileExecution.Services;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Shared.Interfaces;
-using Shared.Services;
 using System;
 using System.IO;
 using System.IO.Abstractions;
@@ -14,7 +14,7 @@ using Testably.Abstractions.Testing;
 using TestSupport.Common;
 using TimeProvider = System.TimeProvider;
 
-namespace Shared.UnitTests.Services;
+namespace FileExecution.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileLockChecker)}"" type")]
 internal class FileLockCheckerTests

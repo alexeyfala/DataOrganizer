@@ -5,7 +5,6 @@
 	Files - https://docs.firegiant.com/wix/schema/wxs/files
 	Fragment - https://docs.firegiant.com/wix/schema/wxs/fragment
 	RegistryValue - https://docs.firegiant.com/wix/schema/wxs/registryvalue
-	RemoveFolder - https://docs.firegiant.com/wix/schema/wxs/removefolder
 	Shortcut - https://docs.firegiant.com/wix/schema/wxs/shortcut
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
 -->
@@ -75,16 +74,16 @@
 			</Component>
 
 			<Component
-				Directory="ApplicationProgramsFolder"
+				Directory="ProgramMenuFolder"
 				Id="Shortcuts">
 
-				<!-- Start Menu shortcut to run the program. -->
+				<!-- Start Menu shortcut to run the program, without a folder of its own. -->
 				<Shortcut
 					Advertise="no"
-					Description="Launch $(var.FullName) application"
+					Description="!(loc.ShortcutDescription)"
 					Icon="AppIcon"
 					Id="ApplicationStartMenuShortcut"
-					Name="$(var.FullName)"
+					Name="$(var.AppDisplayName)"
 					Target="[!AppExe]"
 					WorkingDirectory="APPLICATIONFOLDER" />
 
@@ -107,16 +106,6 @@
 					Root="HKCU"
 					Type="integer"
 					Value="1" />
-
-				<!--
-					Start Menu folder to remove during uninstall.  This removes
-					the shortcuts.  For shortcuts, the remove folder step must
-					be explicitly given, unlike components that contain
-					explicit files.
-				-->
-				<RemoveFolder
-					Id="ApplicationProgramsFolder"
-					On="uninstall" />
 			</Component>
 
 			<Component Directory="DesktopFolder">
@@ -125,7 +114,7 @@
 				-->
 				<Shortcut
 					Advertise="no"
-					Description="Launch $(var.FullName) application"
+					Description="!(loc.ShortcutDescription)"
 					Directory="DesktopFolder"
 					Icon="AppIcon"
 					Id="ApplicationDesktopShortcut"
