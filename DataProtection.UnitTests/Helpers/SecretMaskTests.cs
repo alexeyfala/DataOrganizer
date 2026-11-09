@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using DataProtection.Helpers;
-using Shared.Common;
+using TestSupport.Common;
 
 namespace DataProtection.UnitTests.Helpers;
 

@@ -4,10 +4,10 @@ using AwesomeAssertions;
 using EditorDocuments.Services;
 using NSubstitute;
 using Repository.Interfaces.Database;
-using Shared.Common;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace EditorDocuments.UnitTests.Services;
 

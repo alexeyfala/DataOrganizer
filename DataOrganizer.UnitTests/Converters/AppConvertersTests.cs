@@ -6,8 +6,8 @@ using Avalonia.Media.Imaging;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
 using Hierarchy.UnitTests.Factories;
-using Shared.Common;
 using System.Globalization;
+using TestSupport.Common;
 using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Converters;

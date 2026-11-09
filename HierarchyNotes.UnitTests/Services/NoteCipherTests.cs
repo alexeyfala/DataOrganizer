@@ -8,7 +8,6 @@ using Hierarchy.Enums;
 using Hierarchy.UnitTests.Factories;
 using HierarchyNotes.Services;
 using NSubstitute;
-using Shared.Common;
 using System;
 using System.Text;
 using TestSupport.Common;

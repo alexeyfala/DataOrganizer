@@ -14,13 +14,13 @@ using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces.Database;
-using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport.Common;
 
 namespace Clipboard.UnitTests.Services;
 

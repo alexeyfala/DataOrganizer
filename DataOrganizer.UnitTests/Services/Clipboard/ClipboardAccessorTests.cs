@@ -11,7 +11,6 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Services.Clipboard;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;

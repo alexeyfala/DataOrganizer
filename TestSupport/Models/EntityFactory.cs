@@ -1,6 +1,5 @@
 using Entities.Enums;
 using Entities.Models;
-using Shared.Common;
 using System;
 using System.Collections.Generic;
 using TestSupport.Common;

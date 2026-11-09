@@ -19,7 +19,6 @@ using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Repository.Dto;
 using Repository.Interfaces.Database;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;

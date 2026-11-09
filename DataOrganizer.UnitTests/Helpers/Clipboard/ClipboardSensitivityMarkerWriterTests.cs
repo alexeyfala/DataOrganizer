@@ -2,9 +2,9 @@ using Avalonia.Input;
 using AwesomeAssertions;
 using Clipboard.Helpers;
 using DataOrganizer.Helpers.Clipboard;
-using Shared.Common;
 using System;
 using System.Linq;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Helpers.Clipboard;
 
