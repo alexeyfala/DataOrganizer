@@ -192,6 +192,46 @@ internal partial class AppTests
 	}
 
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: every singleton of the application registered by its type keeps state of its
+	/// own, so a service without state stays a transient.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Keeps_Only_Stateful_Singletons()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		Type[] singletons =
+		[
+			.. services
+				.Where(static x => x.Lifetime == ServiceLifetime.Singleton)
+				.Select(GetImplementationType)
+				.OfType<Type>()
+				.Where(IsOwnType)
+				.Distinct()
+		];
+
+		// Act
+		string[] stateless =
+		[
+			.. singletons
+				.Where(static x => !HasState(x))
+				.Select(static x => x.Name)
+		];
+
+		// Assert
+		singletons
+			.Should()
+			.NotBeEmpty();
+
+		stateless
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: the program that opens a file is chosen the way of the operating system the
 	/// application runs on.
 	/// </summary>
@@ -596,6 +636,36 @@ internal partial class AppTests
 		return descriptor.IsKeyedService
 			? descriptor.KeyedImplementationType
 			: descriptor.ImplementationType;
+	}
+
+	/// <summary>
+	/// <c>True</c> when the class or one of its bases keeps a field that can be reassigned or whose type none of its
+	/// constructors receives.
+	/// </summary>
+	private static bool HasState(Type type)
+	{
+		for (Type? current = type; current is not null && current != typeof(object); current = current.BaseType)
+		{
+			HashSet<Type> received =
+			[
+				.. current
+					.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+					.SelectMany(static x => x.GetParameters())
+					.Select(static x => x.ParameterType)
+			];
+
+			FieldInfo[] fields = current.GetFields(BindingFlags.Instance
+				| BindingFlags.Public
+				| BindingFlags.NonPublic
+				| BindingFlags.DeclaredOnly);
+
+			if (fields.Any(x => !x.IsInitOnly || !received.Contains(x.FieldType)))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/// <summary>
