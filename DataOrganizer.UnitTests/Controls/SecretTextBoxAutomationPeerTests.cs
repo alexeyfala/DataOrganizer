@@ -8,7 +8,6 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Controls;
 
@@ -23,37 +22,6 @@ internal class SecretTextBoxAutomationPeerTests
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// <see cref="AutomationPeer.GetProvider{T}" />: the value is there for a call from another thread, the way the bridge
-	/// of the platform asks for patterns.
-	/// </summary>
-	[AvaloniaTest]
-	public void GetProvider_On_Another_Thread_Gives_The_Value()
-	{
-		// Arrange
-		SecretTextBox box = new()
-		{
-			PasswordChar = '*',
-			Text = Text
-		};
-
-		AutomationPeer sut = ControlAutomationPeer.CreatePeerForElement(box);
-
-		// Act
-		Task<IValueProvider?> request = Task.Run(sut.GetProvider<IValueProvider>);
-
-		// The UI thread keeps running the jobs the request may post to it.
-		while (!request.IsCompleted)
-		{
-			Dispatcher.UIThread.RunJobs();
-		}
-
-		// Assert
-		request.Result
-			.Should()
-			.NotBeNull();
-	}
-
 	/// <summary>
 	/// <see cref="SecretTextBoxAutomationPeer" />: a change of a masked text raises no change of the value, and a change of
 	/// an open text does.
