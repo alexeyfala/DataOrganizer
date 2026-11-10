@@ -18,8 +18,7 @@ internal sealed class SecretTextBoxAutomationPeer : TextBoxAutomationPeer, IValu
 	public new string? Value => IsMasked ? string.Empty : Owner.Text;
 
 	/// <summary>
-	/// <c>True</c> while the box masks its text. Read on the UI thread only: the bridge of the platform reads a value there,
-	/// but asks for the patterns on a thread of its own.
+	/// <c>True</c> while the box masks its text.
 	/// </summary>
 	private bool IsMasked => Owner.PasswordChar != default;
 	#endregion

@@ -1,6 +1,5 @@
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
-using Avalonia.Threading;
 using System;
 
 namespace DataOrganizer.Controls.Text;
@@ -53,13 +52,8 @@ internal sealed class TextEditorAutomationPeer : ControlAutomationPeer, IValuePr
 			return base.GetProviderCore(providerType);
 		}
 
-		// The bridge of the platform asks for patterns on a thread of its own, and the editor answers on the UI thread.
-		bool isSensitive = Dispatcher
-			.UIThread
-			.Invoke(() => Editor.IsSensitive);
-
 		// Any process of the user can read a value, so a sensitive text has none.
-		return isSensitive
+		return Editor.IsSensitive
 			? null
 			: base.GetProviderCore(providerType);
 	}

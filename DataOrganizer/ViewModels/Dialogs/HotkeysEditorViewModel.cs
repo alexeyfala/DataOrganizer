@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Diagnostics.Interfaces;
 using DialogContracts.Interfaces;
+using DynamicData.Binding;
 using GlobalHotkeys.Extensions;
 using GlobalHotkeys.Interfaces;
 using GlobalHotkeys.Messages;
@@ -10,8 +11,8 @@ using Repository.Dto;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook.Data;
+using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -92,31 +93,20 @@ public sealed partial class HotkeysEditorViewModel :
 	{
 		messenger.RegisterAll(this);
 
-		Buffer.CollectionChanged += Buffer_CollectionChanged;
+		Disposable
+			.Create(() => messenger.UnregisterAll(this))
+			.DisposeWith(_disposables);
 
-		Disposable.Create(() =>
-		{
-			messenger.UnregisterAll(this);
-			Buffer.CollectionChanged -= Buffer_CollectionChanged;
-		}).DisposeWith(_disposables);
+		Buffer
+			.ToObservableChangeSet()
+			.Subscribe(_ => MakePreview())
+			.DisposeWith(_disposables);
 
 		_dialogHostCloser = dialogHostCloser;
 
 		_hookRunner = hookRunner;
 
 		exceptionHandler.Watch(hookRunner.StartAsync());
-	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="ObservableCollection{T}.CollectionChanged" /> event handler of <see cref="Buffer" />.
-	/// </summary>
-	private void Buffer_CollectionChanged(
-		object? sender,
-		NotifyCollectionChangedEventArgs e)
-	{
-		MakePreview();
 	}
 	#endregion
 
