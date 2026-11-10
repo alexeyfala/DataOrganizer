@@ -9,9 +9,9 @@
 	Meant for full decorations only: the theme sets no frame or shadow thickness, while with BorderOnly
 	on Linux these two give the resize grips their width.
 	
-	TODO: Avalonia 12.1.6 opens that menu from the task bar button and by Alt+Space, but not from a right
-	click on the title bar: the fix (PR #21630, WM_NCRBUTTONUP and WM_INITMENU) is on master only.
-	Check each new release of Avalonia and drop this note once one carries the fix.
+	TODO: Avalonia 12.1.6 opens that menu from the task bar button and by Alt+Space unless a focused tree row
+	takes the key, but not by a right click on the title bar: the fix (PR #21630, WM_NCRBUTTONUP and
+	WM_INITMENU) is on master only. Check each new release of Avalonia and drop this note once one carries it.
 -->
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
