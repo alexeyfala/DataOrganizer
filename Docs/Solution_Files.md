@@ -31,7 +31,6 @@
       - ⚙️ [`feature_request.yml`](../.github/ISSUE_TEMPLATE/feature_request.yml) — feature request form.
     - 📁 **`workflows/`**
       - ⚙️ [`ci.yml`](../.github/workflows/ci.yml) — build and tests on Windows, Linux and macOS.
-    - ⚙️ [`dependabot.yml`](../.github/dependabot.yml) — dependency updates.
     - 📄 [`PULL_REQUEST_TEMPLATE.md`](../.github/PULL_REQUEST_TEMPLATE.md) — pull request template.
     - ⚙️ [`release.yml`](../.github/release.yml) — categories of the generated release notes.
   - 📁 **`.vscode/`** — VS Code only.

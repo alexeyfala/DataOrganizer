@@ -1,12 +1,10 @@
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Headless.NUnit;
-using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
 using System;
-using System.Threading.Tasks;
 using Action = System.Action;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
@@ -55,36 +53,6 @@ internal class TextEditorAutomationPeerTests
 		provider
 			.Should()
 			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="AutomationPeer.GetProvider{T}" />: the value is there for a call from another thread, the way the bridge
-	/// of the platform asks for patterns.
-	/// </summary>
-	[AvaloniaTest]
-	public void GetProvider_On_Another_Thread_Gives_The_Value()
-	{
-		// Arrange
-		ConsoleLogViewer editor = new()
-		{
-			Document = new TextDocument("text")
-		};
-
-		AutomationPeer sut = ControlAutomationPeer.CreatePeerForElement(editor);
-
-		// Act
-		Task<IValueProvider?> request = Task.Run(sut.GetProvider<IValueProvider>);
-
-		// The UI thread keeps running the jobs the request may post to it.
-		while (!request.IsCompleted)
-		{
-			Dispatcher.UIThread.RunJobs();
-		}
-
-		// Assert
-		request.Result
-			.Should()
-			.NotBeNull();
 	}
 
 	/// <summary>

@@ -209,3 +209,13 @@ ditto -c -k --keepParent "DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/Da
 rm -rf DataOrganizer.MacOS/bin
 open -R "Publish/$NAME.zip"
 ```
+
+### Second instance
+
+Opening `DataOrganizer.app` again from Finder, the Dock or with plain `open` only brings the running instance to the front: LaunchServices keeps one instance per app. `open -n` starts another one; its window title carries the instance number, such as `Data Organizer (2)`.
+
+Open a terminal in macOS.
+
+```bash
+open -n DataOrganizer.app
+```
