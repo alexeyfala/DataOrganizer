@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
+using DynamicData.Binding;
 using System;
-using System.Collections.Specialized;
 
 namespace DataOrganizer.Controls;
 
@@ -36,7 +36,9 @@ internal sealed class MaxSizeSwitchPanel : Panel
 		// Keeps the children placed outside the panel bounds invisible.
 		ClipToBounds = true;
 
-		Children.CollectionChanged += Children_CollectionChanged;
+		Children
+			.ToObservableChangeSet<Avalonia.Controls.Controls, Control>()
+			.Subscribe(_ => UpdateChildrenState());
 
 		this
 			.GetObservable(SelectedIndexProperty)
@@ -45,11 +47,6 @@ internal sealed class MaxSizeSwitchPanel : Panel
 	#endregion
 
 	#region Event Handlers
-	/// <summary>
-	/// <see cref="Panel.Children" /> <see cref="INotifyCollectionChanged.CollectionChanged" /> handler.
-	/// </summary>
-	private void Children_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateChildrenState();
-
 	/// <summary>
 	/// <see cref="SelectedIndexProperty" /> changed handler.
 	/// </summary>

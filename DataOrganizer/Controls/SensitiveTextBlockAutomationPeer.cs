@@ -3,6 +3,8 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Shared.Properties;
+using System;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.Controls;
 
@@ -24,8 +26,13 @@ internal sealed class SensitiveTextBlockAutomationPeer : ControlAutomationPeer
 	public SensitiveTextBlockAutomationPeer(SensitiveTextBlock owner)
 		: base(owner)
 	{
-		// The peer lives as long as its text block.
-		owner.PropertyChanged += Owner_PropertyChanged;
+		// The peer lives as long as its text block; a change of a sensitive text keeps the name.
+		owner
+			.GetPropertyChangedObservable(SensitiveTextBlock.IsSensitiveProperty)
+			.Merge(owner
+				.GetPropertyChangedObservable(TextBlock.TextProperty)
+				.Where(_ => !Block.IsSensitive))
+			.Subscribe(_ => RaiseNameChanged());
 	}
 	#endregion
 
@@ -45,18 +52,12 @@ internal sealed class SensitiveTextBlockAutomationPeer : ControlAutomationPeer
 	protected override bool IsControlElementCore() => Block.TemplatedParent is null && base.IsControlElementCore();
 	#endregion
 
-	#region Event Handlers
+	#region Helpers
 	/// <summary>
-	/// Tells of a new name when the text or its sensitivity changes; a change of a sensitive text keeps the name.
+	/// Tells of a new name after a change of the text or its sensitivity.
 	/// </summary>
-	private void Owner_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+	private void RaiseNameChanged()
 	{
-		if (e.Property != SensitiveTextBlock.IsSensitiveProperty
-			&& (e.Property != TextBlock.TextProperty || Block.IsSensitive))
-		{
-			return;
-		}
-
 		// The old name may be the text itself.
 		RaisePropertyChangedEvent(
 			AutomationElementIdentifiers.NameProperty,
