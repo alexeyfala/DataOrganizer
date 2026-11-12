@@ -146,6 +146,10 @@
     <File Path="tools/gen-third-party-notices.ps1" />
     <File Path="tools/run-stryker.ps1" />
   </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/DataOrganizer.Shared/DataOrganizer.Shared.csproj" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
     <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
