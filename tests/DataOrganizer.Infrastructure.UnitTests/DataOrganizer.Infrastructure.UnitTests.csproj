@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<PackageReference Include="Autofac.Extras.Moq" />
+		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="Testably.Abstractions.Testing" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\DataOrganizer.Infrastructure\DataOrganizer.Infrastructure.csproj" />
+		<ProjectReference Include="..\DataOrganizer.TestSupport\DataOrganizer.TestSupport.csproj" />
+	</ItemGroup>
+
+	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
+	<ItemGroup>
+		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\Fakes\InlineDispatcherAccessor.cs" Link="Threading\Fakes\InlineDispatcherAccessor.cs" />
+	</ItemGroup>
+
+</Project>
