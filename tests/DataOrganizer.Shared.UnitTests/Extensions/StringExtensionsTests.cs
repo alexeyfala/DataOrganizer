@@ -1,0 +1,183 @@
+using AwesomeAssertions;
+using DataOrganizer.Shared.Extensions;
+
+namespace DataOrganizer.Shared.UnitTests.Extensions;
+
+[TestFixture(Description = $@"Tests of ""{nameof(StringExtensions)}"" type")]
+internal class StringExtensionsTests
+{
+	#region Data
+	/// <summary>
+	/// Path that needs quoting because of the space in it.
+	/// </summary>
+	private const string PathWithSpace = @"C:\my path";
+
+	/// <summary>
+	/// The same path already surrounded with quotes.
+	/// </summary>
+	private const string QuotedPathWithSpace = $@"""{PathWithSpace}""";
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// <see cref="StringExtensions.IsHtmlColorFormat" />: returns false for null, empty or malformed hex color values.
+	/// </summary>
+	[TestCase(null)]
+	[TestCase("")]
+	[TestCase("#12345")]
+	[TestCase("#1234567")]
+	[TestCase("#GGGGGG")]
+	[TestCase("123456")]
+	public void IsHtmlColorFormat_Returns_False_For_Invalid_Value(string? value)
+	{
+		// Act
+		bool result = value.IsHtmlColorFormat();
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.IsHtmlColorFormat" />: returns true for six- and eight-digit hex colors.
+	/// </summary>
+	[TestCase("#1a2b3c")]
+	[TestCase("#1A2B3C4D")]
+	public void IsHtmlColorFormat_Returns_True_For_Six_And_Eight_Digit_Hex(string value)
+	{
+		// Act
+		bool result = value.IsHtmlColorFormat();
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.IsUriFormat" />: returns false for null, relative or non-http(s) URIs.
+	/// </summary>
+	[TestCase(null)]
+	[TestCase("")]
+	[TestCase("ftp://example.com")]
+	[TestCase("/relative/path")]
+	[TestCase("not a uri")]
+	public void IsUriFormat_Returns_False_For_Non_Http_Or_Relative(string? value)
+	{
+		// Act
+		bool result = value.IsUriFormat();
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.IsUriFormat" />: returns true for absolute http and https URIs.
+	/// </summary>
+	[TestCase("http://example.com")]
+	[TestCase("https://example.com/path?x=1")]
+	public void IsUriFormat_Returns_True_For_Http_And_Https(string value)
+	{
+		// Act
+		bool result = value.IsUriFormat();
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.SurroundWithQuotesIfNeeded" />: leaves an already-quoted value unchanged.
+	/// </summary>
+	[Test]
+	public void SurroundWithQuotesIfNeeded_Leaves_Already_Quoted_Value_Unchanged()
+	{
+		// Act
+		string result = QuotedPathWithSpace.SurroundWithQuotesIfNeeded();
+
+		// Assert
+		result
+			.Should()
+			.Be(QuotedPathWithSpace);
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.SurroundWithQuotesIfNeeded" />: wraps an unquoted value in quotes.
+	/// </summary>
+	[Test]
+	public void SurroundWithQuotesIfNeeded_Wraps_Unquoted_Value()
+	{
+		// Act
+		string result = PathWithSpace.SurroundWithQuotesIfNeeded();
+
+		// Assert
+		result
+			.Should()
+			.Be(QuotedPathWithSpace);
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.Truncate" />: appends the suffix when the value exceeds the maximum length.
+	/// </summary>
+	[Test]
+	public void Truncate_Appends_Suffix_When_Exceeding_Max()
+	{
+		// Act
+		string result = "hello world".Truncate(5);
+
+		// Assert
+		result
+			.Should()
+			.Be("hello...");
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.Truncate" />: does not append the suffix when the length equals the maximum.
+	/// </summary>
+	[Test]
+	public void Truncate_Does_Not_Append_Suffix_When_Length_Equals_Max()
+	{
+		// Act
+		string result = "hello".Truncate(5);
+
+		// Assert
+		result
+			.Should()
+			.Be("hello");
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.Truncate" />: returns the value unchanged when it is within the maximum length.
+	/// </summary>
+	[Test]
+	public void Truncate_Returns_Value_Unchanged_When_Within_Max()
+	{
+		// Act
+		string result = "hello".Truncate(10);
+
+		// Assert
+		result
+			.Should()
+			.Be("hello");
+	}
+
+	/// <summary>
+	/// <see cref="StringExtensions.Truncate" />: uses the supplied custom suffix.
+	/// </summary>
+	[Test]
+	public void Truncate_Uses_Custom_Suffix()
+	{
+		// Act
+		string result = "hello world".Truncate(5, "~");
+
+		// Assert
+		result
+			.Should()
+			.Be("hello~");
+	}
+	#endregion
+}

@@ -152,26 +152,26 @@
     <Project Path="src/DataOrganizer.Database/DataOrganizer.Database.csproj" />
     <Project Path="src/DataOrganizer.Shared/DataOrganizer.Shared.csproj" />
   </Folder>
-  <Folder Name="/Tests/">
+  <Folder Name="/Tests (old)/">
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
     <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
     <Project Path="TestSupport/TestSupport.csproj" />
   </Folder>
-  <Folder Name="/Tests/App/">
+  <Folder Name="/Tests (old)/App/">
     <Project Path="AppInstance.UnitTests/AppInstance.UnitTests.csproj" />
     <Project Path="AppLifecycle.UnitTests/AppLifecycle.UnitTests.csproj" />
     <Project Path="AppUpdates.UnitTests/AppUpdates.UnitTests.csproj" />
     <Project Path="Settings.UnitTests/Settings.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/Database/">
+  <Folder Name="/Tests (old)/Database/">
     <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
     <Project Path="Repository.IntegrationTests/Repository.IntegrationTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/Deployment/">
+  <Folder Name="/Tests (old)/Deployment/">
     <Project Path="Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/Documents/">
+  <Folder Name="/Tests (old)/Documents/">
     <Project Path="DatasetRecords.UnitTests/DatasetRecords.UnitTests.csproj" />
     <Project Path="EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj" />
     <Project Path="EditorMessages.UnitTests/EditorMessages.UnitTests.csproj" />
@@ -179,7 +179,7 @@
     <Project Path="NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj" />
     <Project Path="TextProcessing.UnitTests/TextProcessing.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/Hierarchy/">
+  <Folder Name="/Tests (old)/Hierarchy/">
     <Project Path="Favorites.UnitTests/Favorites.UnitTests.csproj" />
     <Project Path="Hierarchy.UnitTests/Hierarchy.UnitTests.csproj" />
     <Project Path="HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj" />
@@ -187,20 +187,27 @@
     <Project Path="HierarchyScenarios.UnitTests/HierarchyScenarios.UnitTests.csproj" />
     <Project Path="HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/Infrastructure/">
+  <Folder Name="/Tests (old)/Infrastructure/">
     <Project Path="Diagnostics.UnitTests/Diagnostics.UnitTests.csproj" />
     <Project Path="FilteredLists.UnitTests/FilteredLists.UnitTests.csproj" />
     <Project Path="Notifications.UnitTests/Notifications.UnitTests.csproj" />
     <Project Path="Threading.UnitTests/Threading.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/Security/">
+  <Folder Name="/Tests (old)/Security/">
     <Project Path="DataProtection.UnitTests/DataProtection.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Tests/System/">
+  <Folder Name="/Tests (old)/System/">
     <Project Path="Clipboard.UnitTests/Clipboard.UnitTests.csproj" />
     <Project Path="FileExecution.UnitTests/FileExecution.UnitTests.csproj" />
     <Project Path="FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj" />
     <Project Path="GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <Project Path="tests/DataOrganizer.Database.IntegrationTests/DataOrganizer.Database.IntegrationTests.csproj" />
+    <Project Path="tests/DataOrganizer.Database.UnitTests/DataOrganizer.Database.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Shared.UnitTests/DataOrganizer.Shared.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.TestSupport/DataOrganizer.TestSupport.csproj" />
   </Folder>
   <Project Path="DataOrganizer/DataOrganizer.csproj" />
 </Solution>

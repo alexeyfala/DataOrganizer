@@ -1,0 +1,230 @@
+using Autofac;
+using Autofac.Extras.Moq;
+using AwesomeAssertions;
+using DataOrganizer.Database.Repository.Services.Database;
+using DataOrganizer.Shared.Common;
+using DataOrganizer.Shared.Interfaces;
+using DataOrganizer.TestSupport.Common;
+using NSubstitute;
+using System;
+using System.IO;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
+
+namespace DataOrganizer.Database.UnitTests.Repository.Services.Database;
+
+[TestFixture(Description = $@"Tests of ""{nameof(DatabaseBackup)}"" type")]
+internal class DatabaseBackupTests
+{
+	#region Data
+	/// <summary>
+	/// Path of the database the copies are built from.
+	/// </summary>
+	private static readonly string DatabaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
+
+	/// <summary>
+	/// Folder the database and its copies live in.
+	/// </summary>
+	private static readonly string DatabaseFolder = TestPath.Combine("Database");
+
+	/// <summary>
+	/// Path of the copy used in the tests.
+	/// </summary>
+	private static readonly string FilePath = TestPath.Combine("Database", "Backup.sqlite");
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// <see cref="DatabaseBackup.CreateFilePath" />: the copies are kept in a folder of their own, under unique names.
+	/// </summary>
+	[Test]
+	public void CreateFilePath_Builds_A_Unique_Path_In_The_Backups_Folder()
+	{
+		// Act
+		string filePath = DatabaseBackup.CreateFilePath(DatabaseFilePath);
+
+		// Assert
+		Path
+			.GetDirectoryName(filePath)
+			.Should()
+			.Be(DatabaseBackup.GetDirectoryPath(DatabaseFilePath));
+
+		Path
+			.GetExtension(filePath)
+			.Should()
+			.Be(KnownFileExtensions.Sqlite);
+
+		DatabaseBackup
+			.CreateFilePath(DatabaseFilePath)
+			.Should()
+			.NotBe(filePath);
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: erases the copy of the database.
+	/// </summary>
+	[Test]
+	public void Dispose_Erases_The_Copy()
+	{
+		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			MockFileSystem files = new();
+
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteFile(FilePath);
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: erases the copy no more than once.
+	/// </summary>
+	[Test]
+	public void Dispose_Erases_The_Copy_Only_Once()
+	{
+		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			MockFileSystem files = new();
+
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
+
+		// Act
+		sut.Dispose();
+
+		sut.Dispose();
+
+		// Assert
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteFile(FilePath);
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: a copy that is already gone is left alone.
+	/// </summary>
+	[Test]
+	public void Dispose_Skips_A_Missing_Copy()
+	{
+		// Arrange
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileEraser);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+		});
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		fileEraser
+			.DidNotReceive()
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: a failure to erase does not leave the disposal throwing.
+	/// </summary>
+	[Test]
+	public void Dispose_Survives_A_Failure_To_Erase()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+			MockFileSystem files = new();
+
+			files
+				.Directory
+				.CreateDirectory(DatabaseFolder);
+
+			files
+				.File
+				.WriteAllBytes(FilePath, [1]);
+
+			fileEraser
+				.When(x => x.EraseAndDeleteFile(FilePath))
+				.Throw(new UnauthorizedAccessException());
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		DatabaseBackup sut = mock.Create<DatabaseBackup>(TypedParameter.From(FilePath));
+
+		// Act
+		Action act = sut.Dispose;
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.GetDirectoryPath" />: the folder of the copies sits next to the database.
+	/// </summary>
+	[Test]
+	public void GetDirectoryPath_Points_Next_To_The_Database()
+	{
+		// Act
+		string directoryPath = DatabaseBackup.GetDirectoryPath(DatabaseFilePath);
+
+		// Assert
+		Path
+			.GetDirectoryName(directoryPath)
+			.Should()
+			.Be(Path.GetDirectoryName(DatabaseFilePath));
+
+		directoryPath
+			.Should()
+			.NotBe(Path.GetDirectoryName(DatabaseFilePath));
+	}
+	#endregion
+}
