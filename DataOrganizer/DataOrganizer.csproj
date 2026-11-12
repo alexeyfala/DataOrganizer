@@ -56,23 +56,23 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="12.1.6" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.6" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.6" />
-		<PackageReference Include="AvaloniaEdit.TextMate" Version="12.0.0" />
-		<PackageReference Include="DialogHost.Avalonia" Version="0.12.3" />
-		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.14" />
-		<PackageReference Include="Material.Avalonia" Version="3.21.0" />
-		<PackageReference Include="Material.Icons.Avalonia" Version="3.0.2" />
+		<PackageReference Include="Avalonia" />
+		<PackageReference Include="Avalonia.Fonts.Inter" />
+		<PackageReference Include="Avalonia.Themes.Fluent" />
+		<PackageReference Include="AvaloniaEdit.TextMate" />
+		<PackageReference Include="DialogHost.Avalonia" />
+		<PackageReference Include="Mapster.DependencyInjection" />
+		<PackageReference Include="Material.Avalonia" />
+		<PackageReference Include="Material.Icons.Avalonia" />
 		<!-- Raised above the version TextMate asks for, whose native library breaks the build for Intel Macs. -->
-		<PackageReference Include="Onigwrap" Version="1.0.11" />
-		<PackageReference Include="ProItemsRepeater" Version="12.0.0" />
-		<PackageReference Include="Serilog.Enrichers.Demystifier" Version="1.0.3" />
-		<PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
-		<PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-		<PackageReference Include="Serilog.Sinks.FileEx" Version="5.1.8" />
-		<PackageReference Include="Testably.Abstractions" Version="11.0.0" />
-		<PackageReference Include="Xaml.Behaviors" Version="12.1.5" />
+		<PackageReference Include="Onigwrap" />
+		<PackageReference Include="ProItemsRepeater" />
+		<PackageReference Include="Serilog.Enrichers.Demystifier" />
+		<PackageReference Include="Serilog.Exceptions" />
+		<PackageReference Include="Serilog.Sinks.Async" />
+		<PackageReference Include="Serilog.Sinks.FileEx" />
+		<PackageReference Include="Testably.Abstractions" />
+		<PackageReference Include="Xaml.Behaviors" />
 	</ItemGroup>
 
 	<ItemGroup>

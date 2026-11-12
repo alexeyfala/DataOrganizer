@@ -19,11 +19,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="PolySharp" Version="1.17.0">
+		<PackageReference Include="PolySharp">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="WixToolset.Dtf.CustomAction" Version="7.0.1" />
+		<PackageReference Include="WixToolset.Dtf.CustomAction" />
 	</ItemGroup>
 
 </Project>

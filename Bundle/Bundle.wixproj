@@ -28,8 +28,8 @@
 		<Content Include="Themes\HyperlinkTheme.xml" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.1" />
-		<PackageReference Include="WixToolset.Netfx.wixext" Version="7.0.1" />
+		<PackageReference Include="WixToolset.BootstrapperApplications.wixext" />
+		<PackageReference Include="WixToolset.Netfx.wixext" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="Resources\dotnet-runtime-$(DotNetVersion)-win-x64.exe" />

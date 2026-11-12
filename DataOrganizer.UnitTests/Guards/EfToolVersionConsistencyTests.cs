@@ -1,10 +1,8 @@
 using AwesomeAssertions;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;
 
@@ -53,17 +51,14 @@ internal class EfToolVersionConsistencyTests
 
 	#region Helpers
 	/// <summary>
-	/// Reads the version of each EF Core package the projects of the repository reference, with the package and project names.
+	/// Reads the central version of each EF Core package, with the package name.
 	/// </summary>
 	private static IEnumerable<(string Reference, string Version)> ReadPackageVersions()
 	{
-		return Directory
-			.EnumerateFiles(RepositoryFiles.LocateRoot(), "*.csproj", SearchOption.AllDirectories)
-			.SelectMany(static path => XDocument
-				.Load(path)
-				.Descendants("PackageReference")
-				.Where(static x => x.Attribute("Include")!.Value.StartsWith(PackagePrefix, StringComparison.Ordinal))
-				.Select(x => (Reference: $"{x.Attribute("Include")!.Value} in {Path.GetFileName(path)}", Version: x.Attribute("Version")!.Value)));
+		return RepositoryFiles
+			.ReadPackageVersions()
+			.Where(static x => x.Key.StartsWith(PackagePrefix, StringComparison.Ordinal))
+			.Select(static x => (Reference: x.Key, Version: x.Value));
 	}
 
 	/// <summary>

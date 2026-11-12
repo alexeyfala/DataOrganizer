@@ -30,7 +30,7 @@
 		<Content Include="Predefines.wxi" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="WixToolset.UI.wixext" Version="7.0.1" />
+		<PackageReference Include="WixToolset.UI.wixext" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />

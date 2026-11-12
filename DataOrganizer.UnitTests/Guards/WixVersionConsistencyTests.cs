@@ -41,8 +41,10 @@ internal class WixVersionConsistencyTests
 
 		string sdkVersion = ReadSdkVersion(project);
 
+		Dictionary<string, string> packageVersions = RepositoryFiles.ReadPackageVersions();
+
 		// Act
-		Dictionary<string, string> extensionVersions = ReadExtensionVersions(project);
+		Dictionary<string, string> extensionVersions = ReadExtensionVersions(project, packageVersions);
 
 		// Assert
 		extensionVersions
@@ -63,15 +65,16 @@ internal class WixVersionConsistencyTests
 	}
 
 	/// <summary>
-	/// Reads the version of each WiX extension package of the project, keyed by the package name.
+	/// Reads the central version of each WiX extension package of the project, keyed by the package name.
 	/// </summary>
-	private static Dictionary<string, string> ReadExtensionVersions(XDocument project)
+	private static Dictionary<string, string> ReadExtensionVersions(XDocument project, Dictionary<string, string> packageVersions)
 	{
 		return project
 			.Descendants("PackageReference")
 			.Where(static x => x.Attribute("Include")!.Value.StartsWith(ExtensionPrefix, StringComparison.Ordinal)
 				&& x.Attribute("Include")!.Value.EndsWith(ExtensionSuffix, StringComparison.Ordinal))
-			.ToDictionary(static x => x.Attribute("Include")!.Value, static x => x.Attribute("Version")!.Value);
+			.Select(static x => x.Attribute("Include")!.Value)
+			.ToDictionary(static x => x, x => packageVersions[x]);
 	}
 
 	/// <summary>

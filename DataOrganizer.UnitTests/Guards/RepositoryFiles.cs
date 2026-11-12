@@ -11,6 +11,18 @@ namespace DataOrganizer.UnitTests.Guards;
 /// </summary>
 internal static class RepositoryFiles
 {
+	#region Data
+	/// <summary>
+	/// File of the central package versions, relative to the repository root.
+	/// </summary>
+	private const string PackageVersionsFileName = "Directory.Packages.props";
+
+	/// <summary>
+	/// Solution file at the repository root.
+	/// </summary>
+	public const string SolutionFileName = "DataOrganizerApp.slnx";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// Reads every C# file of the application project, each paired with its path.
@@ -31,20 +43,31 @@ internal static class RepositoryFiles
 	}
 
 	/// <summary>
-	/// Walks up from the test output directory to the folder containing Directory.Build.props.
+	/// Walks up from the test output directory to the folder containing the solution file.
 	/// </summary>
 	/// <exception cref="DirectoryNotFoundException">The tests run outside the repository.</exception>
 	public static string LocateRoot()
 	{
 		DirectoryInfo? directory = new(TestContext.CurrentContext.TestDirectory);
 
-		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Directory.Build.props")))
+		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, SolutionFileName)))
 		{
 			directory = directory.Parent;
 		}
 
 		return directory?.FullName
-			?? throw new DirectoryNotFoundException("Could not locate the repository root (Directory.Build.props not found).");
+			?? throw new DirectoryNotFoundException($"Could not locate the repository root ({SolutionFileName} not found).");
+	}
+
+	/// <summary>
+	/// Reads the central version of every package, keyed by the package name.
+	/// </summary>
+	public static Dictionary<string, string> ReadPackageVersions()
+	{
+		return XDocument
+			.Parse(ReadText(PackageVersionsFileName))
+			.Descendants("PackageVersion")
+			.ToDictionary(static x => x.Attribute("Include")!.Value, static x => x.Attribute("Version")!.Value);
 	}
 
 	/// <summary>

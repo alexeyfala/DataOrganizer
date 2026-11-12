@@ -53,7 +53,10 @@
   - ⚙️ [`.editorconfig`](../.editorconfig) — code style and naming rules.
   - ⚙️ [`.gitattributes`](../.gitattributes) — line ending normalisation.
   - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository.
-  - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — version, names and assembly metadata of the application.
+  - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — version, names and assembly metadata of the application, C# settings shared by the projects.
+  - ⚙️ [`Directory.Packages.props`](../Directory.Packages.props) — the version of every NuGet package.
+  - ⚙️ [`global.json`](../global.json) — the .NET SDK the repository builds with.
+  - ⚙️ [`nuget.config`](../nuget.config) — the package source.
   - 📄 [`README.md`](../README.md) — the repository front page.
   - ⚙️ [`stryker-config.json`](../stryker-config.json) — shared settings of the mutation runs.
   - ⚙️ [`Settings.XamlStyler`](../Settings.XamlStyler) — XAML formatting rules.

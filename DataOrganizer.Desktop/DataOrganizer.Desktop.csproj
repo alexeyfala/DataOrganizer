@@ -20,7 +20,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop" Version="12.1.6" />
+		<PackageReference Include="Avalonia.Desktop" />
 	</ItemGroup>
 
 	<!-- Ship license and attribution files alongside the published application. -->

@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Baksteen.Extensions.DeepCopy" Version="1.0.5" />
+		<PackageReference Include="Baksteen.Extensions.DeepCopy" />
 	</ItemGroup>
 
 	<ItemGroup>

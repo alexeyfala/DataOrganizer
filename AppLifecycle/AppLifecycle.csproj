@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="OSVersionExt.NetStd" Version="3.0.1" />
+		<PackageReference Include="OSVersionExt.NetStd" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -23,11 +23,6 @@ internal class SolutionFilesReferenceTests
 	private const string ReferenceFolderPath = "Docs";
 
 	/// <summary>
-	/// Solution file listing the covered virtual folders.
-	/// </summary>
-	private const string SolutionFileName = "DataOrganizerApp.slnx";
-
-	/// <summary>
 	/// Folders whose files are read from disk in addition to the solution file.
 	/// </summary>
 	private static readonly string[] CoveredDiskFolders = ["Docs"];
@@ -118,7 +113,7 @@ internal class SolutionFilesReferenceTests
 	private static IEnumerable<string> ReadSolutionFilePaths(string root)
 	{
 		return XDocument
-			.Load(Path.Combine(root, SolutionFileName))
+			.Load(Path.Combine(root, RepositoryFiles.SolutionFileName))
 			.Descendants("Folder")
 			.Where(folder => CoveredSolutionFolders.Any(covered => folder.Attribute("Name")!.Value.StartsWith(covered, StringComparison.Ordinal)))
 			.Elements("File")

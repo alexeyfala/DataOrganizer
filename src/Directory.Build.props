@@ -1,0 +1,9 @@
+<Project>
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+	<!-- Every assembly of the application carries the version of the application. -->
+	<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+		<FileVersion>$(AppVersion)</FileVersion>
+		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
+	</PropertyGroup>
+</Project>
