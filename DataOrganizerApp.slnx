@@ -156,6 +156,7 @@
     <Project Path="src/DataOrganizer.Security/DataOrganizer.Security.csproj" />
     <Project Path="src/DataOrganizer.Shared/DataOrganizer.Shared.csproj" />
     <Project Path="src/DataOrganizer.SystemIntegration/DataOrganizer.SystemIntegration.csproj" />
+    <Project Path="src/DataOrganizer.Workflows/DataOrganizer.Workflows.csproj" />
   </Folder>
   <Folder Name="/Tests (old)/">
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
@@ -218,6 +219,7 @@
     <Project Path="tests/DataOrganizer.Shared.UnitTests/DataOrganizer.Shared.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.SystemIntegration.UnitTests/DataOrganizer.SystemIntegration.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.TestSupport/DataOrganizer.TestSupport.csproj" />
+    <Project Path="tests/DataOrganizer.Workflows.UnitTests/DataOrganizer.Workflows.UnitTests.csproj" />
   </Folder>
   <Project Path="DataOrganizer/DataOrganizer.csproj" />
 </Solution>

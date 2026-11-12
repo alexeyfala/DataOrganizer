@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<PackageReference Include="Bogus" />
+		<PackageReference Include="OSVersionExt.NetStd" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.SystemIntegration\DataOrganizer.SystemIntegration.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
+		<InternalsVisibleTo Include="DataOrganizer.Workflows.UnitTests" />
+	</ItemGroup>
+
+</Project>
