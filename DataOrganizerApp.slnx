@@ -150,6 +150,7 @@
     <File Path="src/Directory.Build.props" />
     <Project Path="src/DataOrganizer.Database.Migrations/DataOrganizer.Database.Migrations.csproj" />
     <Project Path="src/DataOrganizer.Database/DataOrganizer.Database.csproj" />
+    <Project Path="src/DataOrganizer.Documents/DataOrganizer.Documents.csproj" />
     <Project Path="src/DataOrganizer.Hierarchy/DataOrganizer.Hierarchy.csproj" />
     <Project Path="src/DataOrganizer.Infrastructure/DataOrganizer.Infrastructure.csproj" />
     <Project Path="src/DataOrganizer.Security/DataOrganizer.Security.csproj" />
@@ -209,6 +210,7 @@
     <File Path="tests/Directory.Build.props" />
     <Project Path="tests/DataOrganizer.Database.IntegrationTests/DataOrganizer.Database.IntegrationTests.csproj" />
     <Project Path="tests/DataOrganizer.Database.UnitTests/DataOrganizer.Database.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Documents.UnitTests/DataOrganizer.Documents.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.Hierarchy.UnitTests/DataOrganizer.Hierarchy.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.Infrastructure.UnitTests/DataOrganizer.Infrastructure.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.Security.UnitTests/DataOrganizer.Security.UnitTests.csproj" />
