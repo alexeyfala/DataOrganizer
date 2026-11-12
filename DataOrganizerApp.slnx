@@ -148,6 +148,8 @@
   </Folder>
   <Folder Name="/src/">
     <File Path="src/Directory.Build.props" />
+    <Project Path="src/DataOrganizer.Database.Migrations/DataOrganizer.Database.Migrations.csproj" />
+    <Project Path="src/DataOrganizer.Database/DataOrganizer.Database.csproj" />
     <Project Path="src/DataOrganizer.Shared/DataOrganizer.Shared.csproj" />
   </Folder>
   <Folder Name="/Tests/">
