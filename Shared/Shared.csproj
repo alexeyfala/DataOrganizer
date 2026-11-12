@@ -19,7 +19,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Serilog" Version="4.4.0" />
-		<PackageReference Include="Testably.Abstractions.FileSystem.Interface" Version="10.4.0" />
+		<PackageReference Include="Testably.Abstractions.FileSystem.Interface" Version="11.0.0" />
 		<PackageReference Include="ZString" Version="2.6.0" />
 	</ItemGroup>
 
