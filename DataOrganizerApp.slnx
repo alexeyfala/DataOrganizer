@@ -78,7 +78,6 @@
     <File Path=".vscode/tasks.json" />
   </Folder>
   <Folder Name="/src/">
-    <File Path="src/Directory.Build.props" />
     <Project Path="src/AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
     <Project Path="src/Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />

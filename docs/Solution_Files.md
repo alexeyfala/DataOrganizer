@@ -58,8 +58,6 @@
   - ⚙️ [`Settings.XamlStyler`](../Settings.XamlStyler) — XAML formatting rules.
   - ⚙️ [`stryker-config.json`](../stryker-config.json) — shared settings of the mutation runs.
   - ⚖️ [`THIRD-PARTY-NOTICES.txt`](../THIRD-PARTY-NOTICES.txt) — third-party licences; generated, never edited by hand.
-- 📁 **`src/`** — the projects of the application and its installers.
-  - ⚙️ [`Directory.Build.props`](../src/Directory.Build.props) — assembly version of the application projects.
 - 📁 **`tests/`** — the test projects.
   - ⚙️ [`Directory.Build.props`](../tests/Directory.Build.props) — packages and settings shared by the test projects.
 
