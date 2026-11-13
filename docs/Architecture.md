@@ -82,5 +82,5 @@ The topics of a project have an order: a topic may use only the topics before it
 `TopicOrderTests` holds the order and checks it.
 
 A project with tests has its test project in `tests/`, named `<Project>.UnitTests`, and
-`<Project>.IntegrationTests` for tests on a real database; its folders mirror the project:
-`tests/<Project>.UnitTests/<Topic>/<Kind>`.
+`<Project>.IntegrationTests` for tests that need a database file on the disk; a test on a database in
+memory stays a unit test. Its folders mirror the project: `tests/<Project>.UnitTests/<Topic>/<Kind>`.
