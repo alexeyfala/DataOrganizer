@@ -1,11 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-	<ItemGroup>
-		<PackageReference Include="NUnit" />
-	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\DataOrganizer.Database\DataOrganizer.Database.csproj" />
 	</ItemGroup>
-
 </Project>

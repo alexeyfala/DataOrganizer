@@ -24,7 +24,7 @@ For security vulnerabilities, do **not** open a public issue — follow the
 ```bash
 git clone https://github.com/alexeyfala/DataOrganizer.git
 cd DataOrganizer
-dotnet build DataOrganizerApp.slnx
+dotnet build DataOrganizerApp.Tests.slnf
 dotnet run --project src/DataOrganizer.Desktop
 ```
 

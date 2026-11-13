@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="NUnit" />
 		<PackageReference Include="WixToolset.Dtf.WindowsInstaller" />
 	</ItemGroup>
 
@@ -18,5 +16,4 @@
 		<Compile Include="..\..\src\Setup.CustomActions\Helpers\*.cs" Link="Helpers\%(Filename)%(Extension)" />
 		<Compile Include="..\..\src\Setup.CustomActions\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
 	</ItemGroup>
-
 </Project>

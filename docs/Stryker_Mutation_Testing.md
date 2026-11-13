@@ -121,9 +121,6 @@ Statuses, in the order they are worth looking at:
 The percentage is not a target. What pays off is walking the survivors once and deciding for each
 whether a test is worth writing.
 
-For `DataOrganizer.Database` Stryker also takes `DataOrganizer.TestSupport` for a test project and prints a test discovery error
-about it. `DataOrganizer.TestSupport` has no tests, and the run is not affected.
-
 ## What is noise
 
 Not every survivor can be killed:

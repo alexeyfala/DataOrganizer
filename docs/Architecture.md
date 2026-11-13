@@ -24,25 +24,25 @@ The projects of `src/`, in the order of the Solution Explorer:
 - `DataOrganizer.Database.Migrations` — the migrations of the database.
 - `DataOrganizer.Desktop` — the host of the application on Windows and Linux.
 - `DataOrganizer.Documents` — the texts of files, notes and the notepad.
-  - `TextProcessing` — encodings, transformations, folding and highlighting of texts.
   - `DatasetRecords` — the records of datasets.
   - `Editor` — the documents of the editor and their state.
   - `FileContents` — reading and writing the contents of files.
   - `Notepad` — the tabs of the notepad.
   - `Notes` — the notes of the objects of the tree.
+  - `TextProcessing` — encodings, transformations, folding and highlighting of texts.
 - `DataOrganizer.Hierarchy` — the tree of folders, files and datasets.
   - `Favorites` — the favorite files.
   - `FilteredLists` — filtered views of collections.
   - `Storage` — loading the tree and writing its changes.
-- `DataOrganizer.Infrastructure` — the services the topics above build on.
-  - `WindowContracts` — opening and closing windows.
-  - `DialogContracts` — showing dialogs.
-  - `Notifications` — messages and progress shown to the user.
-  - `Diagnostics` — logging and error handling.
-  - `FileSystemOperations` — folders on disk and the file manager of the system.
+- `DataOrganizer.Infrastructure` — the common services of the application.
   - `AppInstance` — the running instance: command line, environment, shutdown.
-  - `Settings` — the settings of the application and its windows.
   - `AppUpdates` — the check for a new version.
+  - `Diagnostics` — logging and error handling.
+  - `DialogContracts` — showing dialogs.
+  - `FileSystemOperations` — folders on disk and the file manager of the system.
+  - `Notifications` — messages and progress shown to the user.
+  - `Settings` — the settings of the application and its windows.
+  - `WindowContracts` — opening and closing windows.
 - `DataOrganizer.MacOS` — the host of the application on macOS.
 - `DataOrganizer.Security` — encryption of contents, passwords and keys.
 - `DataOrganizer.Shared` — helpers, constants and interface strings used across the projects.
@@ -78,7 +78,8 @@ A project holds a folder per topic and, inside it, a folder per kind (`Dto`, `In
 so on). The topic that names the project lies at the project root without a folder of its own. The
 namespace follows the folders: `<Project>.<Topic>.<Kind>`.
 
-A topic may use only the topics listed before it in its project above; a guard test checks the order.
+The topics of a project have an order: a topic may use only the topics before it. The guard test
+`TopicOrderTests` holds the order and checks it.
 
 A project with tests has its test project in `tests/`, named `<Project>.UnitTests`, and
 `<Project>.IntegrationTests` for tests on a real database; its folders mirror the project:
