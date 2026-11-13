@@ -81,7 +81,7 @@
 				InstallArguments="/norestart /quiet"
 				PerMachine="yes"
 				Permanent="yes"
-				SourceFile="Resources\dotnet-runtime-$(DotNetVersion)-win-x64.exe"
+				SourceFile="$(OutputPath)\$(DotNetInstallerName)"
 				Vital="yes">
 			</ExePackage>
 		</PackageGroup>

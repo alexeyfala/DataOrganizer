@@ -27,14 +27,19 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 
 ### Updating the .NET runtime in the bundle
 
-The bundle installs the .NET Runtime from `src\Bundle\Resources\`. For a new 10.0 patch:
+The bundle embeds the installer of the .NET Runtime, `dotnet-runtime-<version>-win-x64.exe`. Its build
+takes the file from `artifacts\` and downloads it from Microsoft when it is not there. Either way the
+file must match the checksum of the project, or the build fails.
 
-1\. Download the x64 Windows installer of the .NET Runtime (`dotnet-runtime-<version>-win-x64.exe`)
-from <https://dotnet.microsoft.com/en-us/download/dotnet/10.0>.
+For a new 10.0 patch, set two values in `src\Bundle\Bundle.wixproj`:
 
-2\. Put it into `src\Bundle\Resources\` and delete the old installer.
+1\. `DotNetVersion` — the new version.
 
-3\. Set `DotNetVersion` in `src\Bundle\Bundle.wixproj` to the new version.
+2\. `DotNetInstallerSha512` — the checksum of the x64 Windows installer of the .NET Runtime. The page
+that <https://dotnet.microsoft.com/en-us/download/dotnet/10.0> opens for the installer shows it as
+«Checksum (SHA512)».
+
+The next build of the bundle brings the new installer. The old one in `artifacts\` may be deleted.
 
 ### Portable — Release
 
