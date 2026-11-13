@@ -25,7 +25,7 @@ For security vulnerabilities, do **not** open a public issue — follow the
 git clone https://github.com/alexeyfala/DataOrganizer.git
 cd DataOrganizer
 dotnet build DataOrganizerApp.slnx
-dotnet run --project DataOrganizer.Desktop
+dotnet run --project src/DataOrganizer.Desktop
 ```
 
 See the [README](../README.md#build-from-source) for platform-specific notes.
@@ -35,37 +35,7 @@ See the [README](../README.md#build-from-source) for platform-specific notes.
 Please make sure the test suite passes before opening a pull request:
 
 ```bash
-dotnet test AppInstance.UnitTests/AppInstance.UnitTests.csproj
-dotnet test AppLifecycle.UnitTests/AppLifecycle.UnitTests.csproj
-dotnet test AppUpdates.UnitTests/AppUpdates.UnitTests.csproj
-dotnet test Clipboard.UnitTests/Clipboard.UnitTests.csproj
-dotnet test DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj
-dotnet test DataProtection.UnitTests/DataProtection.UnitTests.csproj
-dotnet test DatasetRecords.UnitTests/DatasetRecords.UnitTests.csproj
-dotnet test Diagnostics.UnitTests/Diagnostics.UnitTests.csproj
-dotnet test EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj
-dotnet test EditorMessages.UnitTests/EditorMessages.UnitTests.csproj
-dotnet test Entities.UnitTests/Entities.UnitTests.csproj
-dotnet test Favorites.UnitTests/Favorites.UnitTests.csproj
-dotnet test FileContents.UnitTests/FileContents.UnitTests.csproj
-dotnet test FileExecution.UnitTests/FileExecution.UnitTests.csproj
-dotnet test FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj
-dotnet test FilteredLists.UnitTests/FilteredLists.UnitTests.csproj
-dotnet test GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj
-dotnet test Hierarchy.UnitTests/Hierarchy.UnitTests.csproj
-dotnet test HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj
-dotnet test HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj
-dotnet test HierarchyScenarios.UnitTests/HierarchyScenarios.UnitTests.csproj
-dotnet test HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj
-dotnet test NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj
-dotnet test Notifications.UnitTests/Notifications.UnitTests.csproj
-dotnet test Repository.UnitTests/Repository.UnitTests.csproj
-dotnet test Repository.IntegrationTests/Repository.IntegrationTests.csproj
-dotnet test Settings.UnitTests/Settings.UnitTests.csproj
-dotnet test Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj
-dotnet test Shared.UnitTests/Shared.UnitTests.csproj
-dotnet test TextProcessing.UnitTests/TextProcessing.UnitTests.csproj
-dotnet test Threading.UnitTests/Threading.UnitTests.csproj
+dotnet test DataOrganizerApp.Tests.slnf
 ```
 
 Two categories mark the tests that read or write outside the process, so a run over the
@@ -77,7 +47,7 @@ whole solution can leave them out:
   `Directory.Build.props`, `.vscode`, the markup) instead of exercising the application.
 
 ```bash
-dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCategory!=Guard"
+dotnet test DataOrganizerApp.Tests.slnf --filter "TestCategory!=Integration&TestCategory!=Guard"
 ```
 
 ## Coding Guidelines

@@ -41,6 +41,7 @@
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="DataOrganizerApp.Tests.slnf" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="global.json" />

@@ -46,6 +46,7 @@
   - ⚙️ [`.editorconfig`](../.editorconfig) — code style and naming rules.
   - ⚙️ [`.gitattributes`](../.gitattributes) — line ending normalisation.
   - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository.
+  - ⚙️ [`DataOrganizerApp.Tests.slnf`](../DataOrganizerApp.Tests.slnf) — the projects the tests build, without macOS and the installers.
   - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — version, names and assembly metadata of the application, C# settings shared by the projects.
   - ⚙️ [`Directory.Packages.props`](../Directory.Packages.props) — the version of every NuGet package.
   - ⚙️ [`global.json`](../global.json) — the .NET SDK the repository builds with.

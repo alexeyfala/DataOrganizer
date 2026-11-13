@@ -1,0 +1,31 @@
+{
+  "solution": {
+    "path": "DataOrganizerApp.slnx",
+    "projects": [
+      "src\\AvaloniaEdit.Localization\\AvaloniaEdit.Localization.csproj",
+      "src\\DataOrganizer.Database.Migrations\\DataOrganizer.Database.Migrations.csproj",
+      "src\\DataOrganizer.Database\\DataOrganizer.Database.csproj",
+      "src\\DataOrganizer.Desktop\\DataOrganizer.Desktop.csproj",
+      "src\\DataOrganizer.Documents\\DataOrganizer.Documents.csproj",
+      "src\\DataOrganizer.Hierarchy\\DataOrganizer.Hierarchy.csproj",
+      "src\\DataOrganizer.Infrastructure\\DataOrganizer.Infrastructure.csproj",
+      "src\\DataOrganizer.Security\\DataOrganizer.Security.csproj",
+      "src\\DataOrganizer.Shared\\DataOrganizer.Shared.csproj",
+      "src\\DataOrganizer.SystemIntegration\\DataOrganizer.SystemIntegration.csproj",
+      "src\\DataOrganizer.Workflows\\DataOrganizer.Workflows.csproj",
+      "src\\DataOrganizer\\DataOrganizer.csproj",
+      "tests\\DataOrganizer.Database.IntegrationTests\\DataOrganizer.Database.IntegrationTests.csproj",
+      "tests\\DataOrganizer.Database.UnitTests\\DataOrganizer.Database.UnitTests.csproj",
+      "tests\\DataOrganizer.Documents.UnitTests\\DataOrganizer.Documents.UnitTests.csproj",
+      "tests\\DataOrganizer.Hierarchy.UnitTests\\DataOrganizer.Hierarchy.UnitTests.csproj",
+      "tests\\DataOrganizer.Infrastructure.UnitTests\\DataOrganizer.Infrastructure.UnitTests.csproj",
+      "tests\\DataOrganizer.Security.UnitTests\\DataOrganizer.Security.UnitTests.csproj",
+      "tests\\DataOrganizer.Shared.UnitTests\\DataOrganizer.Shared.UnitTests.csproj",
+      "tests\\DataOrganizer.SystemIntegration.UnitTests\\DataOrganizer.SystemIntegration.UnitTests.csproj",
+      "tests\\DataOrganizer.TestSupport\\DataOrganizer.TestSupport.csproj",
+      "tests\\DataOrganizer.UnitTests\\DataOrganizer.UnitTests.csproj",
+      "tests\\DataOrganizer.Workflows.UnitTests\\DataOrganizer.Workflows.UnitTests.csproj",
+      "tests\\Setup.CustomActions.UnitTests\\Setup.CustomActions.UnitTests.csproj"
+    ]
+  }
+}
