@@ -5,6 +5,8 @@
 		<OutputName>$(MsiOutputName)-bundle</OutputName>
 		<OutputPath>..\..\artifacts</OutputPath>
 		<OutputType>Bundle</OutputType>
+		<!-- Restore covers Setup too: it is built by the target below and no reference leads to it. -->
+		<RestoreGraphProjectInput>$(MSBuildProjectFullPath);$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Setup\Setup.wixproj'))</RestoreGraphProjectInput>
 		<LCID>1033</LCID>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(SetupCulture)'=='ru-ru'">
@@ -33,7 +35,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="Resources\dotnet-runtime-$(DotNetVersion)-win-x64.exe" />
-		<None Include="Resources\dotnet-runtime-10.0.14-win-x64.exe" />
 	</ItemGroup>
 	<!--
 		Skip during restore: WiX makes 'EnableDefaultCompileItems = false' global on the
