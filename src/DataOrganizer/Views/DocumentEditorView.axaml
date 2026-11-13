@@ -1,0 +1,493 @@
+<UserControl
+	x:Class="DataOrganizer.Views.DocumentEditorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:documents="using:DataOrganizer.Documents.Editor.Enums"
+	xmlns:folding="using:AvaloniaEdit.Folding"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
+	xmlns:text="using:DataOrganizer.Documents.TextProcessing.Helpers"
+	xmlns:textBehaviors="using:DataOrganizer.Behaviors.Text"
+	xmlns:textControls="using:DataOrganizer.Controls.Text"
+	xmlns:textEnums="using:DataOrganizer.Documents.TextProcessing.Enums"
+	xmlns:views="using:DataOrganizer.Views"
+	x:Name="View"
+	mc:Ignorable="d">
+
+	<!--
+		Bound by name, not by $parent: an ancestor binding is lost while the control is detached, which resets the editor.
+	-->
+	<Grid RowDefinitions="Auto,*,Auto">
+		<StackPanel
+			Grid.Row="0"
+			Orientation="Horizontal">
+			<StackPanel.Styles>
+				<Style Selector="ToggleButton">
+					<Setter Property="Margin" Value="0.0,4.0" />
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatToggleButton}" />
+				</Style>
+
+				<Style Selector="Button">
+					<Setter Property="Margin" Value="0.0,4.0" />
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</StackPanel.Styles>
+
+			<StackPanel
+				x:Name="ToolBar"
+				DataContext="{Binding #View}"
+				Orientation="Horizontal"
+				Spacing="4.0">
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=Wrap,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding WordWrap, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
+
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=KeyboardSpace,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding ShowSpaces, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.Spaces}" />
+
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=KeyboardTab,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding ShowTabs, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.Tabs}" />
+
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=FormatPilcrow,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding ShowEndOfLine, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+
+				<Panel Classes="VerticalSeparatorPanelStyle" />
+
+				<ToggleButton
+					Classes="primary"
+					Content="{materialIcons:MaterialIconTextExt Kind=ViewAgendaOutline,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					IsChecked="{Binding IsSplit, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.SplitWindow}" />
+
+				<Panel Classes="VerticalSeparatorPanelStyle" />
+
+				<Button
+					Classes="primary"
+					Command="{Binding #Editor.ActiveEditor.ScrollToTopCommand}"
+					Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
+
+				<Button
+					Classes="primary"
+					Command="{Binding #Editor.ActiveEditor.ScrollToEndCommand}"
+					Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
+					                                            IconSize={StaticResource ToolBarIconSize}}"
+					ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
+
+				<Panel Classes="VerticalSeparatorPanelStyle" />
+
+				<ButtonSpinner
+					MinWidth="75.0"
+					Margin="6.0,0.0"
+					AllowSpin="True"
+					Background="Transparent"
+					Foreground="{StaticResource MaterialBodyBrush}"
+					ToolTip.Tip="{x:Static prop:Strings.FontSize}">
+
+					<Interaction.Behaviors>
+						<EventTriggerBehavior EventName="Spin">
+							<InvokeCommandAction
+								Command="{Binding #Editor.ActiveEditor.SpinCommand}"
+								PassEventArgsToCommand="True" />
+						</EventTriggerBehavior>
+					</Interaction.Behaviors>
+
+					<TextBlock Text="{Binding DocumentFontSize, Mode=OneWay}" />
+				</ButtonSpinner>
+
+				<Panel
+					Classes="VerticalSeparatorPanelStyle"
+					IsVisible="{Binding ToolBarContent, Converter={x:Static ObjectConverters.IsNotNull}}" />
+			</StackPanel>
+
+			<!--  The slot keeps the inherited data context for the buttons placed in it.  -->
+			<ContentPresenter Content="{Binding #View.ToolBarContent}" />
+		</StackPanel>
+
+		<textControls:SplitDocumentEditor
+			x:Name="Editor"
+			Grid.Row="1"
+			Classes="CardFlyoutsStyle MaterialFlyoutsStyle"
+			DataContext="{Binding #View}"
+			Document="{Binding Document, Mode=OneWay}"
+			FontSize="{Binding DocumentFontSize, Mode=TwoWay}"
+			Foreground="{StaticResource MaterialBodyBrush}"
+			IsReadOnly="{Binding IsReadOnly, Mode=OneWay}"
+			IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+			IsSplit="{Binding IsSplit, Mode=OneWay}"
+			ShowEndOfLine="{Binding ShowEndOfLine, Mode=OneWay}"
+			ShowSpaces="{Binding ShowSpaces, Mode=OneWay}"
+			ShowTabs="{Binding ShowTabs, Mode=OneWay}"
+			SplitShare="{Binding SplitShare, Mode=TwoWay}"
+			SyntaxLanguage="{Binding SyntaxLanguage, Mode=OneWay}"
+			WordWrap="{Binding WordWrap, Mode=OneWay}">
+
+			<Interaction.Behaviors>
+				<textBehaviors:DocumentViewStateBehavior ViewState="{Binding ViewState, Mode=TwoWay}" />
+			</Interaction.Behaviors>
+
+			<textControls:SplitDocumentEditor.Styles>
+				<!--  The folding markers keep the gray of the line numbers, while their fill and their hover follow the theme.  -->
+				<Style Selector="folding|FoldingMargin">
+					<Setter Property="FoldingMarkerBackgroundBrush" Value="Transparent" />
+					<Setter Property="SelectedFoldingMarkerBackgroundBrush" Value="Transparent" />
+					<Setter Property="SelectedFoldingMarkerBrush" Value="{StaticResource MaterialBodyBrush}" />
+				</Style>
+			</textControls:SplitDocumentEditor.Styles>
+
+			<!--  One menu serves both halves, as it acts on the active one.  -->
+			<textControls:SplitDocumentEditor.ContextFlyout>
+				<controls:LazyMenuFlyout>
+					<controls:LazyMenuFlyout.MenuTemplate>
+						<!--  A template has names of its own, so the items reach the editor as the ancestor the menu is shown at.  -->
+						<DataTemplate>
+							<StackPanel
+								Classes="FlatButtonsStyle BodyColorButtonsStyle"
+								Orientation="Vertical">
+								<!--  The commands used most stand in one row of icons, which keeps the menu short.  -->
+								<StackPanel Orientation="Horizontal">
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.CutCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=ContentCut}"
+										Gesture="{OnPlatform Default='Ctrl+X',
+										                     macOS='⌘+X'}"
+										ToolTip.Tip="{x:Static prop:Strings.Cut}" />
+
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.CopyCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
+										Gesture="{OnPlatform Default='Ctrl+C',
+										                     macOS='⌘+C'}"
+										ToolTip.Tip="{x:Static prop:Strings.Copy}" />
+
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.PasteCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=ContentPaste}"
+										Gesture="{OnPlatform Default='Ctrl+V',
+										                     macOS='⌘+V'}"
+										ToolTip.Tip="{x:Static prop:Strings.Paste}" />
+
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.UndoCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=UndoVariant}"
+										Gesture="{OnPlatform Default='Ctrl+Z',
+										                     macOS='⌘+Z'}"
+										ToolTip.Tip="{x:Static prop:Strings.Undo}" />
+
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.RedoCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=RedoVariant}"
+										Gesture="{OnPlatform Default='Ctrl+Y',
+										                     macOS='⌘+Y'}"
+										ToolTip.Tip="{x:Static prop:Strings.Redo}" />
+
+									<controls:FlyoutButton
+										Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.SelectAllCommand}"
+										Content="{materialIcons:MaterialIconTextExt Kind=SelectAll}"
+										Gesture="{OnPlatform Default='Ctrl+A',
+										                     macOS='⌘+A'}"
+										ToolTip.Tip="{x:Static prop:Strings.SelectAll}" />
+								</StackPanel>
+
+								<Separator />
+
+								<controls:FlyoutButton
+									Header="{x:Static prop:Strings.Transform}"
+									Icon="FormatLetterCase">
+									<Button.Flyout>
+										<controls:LazyMenuFlyout Placement="Right">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate>
+													<StackPanel Orientation="Vertical">
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.UpperCase}"
+															Gesture="{OnPlatform Default='Ctrl+Shift+U',
+															                     macOS='⌘+Shift+U'}"
+															Header="{x:Static prop:Strings.Uppercase}"
+															Icon="FormatLetterCaseUpper" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.LowerCase}"
+															Gesture="{OnPlatform Default='Ctrl+U',
+															                     macOS='⌘+U'}"
+															Header="{x:Static prop:Strings.Lowercase}"
+															Icon="FormatLetterCaseLower" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.TitleCase}"
+															Header="{x:Static prop:Strings.TitleCase}"
+															Icon="FormatLetterStartsWith" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.InvertCase}"
+															Header="{x:Static prop:Strings.InvertCase}"
+															Icon="SwapVertical" />
+
+														<Separator />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.RemoveTrailingWhitespace}"
+															Header="{x:Static prop:Strings.RemoveTrailingSpaces}"
+															Icon="Eraser" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.RemoveLeadingWhitespace}"
+															Header="{x:Static prop:Strings.RemoveLeadingSpaces}"
+															Icon="FormatIndentDecrease" />
+
+														<Separator />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.LeadingTabsToSpaces}"
+															Header="{x:Static prop:Strings.IndentsTabsToSpaces}"
+															Icon="KeyboardSpace" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.TransformCommand}"
+															CommandParameter="{x:Static textEnums:TextTransform.LeadingSpacesToTabs}"
+															Header="{x:Static prop:Strings.IndentsSpacesToTabs}"
+															Icon="KeyboardTab" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
+									</Button.Flyout>
+								</controls:FlyoutButton>
+
+								<Separator />
+
+								<controls:FlyoutButton
+									Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.FindCommand}"
+									Gesture="{OnPlatform Default='Ctrl+F',
+									                     macOS='⌘+F'}"
+									Header="{x:Static prop:Strings.Find}"
+									Icon="Magnify" />
+
+								<controls:FlyoutButton
+									Header="{x:Static prop:Strings.Bookmarks}"
+									Icon="BookmarkMultipleOutline">
+									<Button.Flyout>
+										<controls:LazyMenuFlyout Placement="Right">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate>
+													<StackPanel Orientation="Vertical">
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.ToggleBookmarkCommand}"
+															Gesture="{OnPlatform Default='Ctrl+F2',
+															                     macOS='⌘+F2'}"
+															Header="{x:Static prop:Strings.ToggleBookmark}"
+															Icon="Bookmark" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.NextBookmarkCommand}"
+															Gesture="F2"
+															Header="{x:Static prop:Strings.NextBookmark}"
+															Icon="ArrowDown" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.PreviousBookmarkCommand}"
+															Gesture="Shift+F2"
+															Header="{x:Static prop:Strings.PreviousBookmark}"
+															Icon="ArrowUp" />
+
+														<Separator />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.ClearBookmarksCommand}"
+															Header="{x:Static prop:Strings.RemoveAllBookmarks}"
+															Icon="BookmarkRemoveOutline" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
+									</Button.Flyout>
+								</controls:FlyoutButton>
+
+								<controls:FlyoutButton
+									Header="{x:Static prop:Strings.Folding}"
+									Icon="UnfoldLessHorizontal"
+									IsEnabled="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.CanFold, Mode=OneWay}">
+									<Button.Flyout>
+										<controls:LazyMenuFlyout Placement="Right">
+											<controls:LazyMenuFlyout.MenuTemplate>
+												<DataTemplate>
+													<StackPanel Orientation="Vertical">
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.ToggleFoldingCommand}"
+															Gesture="{OnPlatform Default='Ctrl+M, Ctrl+M',
+															                     macOS='⌃+M, ⌃+M'}"
+															Header="{x:Static prop:Strings.ToggleFolding}"
+															Icon="PlusMinusBox" />
+
+														<!--  One chord serves both, as it unfolds every block when one is folded.  -->
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.FoldAllCommand}"
+															Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
+															                     macOS='⌃+M, ⌃+L'}"
+															Header="{x:Static prop:Strings.FoldAll}"
+															Icon="CollapseAllOutline" />
+
+														<controls:FlyoutButton
+															Command="{Binding $parent[textControls:SplitDocumentEditor].ActiveEditor.UnfoldAllCommand}"
+															Gesture="{OnPlatform Default='Ctrl+M, Ctrl+L',
+															                     macOS='⌃+M, ⌃+L'}"
+															Header="{x:Static prop:Strings.UnfoldAll}"
+															Icon="ExpandAllOutline" />
+													</StackPanel>
+												</DataTemplate>
+											</controls:LazyMenuFlyout.MenuTemplate>
+										</controls:LazyMenuFlyout>
+									</Button.Flyout>
+								</controls:FlyoutButton>
+							</StackPanel>
+						</DataTemplate>
+					</controls:LazyMenuFlyout.MenuTemplate>
+				</controls:LazyMenuFlyout>
+			</textControls:SplitDocumentEditor.ContextFlyout>
+		</textControls:SplitDocumentEditor>
+
+		<Border
+			Grid.Row="2"
+			BorderBrush="{StaticResource MaterialDividerBrush}"
+			BorderThickness="0.0,1.0,0.0,0.0">
+			<DockPanel
+				LastChildFill="False"
+				TextBlock.TextTrimming="CharacterEllipsis">
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
+					<views:ChoiceSelector
+						x:Name="EncodingBlock"
+						Caption="{Binding #View.EncodingName, Mode=OneWay}"
+						Choices="{x:Static text:FileTextCodec.EncodingChoices}"
+						DefaultChoice="{Binding #View.DefaultEncoding, Mode=OneWay}"
+						DefaultMark="{x:Static prop:Strings.ByContents}"
+						FlyoutOpeningCommand="{Binding #View.FindUnreadableEncodingsCommand, Mode=OneWay}"
+						FlyoutPlacement="TopEdgeAlignedRight"
+						FlyoutWidth="400.0"
+						IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+						SelectedChoice="{Binding #View.Encoding, Mode=TwoWay}"
+						ToolTip.Tip="{x:Static prop:Strings.Encoding}"
+						UnavailableChoices="{Binding #View.UnreadableEncodings, Mode=OneWay}"
+						UnavailableTip="{x:Static prop:Strings.ContentsUnreadableInThisEncoding}" />
+				</Border>
+
+				<Panel
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right"
+					IsVisible="{Binding #View.EncodingName, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+				<!--
+					A choice converts the text of the active half, and the selected item follows the status, as the ids are the
+					names of the styles. A text without line breaks hides the block with its separator.
+				-->
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
+					<views:ChoiceSelector
+						x:Name="LineEndingBlock"
+						Caption="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static converters:DocumentConverters.LineEndingToCaption}}"
+						Choices="{Binding #View.LineEndingChoices, Mode=OneTime}"
+						ChooseCommand="{Binding #View.ConvertLineEndingsCommand, Mode=OneWay}"
+						FlyoutPlacement="TopEdgeAlignedRight"
+						FlyoutWidth="200.0"
+						IsEnabled="{Binding #View.IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
+						IsSearchable="False"
+						IsVisible="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static documents:LineEnding.None}}"
+						SelectedChoice="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay}"
+						ToolTip.ShowOnDisabled="True"
+						ToolTip.Tip="{x:Static prop:Strings.LineEndings}" />
+				</Border>
+
+				<Panel
+					x:Name="LineEndingSeparator"
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right"
+					IsVisible="{Binding #Editor.ActiveEditor.Status.LineEnding, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static documents:LineEnding.None}}" />
+
+				<!--
+					The numbers of the length and of the caret sit in DockPanels: unlike a StackPanel, a DockPanel gives
+					its children only the width there is, so a number cut by a narrow window ends with an ellipsis.
+				-->
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
+					<DockPanel
+						x:Name="LengthBlock"
+						Margin="8.0,4.0"
+						HorizontalSpacing="{StaticResource ElementSpacing}"
+						LastChildFill="False">
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.TextLength, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LengthFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.LineCount, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LinesFormat}}" />
+					</DockPanel>
+				</Border>
+
+				<Panel
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right" />
+
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Right">
+					<DockPanel
+						x:Name="CaretBlock"
+						Margin="8.0,4.0"
+						HorizontalSpacing="{StaticResource ElementSpacing}"
+						LastChildFill="False">
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Line, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.LineFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status.Column, Mode=OneWay, Converter={x:Static converters:DocumentConverters.NumberCaption}, ConverterParameter={x:Static prop:Strings.ColumnFormat}}" />
+
+						<TextBlock Text="{Binding #Editor.ActiveEditor.Status, Mode=OneWay, Converter={x:Static converters:DocumentConverters.SelectionOrPosition}}" />
+					</DockPanel>
+				</Border>
+
+				<Panel
+					Classes="VerticalSeparatorPanelStyle"
+					DockPanel.Dock="Right" />
+
+				<Border
+					ClipToBounds="True"
+					DockPanel.Dock="Left">
+					<views:ChoiceSelector
+						x:Name="LanguageBlock"
+						Caption="{Binding #View.SyntaxLanguage, Mode=OneWay, Converter={x:Static converters:DocumentConverters.SyntaxLanguageToName}}"
+						Choices="{Binding #View.LanguageChoices, Mode=OneTime}"
+						DefaultChoice="{Binding #View.DefaultSyntaxLanguage, Mode=OneWay}"
+						DefaultMark="{Binding #View.DefaultSyntaxLanguageMark, Mode=OneWay}"
+						SelectedChoice="{Binding #View.SyntaxLanguage, Mode=TwoWay}"
+						ToolTip.Tip="{x:Static prop:Strings.SyntaxHighlighting}" />
+				</Border>
+			</DockPanel>
+		</Border>
+	</Grid>
+</UserControl>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<PackageReference Include="Autofac.Extras.Moq" />
+		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+		<PackageReference Include="NSubstitute" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\DataOrganizer.Hierarchy\DataOrganizer.Hierarchy.csproj" />
+		<ProjectReference Include="..\DataOrganizer.TestSupport\DataOrganizer.TestSupport.csproj" />
+	</ItemGroup>
+
+</Project>

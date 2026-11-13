@@ -1,0 +1,84 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+		<RootNamespace>$(AppName)</RootNamespace>
+		<AssemblyName>$(AppName)Main</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Include="Assets\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Remove="Assets\Logo.256.png" />
+		<AvaloniaResource Remove="Assets\Logo.svg" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaXaml Remove="Templates\ClipboardLogTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\ContextMenuTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\EditorTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\FileListTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\NotificationTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\PropertiesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\SettingsTemplates.axaml" />
+		<AvaloniaXaml Remove="Styling\Resources.axaml" />
+		<AvaloniaXaml Remove="Styling\SideSheetControlTheme.axaml" />
+		<AvaloniaXaml Remove="Styling\Styles.axaml" />
+		<AvaloniaXaml Remove="Styling\Themes.axaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Include="Styling\Resources.axaml" />
+		<AvaloniaResource Include="Styling\SideSheetControlTheme.axaml" />
+		<AvaloniaResource Include="Styling\Styles.axaml" />
+		<AvaloniaResource Include="Styling\Themes.axaml" />
+		<AvaloniaResource Include="Templates\ClipboardLogTemplates.axaml" />
+		<AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
+		<AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
+		<AvaloniaResource Include="Templates\EditorTemplates.axaml" />
+		<AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
+		<AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\FileListTemplates.axaml" />
+		<AvaloniaResource Include="Templates\NotificationTemplates.axaml" />
+		<AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\PropertiesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\SettingsTemplates.axaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" />
+		<PackageReference Include="Avalonia.Fonts.Inter" />
+		<PackageReference Include="Avalonia.Themes.Fluent" />
+		<PackageReference Include="AvaloniaEdit.TextMate" />
+		<PackageReference Include="DialogHost.Avalonia" />
+		<PackageReference Include="Mapster.DependencyInjection" />
+		<PackageReference Include="Material.Avalonia" />
+		<PackageReference Include="Material.Icons.Avalonia" />
+		<!-- Raised above the version TextMate asks for, whose native library breaks the build for Intel Macs. -->
+		<PackageReference Include="Onigwrap" />
+		<PackageReference Include="ProItemsRepeater" />
+		<PackageReference Include="Serilog.Enrichers.Demystifier" />
+		<PackageReference Include="Serilog.Exceptions" />
+		<PackageReference Include="Serilog.Sinks.Async" />
+		<PackageReference Include="Serilog.Sinks.FileEx" />
+		<PackageReference Include="Testably.Abstractions" />
+		<PackageReference Include="Xaml.Behaviors" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
+		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
+		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
+		<ProjectReference Include="..\DataOrganizer.Database.Migrations\DataOrganizer.Database.Migrations.csproj" />
+		<ProjectReference Include="..\DataOrganizer.Workflows\DataOrganizer.Workflows.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
+	</ItemGroup>
+</Project>

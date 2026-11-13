@@ -1,0 +1,75 @@
+<Window
+	x:Class="DataOrganizer.Windows.NoticeWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
+	Title="{Binding Title, Mode=OneWay}"
+	Width="520.0"
+	x:DataType="windows:NoticeViewModel"
+	CanResize="False"
+	Icon="/Assets/Logo.ico"
+	SizeToContent="Height"
+	Topmost="{Binding IsTopmost, Mode=OneWay}"
+	WindowStartupLocation="CenterScreen"
+	mc:Ignorable="d">
+
+	<StackPanel
+		Margin="16.0"
+		Classes="FlatButtonsStyle"
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
+
+		<Interaction.Behaviors>
+			<KeyDownTrigger
+				Key="Escape"
+				EventRoutingStrategy="Bubble">
+				<CloseWindowAction />
+			</KeyDownTrigger>
+		</Interaction.Behaviors>
+
+		<!--  A message of any length leaves the buttons on the screen.  -->
+		<ScrollViewer
+			MaxHeight="360.0"
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Auto">
+			<StackPanel
+				Orientation="Vertical"
+				Spacing="{StaticResource ElementSpacing}">
+				<TextBlock
+					Text="{Binding Message, Mode=OneWay}"
+					TextWrapping="Wrap" />
+
+				<controls:SelectablePathTextBlock
+					IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+					Path="{Binding FilePath, Mode=OneWay}"
+					TextWrapping="Wrap" />
+			</StackPanel>
+		</ScrollViewer>
+
+		<StackPanel
+			HorizontalAlignment="Right"
+			Orientation="Horizontal"
+			Spacing="{StaticResource ElementSpacing}">
+			<Button
+				Classes="primary"
+				Command="{Binding RevealFileCommand}"
+				Content="{Binding ActionCaption, Mode=OneWay}"
+				IsVisible="{Binding ActionCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+			<Button
+				Classes="primary"
+				Content="{x:Static prop:Strings.Close}"
+				IsDefault="True">
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="Click">
+						<CloseWindowAction />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+			</Button>
+		</StackPanel>
+	</StackPanel>
+</Window>

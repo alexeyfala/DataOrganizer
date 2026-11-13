@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<PackageReference Include="DynamicData" />
+		<PackageReference Include="Mapster" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.Infrastructure\DataOrganizer.Infrastructure.csproj" />
+	</ItemGroup>
+
+</Project>

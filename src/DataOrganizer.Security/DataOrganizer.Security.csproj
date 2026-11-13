@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<PackageReference Include="NSec.Cryptography" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.Hierarchy\DataOrganizer.Hierarchy.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.Security.UnitTests" />
+	</ItemGroup>
+
+</Project>

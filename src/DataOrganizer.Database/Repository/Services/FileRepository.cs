@@ -1,0 +1,146 @@
+using DataOrganizer.Database.Entities.Models;
+using DataOrganizer.Database.Repository.DbContexts;
+using DataOrganizer.Database.Repository.Enums;
+using DataOrganizer.Database.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.Database.Repository.Services;
+
+public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
+{
+	#region Constructors
+	public FileRepository(SqliteDbContext context) : base(context)
+	{
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public Task<FileEntity[]> GetAllAsync(OptionalFileProperties optionalProperties, CancellationToken token = default)
+	{
+		bool includeContents = optionalProperties.HasFlag(OptionalFileProperties.Contents);
+
+		bool includeEditorState = optionalProperties.HasFlag(OptionalFileProperties.EditorState);
+
+		return (includeContents, includeEditorState) switch
+		{
+			(false, false) => FindAll().Select(x => new FileEntity
+			{
+				CreatedAt = x.CreatedAt,
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Kind = x.Kind,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				UpdatedAt = x.UpdatedAt
+			}).ToArrayAsync(token),
+			(true, false) => FindAll().Select(x => new FileEntity
+			{
+				Contents = x.Contents, // ← Include.
+				CreatedAt = x.CreatedAt,
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Kind = x.Kind,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				UpdatedAt = x.UpdatedAt
+			}).ToArrayAsync(token),
+			(false, true) => FindAll().Select(x => new FileEntity
+			{
+				CreatedAt = x.CreatedAt,
+				EditorState = x.EditorState, // ← Include.
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Kind = x.Kind,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				UpdatedAt = x.UpdatedAt
+			}).ToArrayAsync(token),
+			(true, true) => FindAll().Select(x => new FileEntity
+			{
+				Contents = x.Contents, // ← Include.
+				CreatedAt = x.CreatedAt,
+				EditorState = x.EditorState, // ← Include.
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Kind = x.Kind,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				UpdatedAt = x.UpdatedAt
+			}).ToArrayAsync(token)
+		};
+	}
+
+	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public Task<byte[]?> GetContentsAsync(Guid id, CancellationToken token = default)
+	{
+		return FindBy(x => x.Id == id)
+			.Select(x => x.Contents)
+			.FirstOrDefaultAsync(token);
+	}
+
+	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default)
+	{
+		return FindBy(x => x.Id == id)
+			.Select(x => x.EditorState)
+			.FirstOrDefaultAsync(token);
+	}
+
+	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default)
+	{
+		return FindBy(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
+			.Select(x => x.Id)
+			.ToArrayAsync(token);
+	}
+
+	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public Task<int> RemoveAsync(Guid id, CancellationToken token = default)
+	{
+		return RemoveRangeByAsync(x => x.Id == id, token);
+	}
+
+	/// <inheritdoc />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default)
+	{
+		return RemoveRangeByAsync(x => ids.Contains(x.Id), token);
+	}
+
+	/// <inheritdoc />
+	public Task<int> UpdatePropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FileEntity>>[] setters,
+		CancellationToken token = default)
+	{
+		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
+	}
+	#endregion
+}

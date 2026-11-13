@@ -1,0 +1,63 @@
+﻿<Project Sdk="WixToolset.Sdk/7.0.1" InitialTargets="BuildSetupDependency">
+	<PropertyGroup>
+		<AcceptEula>wix7</AcceptEula>
+		<DotNetVersion>10.0.15</DotNetVersion>
+		<DotNetInstallerName>dotnet-runtime-$(DotNetVersion)-win-x64.exe</DotNetInstallerName>
+		<!-- SHA-512 of that installer, as Microsoft publishes it next to the download. -->
+		<DotNetInstallerSha512>c202a6721d66f49086e087a58e31c448062b0718fdd66b31807d7b2b31673adae5d3ccb36fc7451e113172ce59913d6c8034a35d5cc1cf6b079d5b544f1f425b</DotNetInstallerSha512>
+		<OutputName>$(MsiOutputName)-bundle</OutputName>
+		<OutputPath>..\..\artifacts</OutputPath>
+		<OutputType>Bundle</OutputType>
+		<!-- Restore covers Setup too: it is built by the target below and no reference leads to it. -->
+		<RestoreGraphProjectInput>$(MSBuildProjectFullPath);$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Setup\Setup.wixproj'))</RestoreGraphProjectInput>
+		<LCID>1033</LCID>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(SetupCulture)'=='ru-ru'">
+		<LCID>1049</LCID>
+	</PropertyGroup>
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);DotNetInstallerName=$(DotNetInstallerName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);DotNetVersion=$(DotNetVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
+		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
+		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Runtime (v$(DotNetVersion)) - Windows x64</DefineConstants>
+		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
+		<DefineConstants>$(DefineConstants);SetupProductName=$(SetupProductName)</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<Content Include="Themes\HyperlinkTheme.xml" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="WixToolset.BootstrapperApplications.wixext" />
+		<PackageReference Include="WixToolset.Netfx.wixext" />
+	</ItemGroup>
+	<!--
+		Skip during restore: WiX makes 'EnableDefaultCompileItems = false' global on the
+		restore phase, which would drop Program.cs from the Desktop build (CS5001).
+		Build the dependency only in the build phase ($(MSBuildRestoreSessionId) is empty).
+		Inside Visual Studio a nested build only looks up the outputs of the references of Setup;
+		BuildingInsideVisualStudio=false makes it build them, as on the command line.
+	-->
+	<Target Name="BuildSetupDependency" Condition="'$(MSBuildRestoreSessionId)' == '' AND '$(DesignTimeBuild)' != 'true'">
+		<MSBuild Projects="..\Setup\Setup.wixproj" Properties="&#xD;&#xA;				 Configuration=$(Configuration);&#xD;&#xA;				 OpenOutputFolder=false;&#xD;&#xA;				 BuildingInsideVisualStudio=false;" />
+	</Target>
+	<!--
+		The bundle embeds the runtime installer from the output folder. One already there is taken as it is,
+		a missing one is downloaded from Microsoft. Either way its checksum must match.
+	-->
+	<Target Name="FetchDotNetInstaller" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+		<DownloadFile SourceUrl="https://builds.dotnet.microsoft.com/dotnet/Runtime/$(DotNetVersion)/$(DotNetInstallerName)" DestinationFolder="$(OutputPath)" Retries="2" Condition="!Exists('$(OutputPath)\$(DotNetInstallerName)')" />
+		<VerifyFileHash File="$(OutputPath)\$(DotNetInstallerName)" Algorithm="SHA512" Hash="$(DotNetInstallerSha512)" />
+	</Target>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
+		<!-- explorer.exe exits with 1 even when the window opens. -->
+		<Exec Command="explorer /select,&quot;$(TargetPath)&quot;" IgnoreExitCode="true" />
+	</Target>
+</Project>

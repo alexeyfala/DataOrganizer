@@ -5,114 +5,64 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Folder Name="/Deployment/" />
-  <Folder Name="/Deployment/PupNet/">
-    <File Path="app.metainfo.xml" />
-    <File Path="app.pupnet.conf" />
+  <Folder Name="/build/">
+    <File Path="build/app.metainfo.xml" />
+    <File Path="build/app.pupnet.conf" />
+    <File Path="build/gen-license-rtf.ps1" />
+    <File Path="build/gen-release-notes.ps1" />
+    <File Path="build/gen-third-party-notices.ps1" />
+    <File Path="build/run-stryker.ps1" />
   </Folder>
-  <Folder Name="/Deployment/WIX/">
-    <Project Path="Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
-      <Platform Solution="*|Any CPU" Project="x64" />
-      <Build Solution="*|Any CPU" Project="false" />
-    </Project>
-    <Project Path="Setup.CustomActions/Setup.CustomActions.csproj" />
-    <Project Path="Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
-      <Platform Solution="*|Any CPU" Project="x64" />
-      <Build Solution="*|Any CPU" Project="false" />
-    </Project>
+  <Folder Name="/docs/">
+    <File Path="docs/Architecture.md" />
+    <File Path="docs/Debugging_Tests.md" />
+    <File Path="docs/Encryption_Format.md" />
+    <File Path="docs/GitHub_Release.md" />
+    <File Path="docs/Publish.md" />
+    <File Path="docs/release-notes.template.md" />
+    <File Path="docs/Solution_Files.md" />
+    <File Path="docs/Stryker_Mutation_Testing.md" />
   </Folder>
-  <Folder Name="/Docs/">
-    <File Path="Docs/Debugging_Tests.md" />
-    <File Path="Docs/Encryption_Format.md" />
-    <File Path="Docs/GitHub_Release.md" />
-    <File Path="Docs/Publish.md" />
-    <File Path="Docs/release-notes.template.md" />
-    <File Path="Docs/Solution_Files.md" />
-    <File Path="Docs/Stryker_Mutation_Testing.md" />
+  <Folder Name="/docs/Database/">
+    <File Path="docs/Database/Migrations.md" />
   </Folder>
-  <Folder Name="/Docs/Database/">
-    <File Path="Docs/Database/Migrations.md" />
+  <Folder Name="/docs/Images/">
+    <File Path="docs/Images/clipboard-log.png" />
+    <File Path="docs/Images/dataset-editor.png" />
+    <File Path="docs/Images/favorites.png" />
+    <File Path="docs/Images/main-window.png" />
   </Folder>
-  <Folder Name="/Docs/Images/">
-    <File Path="Docs/Images/clipboard-log.png" />
-    <File Path="Docs/Images/dataset-editor.png" />
-    <File Path="Docs/Images/favorites.png" />
-    <File Path="Docs/Images/main-window.png" />
-  </Folder>
-  <Folder Name="/Docs/PupNet_Instructions/">
-    <File Path="Docs/PupNet_Instructions/1_Setup.md" />
-    <File Path="Docs/PupNet_Instructions/2_Config.md" />
-    <File Path="Docs/PupNet_Instructions/3_AppStream.md" />
-    <File Path="Docs/PupNet_Instructions/4_Build.md" />
-  </Folder>
-  <Folder Name="/Layers/">
-    <Project Path="Shared/Shared.csproj" />
-  </Folder>
-  <Folder Name="/Layers/App/">
-    <Project Path="AppInstance/AppInstance.csproj" />
-    <Project Path="AppLifecycle/AppLifecycle.csproj" />
-    <Project Path="AppUpdates/AppUpdates.csproj" />
-    <Project Path="SampleSeeding/SampleSeeding.csproj" />
-    <Project Path="Settings/Settings.csproj" />
-  </Folder>
-  <Folder Name="/Layers/Database/">
-    <Project Path="Entities/Entities.csproj" />
-    <Project Path="Repository.Migrations/Repository.Migrations.csproj" />
-    <Project Path="Repository/Repository.csproj" />
-  </Folder>
-  <Folder Name="/Layers/Documents/">
-    <Project Path="AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
-    <Project Path="DatasetRecords/DatasetRecords.csproj" />
-    <Project Path="EditorDocuments/EditorDocuments.csproj" />
-    <Project Path="EditorMessages/EditorMessages.csproj" />
-    <Project Path="FileContents/FileContents.csproj" />
-    <Project Path="NotepadDocuments/NotepadDocuments.csproj" />
-    <Project Path="TextProcessing/TextProcessing.csproj" />
-  </Folder>
-  <Folder Name="/Layers/Hierarchy/">
-    <Project Path="Favorites/Favorites.csproj" />
-    <Project Path="Hierarchy/Hierarchy.csproj" />
-    <Project Path="HierarchyExchange/HierarchyExchange.csproj" />
-    <Project Path="HierarchyNotes/HierarchyNotes.csproj" />
-    <Project Path="HierarchyScenarios/HierarchyScenarios.csproj" />
-    <Project Path="HierarchyStorage/HierarchyStorage.csproj" />
-  </Folder>
-  <Folder Name="/Layers/Infrastructure/">
-    <Project Path="Diagnostics/Diagnostics.csproj" />
-    <Project Path="DialogContracts/DialogContracts.csproj" />
-    <Project Path="FilteredLists/FilteredLists.csproj" />
-    <Project Path="Notifications/Notifications.csproj" />
-    <Project Path="Threading/Threading.csproj" />
-    <Project Path="WindowContracts/WindowContracts.csproj" />
-  </Folder>
-  <Folder Name="/Layers/Security/">
-    <Project Path="DataProtection/DataProtection.csproj" />
-  </Folder>
-  <Folder Name="/Layers/System/">
-    <Project Path="Clipboard/Clipboard.csproj" />
-    <Project Path="FileExecution/FileExecution.csproj" />
-    <Project Path="FileSystemOperations/FileSystemOperations.csproj" />
-    <Project Path="GlobalHotkeys/GlobalHotkeys.csproj" />
-  </Folder>
-  <Folder Name="/Platforms/">
-    <Project Path="DataOrganizer.Desktop/DataOrganizer.Desktop.csproj" />
-    <Project Path="DataOrganizer.MacOS/DataOrganizer.MacOS.csproj" />
+  <Folder Name="/docs/PupNet_Instructions/">
+    <File Path="docs/PupNet_Instructions/1_Setup.md" />
+    <File Path="docs/PupNet_Instructions/2_Config.md" />
+    <File Path="docs/PupNet_Instructions/3_AppStream.md" />
+    <File Path="docs/PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="DataOrganizerApp.Tests.slnf" />
     <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="NOTICE" />
+    <File Path="nuget.config" />
     <File Path="README.md" />
     <File Path="Settings.XamlStyler" />
     <File Path="stryker-config.json" />
+    <File Path="THIRD-PARTY-NOTICES.txt" />
   </Folder>
   <Folder Name="/Solution Items/.config/">
     <File Path=".config/dotnet-tools.json" />
   </Folder>
   <Folder Name="/Solution Items/.github/">
+    <File Path=".github/CODE_OF_CONDUCT.md" />
+    <File Path=".github/CONTRIBUTING.md" />
     <File Path=".github/PULL_REQUEST_TEMPLATE.md" />
     <File Path=".github/release.yml" />
+    <File Path=".github/SECURITY.md" />
   </Folder>
   <Folder Name="/Solution Items/.github/ISSUE_TEMPLATE/">
     <File Path=".github/ISSUE_TEMPLATE/bug_report.yml" />
@@ -127,71 +77,43 @@
     <File Path=".vscode/settings.json" />
     <File Path=".vscode/tasks.json" />
   </Folder>
-  <Folder Name="/Solution Items/Community/">
-    <File Path="CODE_OF_CONDUCT.md" />
-    <File Path="CONTRIBUTING.md" />
-    <File Path="SECURITY.md" />
+  <Folder Name="/src/">
+    <Project Path="src/AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
+    <Project Path="src/Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+      <Platform Solution="*|Any CPU" Project="x64" />
+      <Build Solution="*|Any CPU" Project="false" />
+    </Project>
+    <Project Path="src/DataOrganizer.Database.Migrations/DataOrganizer.Database.Migrations.csproj" />
+    <Project Path="src/DataOrganizer.Database/DataOrganizer.Database.csproj" />
+    <Project Path="src/DataOrganizer.Desktop/DataOrganizer.Desktop.csproj" />
+    <Project Path="src/DataOrganizer.Documents/DataOrganizer.Documents.csproj" />
+    <Project Path="src/DataOrganizer.Hierarchy/DataOrganizer.Hierarchy.csproj" />
+    <Project Path="src/DataOrganizer.Infrastructure/DataOrganizer.Infrastructure.csproj" />
+    <Project Path="src/DataOrganizer.MacOS/DataOrganizer.MacOS.csproj" />
+    <Project Path="src/DataOrganizer.Security/DataOrganizer.Security.csproj" />
+    <Project Path="src/DataOrganizer.Shared/DataOrganizer.Shared.csproj" />
+    <Project Path="src/DataOrganizer.SystemIntegration/DataOrganizer.SystemIntegration.csproj" />
+    <Project Path="src/DataOrganizer.Workflows/DataOrganizer.Workflows.csproj" />
+    <Project Path="src/DataOrganizer/DataOrganizer.csproj" />
+    <Project Path="src/Setup.CustomActions/Setup.CustomActions.csproj" />
+    <Project Path="src/Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+      <Platform Solution="*|Any CPU" Project="x64" />
+      <Build Solution="*|Any CPU" Project="false" />
+    </Project>
   </Folder>
-  <Folder Name="/Solution Items/License/">
-    <File Path="LICENSE" />
-    <File Path="NOTICE" />
-    <File Path="THIRD-PARTY-NOTICES.txt" />
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <Project Path="tests/DataOrganizer.Database.IntegrationTests/DataOrganizer.Database.IntegrationTests.csproj" />
+    <Project Path="tests/DataOrganizer.Database.UnitTests/DataOrganizer.Database.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Documents.UnitTests/DataOrganizer.Documents.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Hierarchy.UnitTests/DataOrganizer.Hierarchy.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Infrastructure.UnitTests/DataOrganizer.Infrastructure.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Security.UnitTests/DataOrganizer.Security.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Shared.UnitTests/DataOrganizer.Shared.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.SystemIntegration.UnitTests/DataOrganizer.SystemIntegration.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.TestSupport/DataOrganizer.TestSupport.csproj" />
+    <Project Path="tests/DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.Workflows.UnitTests/DataOrganizer.Workflows.UnitTests.csproj" />
+    <Project Path="tests/Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Solution Items/tools/">
-    <File Path="tools/gen-license-rtf.ps1" />
-    <File Path="tools/gen-release-notes.ps1" />
-    <File Path="tools/gen-third-party-notices.ps1" />
-    <File Path="tools/run-stryker.ps1" />
-  </Folder>
-  <Folder Name="/Tests/">
-    <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
-    <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
-    <Project Path="TestSupport/TestSupport.csproj" />
-  </Folder>
-  <Folder Name="/Tests/App/">
-    <Project Path="AppInstance.UnitTests/AppInstance.UnitTests.csproj" />
-    <Project Path="AppLifecycle.UnitTests/AppLifecycle.UnitTests.csproj" />
-    <Project Path="AppUpdates.UnitTests/AppUpdates.UnitTests.csproj" />
-    <Project Path="Settings.UnitTests/Settings.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Tests/Database/">
-    <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
-    <Project Path="Repository.IntegrationTests/Repository.IntegrationTests.csproj" />
-    <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Tests/Deployment/">
-    <Project Path="Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Tests/Documents/">
-    <Project Path="DatasetRecords.UnitTests/DatasetRecords.UnitTests.csproj" />
-    <Project Path="EditorDocuments.UnitTests/EditorDocuments.UnitTests.csproj" />
-    <Project Path="EditorMessages.UnitTests/EditorMessages.UnitTests.csproj" />
-    <Project Path="FileContents.UnitTests/FileContents.UnitTests.csproj" />
-    <Project Path="NotepadDocuments.UnitTests/NotepadDocuments.UnitTests.csproj" />
-    <Project Path="TextProcessing.UnitTests/TextProcessing.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Tests/Hierarchy/">
-    <Project Path="Favorites.UnitTests/Favorites.UnitTests.csproj" />
-    <Project Path="Hierarchy.UnitTests/Hierarchy.UnitTests.csproj" />
-    <Project Path="HierarchyExchange.UnitTests/HierarchyExchange.UnitTests.csproj" />
-    <Project Path="HierarchyNotes.UnitTests/HierarchyNotes.UnitTests.csproj" />
-    <Project Path="HierarchyScenarios.UnitTests/HierarchyScenarios.UnitTests.csproj" />
-    <Project Path="HierarchyStorage.UnitTests/HierarchyStorage.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Tests/Infrastructure/">
-    <Project Path="Diagnostics.UnitTests/Diagnostics.UnitTests.csproj" />
-    <Project Path="FilteredLists.UnitTests/FilteredLists.UnitTests.csproj" />
-    <Project Path="Notifications.UnitTests/Notifications.UnitTests.csproj" />
-    <Project Path="Threading.UnitTests/Threading.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Tests/Security/">
-    <Project Path="DataProtection.UnitTests/DataProtection.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Tests/System/">
-    <Project Path="Clipboard.UnitTests/Clipboard.UnitTests.csproj" />
-    <Project Path="FileExecution.UnitTests/FileExecution.UnitTests.csproj" />
-    <Project Path="FileSystemOperations.UnitTests/FileSystemOperations.UnitTests.csproj" />
-    <Project Path="GlobalHotkeys.UnitTests/GlobalHotkeys.UnitTests.csproj" />
-  </Folder>
-  <Project Path="DataOrganizer/DataOrganizer.csproj" />
 </Solution>

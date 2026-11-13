@@ -1,0 +1,128 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.SystemIntegration.FileExecution.Dto;
+using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.ViewModels.Dialogs;
+
+/// <summary>
+/// View model for <c>AppPickerView</c>. Lets the user choose one application
+/// from the supplied <see cref="Candidates" /> list to open a file with.
+/// </summary>
+internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<AssociatedAppInfo?>
+{
+	#region Properties
+	/// <summary>
+	/// Applications available to open the file.
+	/// </summary>
+	public ObservableCollection<AssociatedAppInfo> Candidates { get; } = [];
+
+	/// <summary>
+	/// Dialog header text shown above the list.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Header { get; set; }
+
+	/// <summary>
+	/// Currently selected application; two-way bound to the ListBox.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(OpenCommand))]
+	public partial AssociatedAppInfo? SelectedApp { get; set; }
+	#endregion
+
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Opens the OS file picker filtered to executables; if the user picks one, the
+	/// dialog closes with that selection.
+	/// </summary>
+	[RelayCommand]
+	private async Task Browse()
+	{
+		FileOpenParameters parameters = new()
+		{
+			AllowMultiple = false,
+			FileTypes =
+			[
+				new()
+				{
+					MimeTypes = null,
+					Name = "Executable",
+					Patterns = ["*.exe"]
+				}
+			],
+			Title = "Select application"
+		};
+
+		string[] filePaths = await _fileSystemPicker
+			.SelectFilesAsync(parameters)
+			.ConfigureAwait(true);
+
+		if (filePaths.Length == 0)
+		{
+			return;
+		}
+
+		if (_appPicker.CreateFromPath(filePaths[0]) is not { } info)
+		{
+			return;
+		}
+
+		await SetResultAsync(info).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Cancels the dialog without choosing.
+	/// </summary>
+	[RelayCommand]
+	private Task Cancel() => SetResultAsync(null);
+
+	/// <summary>
+	/// Confirms the selected application and closes the dialog.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanOpen))]
+	private Task Open() => SetResultAsync(SelectedApp);
+	#endregion
+
+	#region Data
+	/// <inheritdoc cref="IAppPickerService" />
+	private readonly IAppPickerService _appPicker;
+
+	/// <inheritdoc cref="IFileSystemPicker" />
+	private readonly IFileSystemPicker _fileSystemPicker;
+	#endregion
+
+	#region Constructors
+	public AppPickerViewModel(
+		IAppPickerService appPicker,
+		IDialogCloser dialogCloser,
+		IFileSystemPicker fileSystemPicker,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
+	{
+		_appPicker = appPicker;
+
+		_fileSystemPicker = fileSystemPicker;
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
+	public Task<AssociatedAppInfo?> GetResultAsync(Task dialogClosed, CancellationToken token = default)
+	{
+		return GetResultAsync(dialogClosed, defaultResult: null, token: token);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Validates <see cref="OpenCommand" />.
+	/// </summary>
+	private bool CanOpen() => SelectedApp is not null;
+	#endregion
+}

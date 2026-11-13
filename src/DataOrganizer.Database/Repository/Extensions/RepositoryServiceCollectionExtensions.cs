@@ -1,0 +1,87 @@
+using DataOrganizer.Database.Repository.DbContexts;
+using DataOrganizer.Database.Repository.Interceptors;
+using DataOrganizer.Database.Repository.Interfaces;
+using DataOrganizer.Database.Repository.Interfaces.Database;
+using DataOrganizer.Database.Repository.Services;
+using DataOrganizer.Database.Repository.Services.Database;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Diagnostics;
+
+namespace DataOrganizer.Database.Repository.Extensions;
+
+public static class RepositoryServiceCollectionExtensions
+{
+	#region Methods
+	/// <summary>
+	/// Registers the database layer over the SQLite file whose path <paramref name="getDatabaseFilePath" /> returns.
+	/// </summary>
+	public static IServiceCollection AddRepository(
+		this IServiceCollection services,
+		Func<IServiceProvider, string> getDatabaseFilePath)
+	{
+		services.AddDbContext<SqliteDbContext>((provider, builder) => ConfigureDbContext(
+			builder,
+			getDatabaseFilePath,
+			provider));
+
+		services.AddTransient<IDbMaintenance, DbMaintenance>();
+		services.AddTransient<IExplorerItemRepository, ExplorerItemRepository>();
+		services.AddTransient<IFileRepository, FileRepository>();
+		services.AddTransient<IFolderRepository, FolderRepository>();
+		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
+
+		// One object serves every role of the database, so the roles share one lock and one refusal of writes.
+		services.AddSingleton<DbAccess>();
+		services.AddSingleton<IDbAccess>(static x => x.GetRequiredService<DbAccess>());
+		services.AddSingleton<IDbBackupService>(static x => x.GetRequiredService<DbAccess>());
+		services.AddSingleton<IDbConnector>(static x => x.GetRequiredService<DbAccess>());
+		services.AddSingleton<IDbImporter>(static x => x.GetRequiredService<DbAccess>());
+
+		services.AddSingleton<IDbContextService, DbContextService>();
+
+		return services;
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Configures <see cref="SqliteDbContext" />.
+	/// </summary>
+	private static void ConfigureDbContext(
+		DbContextOptionsBuilder builder,
+		Func<IServiceProvider, string> getDatabaseFilePath,
+		IServiceProvider provider)
+	{
+		try
+		{
+			// Stryker disable once Boolean : settings of the connection, which a test would only copy
+			SqliteConnectionStringBuilder connectionBuilder = new()
+			{
+				DataSource = getDatabaseFilePath(provider),
+				Mode = SqliteOpenMode.ReadWriteCreate,
+				RecursiveTriggers = false,
+				DefaultTimeout = 30,
+				Pooling = true
+			};
+
+			builder.UseSqlite(
+				connectionBuilder.ToString(),
+				x => x.MigrationsAssembly(SqliteDbContext.MigrationsAssemblyName));
+
+			// Pooled connections are reused, and the pragmas do not survive in the database file.
+			builder.AddInterceptors(new SqlitePragmaInterceptor());
+
+			//ILogger logger = provider.GetRequiredService<ILogger>();
+
+			//builder.LogTo(logger.LogDebugWithTemplate);
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex);
+		}
+	}
+	#endregion
+}

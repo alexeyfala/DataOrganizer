@@ -1,0 +1,793 @@
+using Autofac;
+using Autofac.Extras.Moq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Headless.NUnit;
+using Avalonia.Threading;
+using AwesomeAssertions;
+using DataOrganizer.Documents.Notes.Helpers;
+using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Constants;
+using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Services;
+using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Security.Helpers;
+using DataOrganizer.Services.Dialogs;
+using DataOrganizer.Services.Views;
+using DataOrganizer.Shared.Threading.Enums;
+using DataOrganizer.Shared.Threading.Interfaces;
+using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.Views.Dialogs;
+using DataOrganizer.Views.Settings;
+using DialogHostAvalonia;
+using NSubstitute;
+using System;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.UnitTests.Services.Dialogs;
+
+[TestFixture(Description = $@"Tests of ""{nameof(DialogService)}"" type")]
+internal class DialogServiceTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: when confirmed but the input is blank,
+	/// returns an empty secret and clears the input.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Confirmed_But_Blank_Returns_Empty()
+	{
+		// Arrange
+		// Non-interned blank: the finally branch wipes it in place, which would corrupt a literal.
+		string typed = new(' ', 3);
+
+		TextBox input = new() { Text = typed };
+
+		// Act
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
+
+		// Assert
+		result.IsEmpty
+			.Should()
+			.BeTrue();
+
+		input.Text
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: when confirmed with non-blank input,
+	/// returns the typed characters, wipes the source string and clears the input.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Confirmed_Returns_Characters_And_Wipes_Source()
+	{
+		// Arrange
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new() { Text = typed };
+
+		// Act
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
+
+		// Assert
+		result
+			.AsReadOnlySpan()
+			.ToArray()
+			.Should()
+			.Equal('s', 'e', 'c', 'r', 'e', 't');
+
+		input.Text
+			.Should()
+			.BeNull();
+
+		typed
+			.Should()
+			.Be(new string('\0', typed.Length));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: the confirmation input is wiped and
+	/// cleared as well, and only the password is handed out.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Confirmed_Wipes_The_Confirmation_Too()
+	{
+		// Arrange
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		string repeated = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new()
+		{
+			Text = typed
+		};
+
+		TextBox confirmation = new()
+		{
+			Text = repeated
+		};
+
+		// Act
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: true, confirmation);
+
+		// Assert
+		result
+			.AsReadOnlySpan()
+			.ToArray()
+			.Should()
+			.Equal('s', 'e', 'c', 'r', 'e', 't');
+
+		confirmation.Text
+			.Should()
+			.BeNull();
+
+		repeated
+			.Should()
+			.Be(new string('\0', repeated.Length));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: on cancel, returns an empty secret,
+	/// wipes the typed text in place and clears the input.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Not_Confirmed_Returns_Empty_And_Wipes_Input()
+	{
+		// Arrange
+		// new string(...) builds a non-interned instance: wiping a literal would corrupt the intern pool.
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new() { Text = typed };
+
+		// Act
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: false);
+
+		// Assert
+		result.IsEmpty
+			.Should()
+			.BeTrue();
+
+		input.Text
+			.Should()
+			.BeNull();
+
+		typed
+			.Should()
+			.Be(new string('\0', typed.Length));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: on cancel the confirmation input is
+	/// wiped and cleared as well.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Not_Confirmed_Wipes_The_Confirmation_Too()
+	{
+		// Arrange
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		string repeated = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new()
+		{
+			Text = typed
+		};
+
+		TextBox confirmation = new()
+		{
+			Text = repeated
+		};
+
+		// Act
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: false, confirmation);
+
+		// Assert
+		result.IsEmpty
+			.Should()
+			.BeTrue();
+
+		confirmation.Text
+			.Should()
+			.BeNull();
+
+		repeated
+			.Should()
+			.Be(new string('\0', repeated.Length));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestKeyValueInputAsync" />: the dialog opens in the host named by the parameters, while
+	/// the main window has a host of its own.
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestKeyValueInputAsync_Shows_The_Dialog_In_The_Named_Host()
+	{
+		// Arrange
+		KeyValueInputViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<KeyValueInputViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<KeyValueInputView>(Arg.Any<object[]>())
+				.Returns(new KeyValueInputView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost mainHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		DialogHost notepadHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Notepad
+		};
+
+		Window mainWindow = new()
+		{
+			Content = mainHost
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = notepadHost
+		};
+
+		mainWindow.Show();
+
+		notepadWindow.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = sut.RequestKeyValueInputAsync(new()
+		{
+			DefaultButtonText = "Rename",
+			DialogHostIdentifier = DialogHostIdentifiers.Notepad
+		});
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isNotepadHostOpen = notepadHost.IsOpen;
+
+		bool isMainHostOpen = mainHost.IsOpen;
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		mainWindow.Close();
+
+		notepadWindow.Close();
+
+		// Assert
+		isNotepadHostOpen
+			.Should()
+			.BeTrue();
+
+		isMainHostOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestMultilineTextAsync" />: the header of the dialog carries the given name,
+	/// a blank name leaves the label alone.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task RequestMultilineTextAsync_Heads_The_Dialog([Values(null, "", "   ", "Name")] string? name)
+	{
+		// Arrange
+		MultilineTextEditViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<MultilineTextEditViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<MultilineTextEditView>(Arg.Any<object[]>())
+				.Returns(new MultilineTextEditView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost host = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		Window window = new() { Content = host };
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		Task<TextInputResult> task = sut.RequestMultilineTextAsync("text", name);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		viewModel.Header
+			.Should()
+			.Be(NoteHeaderBuilder.Build(name));
+
+		// The dialog and the window are closed here, otherwise the host leaks into the following tests.
+		await viewModel
+			.CancelCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		await task;
+
+		window.Close();
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestPasswordAsync" />: posts the work to the dispatcher and returns a task that is still pending.
+	/// </summary>
+	[Test]
+	public void RequestPasswordAsync_Posts_Work_To_Dispatcher_And_Returns_Pending_Task()
+	{
+		// Arrange
+		IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dispatcher));
+
+		DialogService sut = mock.Create<DialogService>();
+
+		// Act
+		Task<PinnedSecret> task = sut.RequestPasswordAsync("header");
+
+		// Assert
+		task.IsCompleted
+			.Should()
+			.BeFalse();
+
+		dispatcher
+			.Received(1)
+			.Post(Arg.Any<Action>(), Arg.Any<UiPriority>());
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestPasswordAsync" />: each call returns an independent task instance.
+	/// </summary>
+	/// <remarks>
+	/// Guards against a regression where the underlying <see cref="TaskCompletionSource{TResult}" />
+	/// is hoisted from a local variable to a shared field. In that case every caller would await the
+	/// same <see cref="Task{TResult}" /> instance, and the second invocation in a session would throw
+	/// <see cref="InvalidOperationException" /> on <c>SetResult</c> (a <see cref="TaskCompletionSource{TResult}" />
+	/// can transition to a final state only once). Each call must produce an independent task.
+	/// </remarks>
+	[Test]
+	public void RequestPasswordAsync_Returns_Different_Task_Per_Call()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DialogService sut = mock.Create<DialogService>();
+
+		// Act
+		Task<PinnedSecret> first = sut.RequestPasswordAsync("h1");
+
+		Task<PinnedSecret> second = sut.RequestPasswordAsync("h2");
+
+		// Assert
+		first
+			.Should()
+			.NotBeSameAs(second);
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestYesCancelAsync" /> and <see cref="DialogService.RequestYesNoAsync" />: each question
+	/// shows its own second button, «Cancel» or «No».
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestYesCancelAsync_Shows_Cancel_Where_RequestYesNoAsync_Shows_No([Values] bool isYesCancel)
+	{
+		// Arrange
+		YesNoCancelBoxViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<YesNoCancelBoxViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBoxView>(Arg.Any<object[]>())
+				.Returns(new YesNoCancelBoxView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		Window window = new()
+		{
+			Content = new DialogHost
+			{
+				Identifier = DialogHostIdentifiers.Main
+			}
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = isYesCancel
+			? sut.RequestYesCancelAsync("Text")
+			: sut.RequestYesNoAsync("Text");
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		window.Close();
+
+		// Assert
+		(viewModel.IsCancelButtonVisible, viewModel.IsNoButtonVisible)
+			.Should()
+			.Be((isYesCancel, !isYesCancel));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestYesNoAsync" />: an answer closes the dialog in the host it was asked in.
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestYesNoAsync_Closes_The_Named_Host_On_An_Answer()
+	{
+		// Arrange
+		DialogHost notepadHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Notepad
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = notepadHost
+		};
+
+		// The dialog looks for its host among the windows of the application, which the headless one does not list.
+		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+		lifetime
+			.Windows
+			.Returns([notepadWindow]);
+
+		Application app = Substitute.For<Application>();
+
+		app.ApplicationLifetime = lifetime;
+
+		YesNoCancelBoxViewModel viewModel = new(
+			new DialogCloser(new DesktopAccessor(app, Substitute.For<IProcessTerminator>()), Substitute.For<IUiTimer>()),
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<YesNoCancelBoxViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBoxView>(Arg.Any<object[]>())
+				.Returns(new YesNoCancelBoxView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		notepadWindow.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		_ = sut.RequestYesNoAsync("Text", DialogHostIdentifiers.Notepad);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		viewModel
+			.YesButtonPressedCommand
+			.Execute(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isNotepadHostOpen = notepadHost.IsOpen;
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		notepadWindow.Close();
+
+		// Assert
+		isNotepadHostOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestYesNoAsync" />: a dialog of the main window opens in its host while another window
+	/// has a host of its own.
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestYesNoAsync_Shows_The_Dialog_In_The_Main_Host_Beside_Another_One()
+	{
+		// Arrange
+		YesNoCancelBoxViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<YesNoCancelBoxViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBoxView>(Arg.Any<object[]>())
+				.Returns(new YesNoCancelBoxView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost mainHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		DialogHost notepadHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Notepad
+		};
+
+		Window mainWindow = new()
+		{
+			Content = mainHost
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = notepadHost
+		};
+
+		mainWindow.Show();
+
+		notepadWindow.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = sut.RequestYesNoAsync("Text");
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isMainHostOpen = mainHost.IsOpen;
+
+		bool isNotepadHostOpen = notepadHost.IsOpen;
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		mainWindow.Close();
+
+		notepadWindow.Close();
+
+		// Assert
+		isMainHostOpen
+			.Should()
+			.BeTrue();
+
+		isNotepadHostOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestYesNoAsync" />: the dialog opens in the named host, while the main window has a host
+	/// of its own.
+	/// </summary>
+	[AvaloniaTest]
+	public void RequestYesNoAsync_Shows_The_Dialog_In_The_Named_Host()
+	{
+		// Arrange
+		YesNoCancelBoxViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<YesNoCancelBoxViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBoxView>(Arg.Any<object[]>())
+				.Returns(new YesNoCancelBoxView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost mainHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		DialogHost notepadHost = new()
+		{
+			Identifier = DialogHostIdentifiers.Notepad
+		};
+
+		Window mainWindow = new()
+		{
+			Content = mainHost
+		};
+
+		Window notepadWindow = new()
+		{
+			Content = notepadHost
+		};
+
+		mainWindow.Show();
+
+		notepadWindow.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		_ = sut.RequestYesNoAsync("Text", DialogHostIdentifiers.Notepad);
+
+		Dispatcher.UIThread.RunJobs();
+
+		bool isNotepadHostOpen = notepadHost.IsOpen;
+
+		bool isMainHostOpen = mainHost.IsOpen;
+
+		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
+		mainWindow.Close();
+
+		notepadWindow.Close();
+
+		// Assert
+		isNotepadHostOpen
+			.Should()
+			.BeTrue();
+
+		isMainHostOpen
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.ShowSettingsAsync" />: closing the view with unsaved changes keeps it
+	/// open and asks for a confirmation, and discarding then closes it without saving.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowSettingsAsync_Confirms_Closing_With_Unsaved_Changes()
+	{
+		// Arrange
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		settingsStore
+			.Settings
+			.Returns(SettingsFactory.CreateSettings());
+
+		// The view model and the dialog service share one settings session, as they do in the application.
+		SettingsSession session = new(
+			settingsStore,
+			Substitute.For<IAppThemeService>(),
+			Substitute.For<ISettingsApplier>());
+
+		SettingsViewModel viewModel = new(
+			Substitute.For<IDialogHostCloser>(),
+			session,
+			Substitute.For<ISettingsSessionState>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<SettingsViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<SettingsView>(Arg.Any<object[]>())
+				.Returns(new SettingsView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterInstance(session)
+				.As<ISettingsCloseGuard>();
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost host = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		Window window = new() { Content = host };
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Task showTask = sut.ShowSettingsAsync();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel.CheckForUpdates = !viewModel.CheckForUpdates;
+
+		// Act
+		DialogHost.Close(DialogHostIdentifiers.Main);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		showTask.IsCompleted
+			.Should()
+			.BeFalse();
+
+		viewModel.IsConfirmingClose
+			.Should()
+			.BeTrue();
+
+		// Act
+		viewModel
+			.DiscardAndCloseCommand
+			.Execute(null);
+
+		// The view model closes through a substituted IDialogHostCloser, so the real host is closed here.
+		DialogHost.Close(DialogHostIdentifiers.Main);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		await showTask;
+
+		// Closed before the assertion, otherwise the host leaks into the following tests.
+		window.Close();
+
+		viewModel.IsSaved
+			.Should()
+			.BeFalse();
+	}
+	#endregion
+}

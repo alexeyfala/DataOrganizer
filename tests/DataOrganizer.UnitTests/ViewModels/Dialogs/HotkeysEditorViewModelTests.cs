@@ -1,0 +1,351 @@
+using Autofac;
+using Autofac.Extras.Moq;
+using AwesomeAssertions;
+using DataOrganizer.Database.Repository.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Messages;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
+using DataOrganizer.TestSupport.Dto;
+using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
+using NSubstitute;
+using SharpHook;
+using SharpHook.Data;
+using SharpHook.Testing;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
+
+[TestFixture(Description = $@"Tests of ""{nameof(HotkeysEditorViewModel)}"" type")]
+internal class HotkeysEditorViewModelTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.Clear" />: empties the buffer.
+	/// </summary>
+	[Test]
+	public void Clear_Clears_The_Buffer()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		sut
+			.Buffer
+			.AddRange(KeyStrokeFactory.CreateKeyStrokes(5));
+
+		// Act
+		sut.Clear();
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ObservableDisposableBase.Dispose" />: clears the buffer and leaves the shared hook alive.
+	/// </summary>
+	[Test]
+	public void Dispose_Clears_Buffer_And_Keeps_Hook()
+	{
+		// Arrange
+		TestGlobalHook hook = new();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(
+			TypedParameter.From<IGlobalHook>(hook));
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>(
+			TypedParameter.From<IGlobalHookRunner>(runner));
+
+		sut
+			.Buffer
+			.AddRange(KeyStrokeFactory.CreateKeyStrokes(5));
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.BeEmpty();
+
+		hook.IsDisposed
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: adds the key stroke to the buffer when a modifier mask is active.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Adds_Pair_To_Buffer_When_Mask_Is_Active()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.HaveCount(1);
+
+		sut.Buffer[0].Code
+			.Should()
+			.Be(KeyCode.VcA);
+
+		sut.Buffer[0].Mask
+			.Should()
+			.Be(EventMask.LeftCtrl);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: never adds more keyStrokes than the maximum hotkey count.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Adds_Values_No_More_Than_Maximum_Value()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		KeyStroke[] keyStrokes = [.. Enumerable.Repeat(new KeyStroke()
+		{
+			Code = KeyCode.VcA,
+			Mask = EventMask.LeftCtrl
+		}, 100)];
+
+		// Act
+		keyStrokes.ForEach(x => sut.HandleKeyReleased(x.Mask, x.Code));
+
+		// Assert
+		sut.Buffer.Count
+			.Should()
+			.Be(HotkeysEditorViewModel.MaxHotkeys);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: does nothing when the mask is empty.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Does_Nothing_When_Mask_Is_Empty()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.None, KeyCode.VcA);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: ignores standalone modifier keys.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Ignores_Modifier_Keys()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.LeftCtrl, KeyCode.VcLeftShift);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: strips the lock states from the stored mask.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Strips_The_Lock_States_From_The_Mask(
+		[Values(EventMask.NumLock, EventMask.CapsLock, EventMask.ScrollLock)] EventMask lockState)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.LeftCtrl | lockState, KeyCode.VcA);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.HaveCount(1);
+
+		sut.Buffer[0].Mask
+			.Should()
+			.Be(EventMask.LeftCtrl);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.MakePreview" />: shows the hotkeys presentation when the buffer is non-empty, otherwise a prompt.
+	/// </summary>
+	[Test]
+	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
+	{
+		// Arrange
+		KeyStroke[] keyStrokes = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		if (isAnyInBuffer)
+		{
+			sut
+				.Buffer
+				.AddRange(keyStrokes);
+		}
+
+		// Act
+		sut.MakePreview();
+
+		// Assert
+		if (isAnyInBuffer)
+		{
+			sut.Preview
+				.Should()
+				.Be(keyStrokes.GetHotkeysPresentation());
+		}
+		else
+		{
+			// An empty buffer leaves a prompt of its own, built from nothing the buffer holds.
+			sut.Preview
+				.Should()
+				.NotBeEmpty()
+				.And
+				.NotBe(keyStrokes.GetHotkeysPresentation());
+		}
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.Receive" />: a released key message fills the buffer.
+	/// </summary>
+	[Test]
+	public void Receive_Adds_Pair_To_Buffer()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.Receive(new GlobalKeyReleasedMessage(EventMask.LeftCtrl, KeyCode.VcA));
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.ContainSingle();
+
+		sut.Buffer[0].Code
+			.Should()
+			.Be(KeyCode.VcA);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.SaveAndClose" />: sets the saved flag and closes the dialog.
+	/// </summary>
+	[Test]
+	public void SaveAndClose_Sets_The_Saved_Flag_And_Closes_The_Dialog()
+	{
+		// Arrange
+		IDialogHostCloser dialogHostCloser = Substitute.For<IDialogHostCloser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogHostCloser));
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.SaveAndClose();
+
+		// Assert
+		sut.IsSaved
+			.Should()
+			.BeTrue();
+
+		dialogHostCloser
+			.Received(1)
+			.Close();
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.StopHookAsync" />: hands the request over to the hook owner.
+	/// </summary>
+	[Test]
+	public async Task StopHookAsync_Delegates_To_Hook_Runner()
+	{
+		// Arrange
+		IGlobalHookRunner runner = Substitute.For<IGlobalHookRunner>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(runner));
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		await sut.StopHookAsync();
+
+		// Assert
+		await runner
+			.Received(1)
+			.StopAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.StopHookAsync" />: stops a running hook.
+	/// </summary>
+	[Test]
+	public async Task StopHookAsync_Stops_Running_Hook()
+	{
+		// Arrange
+		TestGlobalHook hook = new();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(
+			TypedParameter.From<IGlobalHook>(hook));
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>(
+			TypedParameter.From<IGlobalHookRunner>(runner));
+
+		// The view model starts the runner in its constructor, this awaits that start.
+		await runner.StartAsync();
+
+		hook.IsRunning
+			.Should()
+			.BeTrue();
+
+		// Act
+		await sut.StopHookAsync();
+
+		// Assert
+		hook.IsRunning
+			.Should()
+			.BeFalse();
+	}
+	#endregion
+}

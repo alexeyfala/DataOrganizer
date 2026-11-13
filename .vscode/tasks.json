@@ -11,11 +11,11 @@
 			],
 			"command": "dotnet",
 			"options": {
-				"cwd": "${workspaceFolder}/${config:app.name}.Desktop"
+				"cwd": "${workspaceFolder}/src/${config:app.name}.Desktop"
 			},
 			"osx": {
 				"options": {
-					"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+					"cwd": "${workspaceFolder}/src/${config:app.name}.MacOS"
 				}
 			},
 			"group": {
@@ -36,11 +36,11 @@
 			],
 			"command": "dotnet",
 			"options": {
-				"cwd": "${workspaceFolder}/${config:app.name}.Desktop"
+				"cwd": "${workspaceFolder}/src/${config:app.name}.Desktop"
 			},
 			"osx": {
 				"options": {
-					"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+					"cwd": "${workspaceFolder}/src/${config:app.name}.MacOS"
 				}
 			},
 			"group": "build",
