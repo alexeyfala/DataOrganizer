@@ -9,7 +9,7 @@ from [release-notes.template.md](release-notes.template.md) by
 
 ## Checklist
 
-1\. Build the artifacts per [Publish.md](Publish.md) — one installer + one portable per platform — into `Publish/`.
+1\. Build the artifacts per [Publish.md](Publish.md) — one installer + one portable per platform — into `artifacts/`.
 
 2\. **Generate the release text** — from the repository root, run:
 
@@ -17,10 +17,10 @@ from [release-notes.template.md](release-notes.template.md) by
 powershell -ExecutionPolicy Bypass -File build/gen-release-notes.ps1
 ```
 
-It reads `AppVersion` from `Directory.Build.props`, fills the `{version}` placeholders in the template, writes `Publish/release-notes.md`, **copies the notes to the clipboard**, and prints the tag and title to paste:
+It reads `AppVersion` from `Directory.Build.props`, fills the `{version}` placeholders in the template, writes `artifacts/release-notes.md`, **copies the notes to the clipboard**, and prints the tag and title to paste:
 
 ```
-Wrote Publish/release-notes.md  (copied to clipboard)
+Wrote artifacts/release-notes.md  (copied to clipboard)
 Tag:   v{version}
 Title: Data Organizer {version}
 ```
@@ -35,7 +35,7 @@ Title: Data Organizer {version}
 
 7\. Put the cursor at the top of the description and **paste the clipboard contents** (the rendered notes) above the generated section, then replace the highlights comment with 2–4 plain-language highlights.
 
-8\. **Attach binaries:** drag the files from `Publish/` into the assets area. Do **not** attach `LICENSE` / `NOTICE` / `THIRD-PARTY-NOTICES.txt` separately — they ship inside the repo and inside each artifact. (`release-notes.md` is a scratch file — don't attach it.)
+8\. **Attach binaries:** drag the files from `artifacts/` into the assets area. Do **not** attach `LICENSE` / `NOTICE` / `THIRD-PARTY-NOTICES.txt` separately — they ship inside the repo and inside each artifact. (`release-notes.md` is a scratch file — don't attach it.)
 
 9\. **Release label:** **Pre-release** while the project is early; switch to **Latest** once a build is production-ready.
 

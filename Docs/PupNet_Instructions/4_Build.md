@@ -39,8 +39,8 @@ All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the
 ```bash
 cd "$DATAORG_REPO" && \
 pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
-rm -rf Publish/Artifacts.Deb.amd64 && \
-ls -la Publish/*.deb
+rm -rf artifacts/Artifacts.Deb.amd64 && \
+ls -la artifacts/*.deb
 ```
 
 > **WSL1 with Ubuntu 26.04.** `dpkg-deb` fails with `tar: ./opt/…: Cannot stat: Function not implemented`: the `tar` of Ubuntu 26.04 calls `openat2`, which the WSL1 kernel lacks. The same `tar` 1.35 built for Ubuntu 24.04 does not, so put it first on `PATH` for the build.
@@ -61,8 +61,8 @@ ls -la Publish/*.deb
 > ```bash
 > cd "$DATAORG_REPO" && \
 > PATH="$HOME/.local/tar-noble/bin:$PATH" pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
-> rm -rf Publish/Artifacts.Deb.amd64 && \
-> ls -la Publish/*.deb
+> rm -rf artifacts/Artifacts.Deb.amd64 && \
+> ls -la artifacts/*.deb
 > ```
 
 ### RPM (.rpm)
@@ -72,8 +72,8 @@ One-time: `sudo apt install -y rpm`
 ```bash
 cd "$DATAORG_REPO" && \
 pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "$(dataorg_ver)[1]" && \
-rm -rf Publish/Artifacts.Rpm.x86_64 && \
-ls -la Publish/*.rpm
+rm -rf artifacts/Artifacts.Rpm.x86_64 && \
+ls -la artifacts/*.rpm
 ```
 
 ### AppImage (.AppImage)
@@ -91,8 +91,8 @@ sudo chmod +x /usr/local/bin/appimagetool-x86_64.AppImage
 ```bash
 cd "$DATAORG_REPO" && \
 APPIMAGE_EXTRACT_AND_RUN=1 pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "$(dataorg_ver)[1]" && \
-rm -rf Publish/Artifacts.AppImage.x86_64 && \
-ls -la Publish/*.AppImage
+rm -rf artifacts/Artifacts.AppImage.x86_64 && \
+ls -la artifacts/*.AppImage
 ```
 
 > The same FUSE caveat applies to **running** the finished file on a host without `libfuse2`: `./DataOrganizer*.AppImage --appimage-extract-and-run` (or install `libfuse2`).
@@ -113,8 +113,8 @@ flatpak install -y --user flathub org.freedesktop.Platform//25.08 org.freedeskto
 ```bash
 cd "$DATAORG_REPO" && \
 pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "$(dataorg_ver)[1]" && \
-rm -rf Publish/Artifacts.Flatpak.x86_64 && \
-ls -la Publish/*.flatpak
+rm -rf artifacts/Artifacts.Flatpak.x86_64 && \
+ls -la artifacts/*.flatpak
 ```
 
 ### Zip (.zip)
@@ -122,19 +122,19 @@ ls -la Publish/*.flatpak
 ```bash
 cd "$DATAORG_REPO" && \
 pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "$(dataorg_ver)[1]" && \
-rm -rf Publish/Artifacts.Zip.x86_64 && \
-ls -la Publish/*.zip
+rm -rf artifacts/Artifacts.Zip.x86_64 && \
+ls -la artifacts/*.zip
 ```
 
 ---
 
 ## Output
 
-Each build drops two shipping files in `Publish/` (this is what you distribute) plus one intermediate folder (removed by the `rm -rf Artifacts.*` line in each recipe):
+Each build drops two shipping files in `artifacts/` (this is what you distribute) plus one intermediate folder (removed by the `rm -rf Artifacts.*` line in each recipe):
 
-- **`Publish/<name>`** — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside. Names: `dataorganizer_<version>-<rev>_amd64.deb` (Debian convention — lowercase, `amd64`), `DataOrganizer-<version>-<rev>.x86_64.{rpm,AppImage,flatpak}`, `DataOrganizer-<version>.zip`.
-- **`Publish/<name>.sha256.txt`** — the SHA-256 checksum, so users can verify the download (`sha256sum -c`). Handy for GitHub Releases; shipping it is optional.
-- **`Publish/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml` validated in Stage 3). Kept for inspection, not for distribution.
+- **`artifacts/<name>`** — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside. Names: `dataorganizer_<version>-<rev>_amd64.deb` (Debian convention — lowercase, `amd64`), `DataOrganizer-<version>-<rev>.x86_64.{rpm,AppImage,flatpak}`, `DataOrganizer-<version>.zip`.
+- **`artifacts/<name>.sha256.txt`** — the SHA-256 checksum, so users can verify the download (`sha256sum -c`). Handy for GitHub Releases; shipping it is optional.
+- **`artifacts/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml` validated in Stage 3). Kept for inspection, not for distribution.
 
 ---
 
@@ -143,7 +143,7 @@ Each build drops two shipping files in `Publish/` (this is what you distribute) 
 **Install** (`apt` resolves dependencies; do **not** use `dpkg -i`, which does not):
 
 ```bash
-sudo apt install ./Publish/DataOrganizer*.deb
+sudo apt install ./artifacts/DataOrganizer*.deb
 ```
 
 **Confirm it landed** and that the desktop entry exists:
@@ -165,4 +165,4 @@ dataorganizer
 sudo apt remove dataorganizer
 ```
 
-> Other formats run differently: an `.AppImage` just needs `chmod +x` then `./DataOrganizer*.AppImage`; a `.flatpak` installs with `flatpak install --user ./Publish/DataOrganizer*.flatpak`; a `.zip` is unpacked and run in place.
+> Other formats run differently: an `.AppImage` just needs `chmod +x` then `./DataOrganizer*.AppImage`; a `.flatpak` installs with `flatpak install --user ./artifacts/DataOrganizer*.flatpak`; a `.zip` is unpacked and run in place.

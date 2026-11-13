@@ -27,25 +27,25 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 
 ### Updating the .NET runtime in the bundle
 
-The bundle installs the .NET Runtime from `Bundle\Resources\`. For a new 10.0 patch:
+The bundle installs the .NET Runtime from `src\Bundle\Resources\`. For a new 10.0 patch:
 
 1\. Download the x64 Windows installer of the .NET Runtime (`dotnet-runtime-<version>-win-x64.exe`)
 from <https://dotnet.microsoft.com/en-us/download/dotnet/10.0>.
 
-2\. Put it into `Bundle\Resources\` and delete the old installer.
+2\. Put it into `src\Bundle\Resources\` and delete the old installer.
 
-3\. Set `DotNetVersion` in `Bundle\Bundle.wixproj` to the new version.
+3\. Set `DotNetVersion` in `src\Bundle\Bundle.wixproj` to the new version.
 
 ### Portable — Release
 
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:
 
 ```powershell
-dotnet publish -c:Release -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Release -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\..\artifacts"
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=win-x64 -p:Configuration=Release).Trim()
-Compress-Archive -Path "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt" -DestinationPath "..\Publish\$name.zip" -Force
-Remove-Item "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt"
-explorer "/select,$(Resolve-Path ..\Publish\$name.zip)"
+Compress-Archive -Path "..\..\artifacts\$name.exe","..\..\artifacts\LICENSE","..\..\artifacts\NOTICE","..\..\artifacts\THIRD-PARTY-NOTICES.txt" -DestinationPath "..\..\artifacts\$name.zip" -Force
+Remove-Item "..\..\artifacts\$name.exe","..\..\artifacts\LICENSE","..\..\artifacts\NOTICE","..\..\artifacts\THIRD-PARTY-NOTICES.txt"
+explorer "/select,$(Resolve-Path ..\..\artifacts\$name.zip)"
 ```
 
 ### Portable — Debug
@@ -53,11 +53,11 @@ explorer "/select,$(Resolve-Path ..\Publish\$name.zip)"
 Open a terminal in the `DataOrganizer.Desktop` project.
 
 ```powershell
-dotnet publish -c:Debug -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Debug -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\..\artifacts"
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=win-x64 -p:Configuration=Debug).Trim()
-Compress-Archive -Path "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt" -DestinationPath "..\Publish\$name.zip" -Force
-Remove-Item "..\Publish\$name.exe","..\Publish\LICENSE","..\Publish\NOTICE","..\Publish\THIRD-PARTY-NOTICES.txt"
-explorer "/select,$(Resolve-Path ..\Publish\$name.zip)"
+Compress-Archive -Path "..\..\artifacts\$name.exe","..\..\artifacts\LICENSE","..\..\artifacts\NOTICE","..\..\artifacts\THIRD-PARTY-NOTICES.txt" -DestinationPath "..\..\artifacts\$name.zip" -Force
+Remove-Item "..\..\artifacts\$name.exe","..\..\artifacts\LICENSE","..\..\artifacts\NOTICE","..\..\artifacts\THIRD-PARTY-NOTICES.txt"
+explorer "/select,$(Resolve-Path ..\..\artifacts\$name.zip)"
 ```
 
 ---
@@ -69,11 +69,11 @@ explorer "/select,$(Resolve-Path ..\Publish\$name.zip)"
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:
 
 ```powershell
-dotnet publish -c:Release -p:PublishSingleFile=true -r:linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Release -p:PublishSingleFile=true -r:linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\..\artifacts"
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=linux-x64 -p:Configuration=Release).Trim()
-tar -czf "../Publish/$name.tar.gz" -C ../Publish "$name" LICENSE NOTICE THIRD-PARTY-NOTICES.txt
-Remove-Item "../Publish/$name","../Publish/LICENSE","../Publish/NOTICE","../Publish/THIRD-PARTY-NOTICES.txt"
-explorer "/select,$(Resolve-Path ..\Publish\$name.tar.gz)"
+tar -czf "../../artifacts/$name.tar.gz" -C ../../artifacts "$name" LICENSE NOTICE THIRD-PARTY-NOTICES.txt
+Remove-Item "../../artifacts/$name","../../artifacts/LICENSE","../../artifacts/NOTICE","../../artifacts/THIRD-PARTY-NOTICES.txt"
+explorer "/select,$(Resolve-Path ..\..\artifacts\$name.tar.gz)"
 ```
 
 On Linux, make the unpacked file executable: an archive made on Windows carries no execute bit.
@@ -87,11 +87,11 @@ chmod +x DataOrganizer-*
 Open a terminal in the `DataOrganizer.Desktop` project.
 
 ```powershell
-dotnet publish -c:Debug -p:PublishSingleFile=true -r:linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Debug -p:PublishSingleFile=true -r:linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\..\artifacts"
 $name = (dotnet msbuild DataOrganizer.Desktop.csproj -getProperty:PortableName -p:RuntimeIdentifier=linux-x64 -p:Configuration=Debug).Trim()
-tar -czf "../Publish/$name.tar.gz" -C ../Publish "$name" LICENSE NOTICE THIRD-PARTY-NOTICES.txt
-Remove-Item "../Publish/$name","../Publish/LICENSE","../Publish/NOTICE","../Publish/THIRD-PARTY-NOTICES.txt"
-explorer "/select,$(Resolve-Path ..\Publish\$name.tar.gz)"
+tar -czf "../../artifacts/$name.tar.gz" -C ../../artifacts "$name" LICENSE NOTICE THIRD-PARTY-NOTICES.txt
+Remove-Item "../../artifacts/$name","../../artifacts/LICENSE","../../artifacts/NOTICE","../../artifacts/THIRD-PARTY-NOTICES.txt"
+explorer "/select,$(Resolve-Path ..\..\artifacts\$name.tar.gz)"
 ```
 
 On Linux, make the unpacked file executable: an archive made on Windows carries no execute bit.
@@ -125,17 +125,17 @@ Three output formats: a `.dmg` (recommended for end users — drag-to-Applicatio
 Open a terminal in macOS. Regenerate notices first:
 
 ```bash
-cd DataOrganizer.MacOS
+cd src/DataOrganizer.MacOS
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
-cd ..
-mkdir -p Publish/dmg-staging
-cp -R "DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" Publish/dmg-staging/
-ln -s /Applications Publish/dmg-staging/Applications
-hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/$NAME.dmg"
-rm -rf Publish/dmg-staging
-rm -rf DataOrganizer.MacOS/bin
-open -R "Publish/$NAME.dmg"
+cd ../..
+mkdir -p artifacts/dmg-staging
+cp -R "src/DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
+ln -s /Applications artifacts/dmg-staging/Applications
+hdiutil create -volname "Data Organizer" -srcfolder artifacts/dmg-staging -ov -format UDZO "artifacts/$NAME.dmg"
+rm -rf artifacts/dmg-staging
+rm -rf src/DataOrganizer.MacOS/bin
+open -R "artifacts/$NAME.dmg"
 ```
 
 ### `.dmg` — Debug
@@ -143,17 +143,17 @@ open -R "Publish/$NAME.dmg"
 Open a terminal in macOS.
 
 ```bash
-cd DataOrganizer.MacOS
+cd src/DataOrganizer.MacOS
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
-cd ..
-mkdir -p Publish/dmg-staging
-cp -R "DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" Publish/dmg-staging/
-ln -s /Applications Publish/dmg-staging/Applications
-hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/$NAME.dmg"
-rm -rf Publish/dmg-staging
-rm -rf DataOrganizer.MacOS/bin
-open -R "Publish/$NAME.dmg"
+cd ../..
+mkdir -p artifacts/dmg-staging
+cp -R "src/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
+ln -s /Applications artifacts/dmg-staging/Applications
+hdiutil create -volname "Data Organizer" -srcfolder artifacts/dmg-staging -ov -format UDZO "artifacts/$NAME.dmg"
+rm -rf artifacts/dmg-staging
+rm -rf src/DataOrganizer.MacOS/bin
+open -R "artifacts/$NAME.dmg"
 ```
 
 ### `.pkg` — Release
@@ -161,11 +161,11 @@ open -R "Publish/$NAME.dmg"
 Open a terminal in macOS. Regenerate notices first:
 
 ```bash
-cd DataOrganizer.MacOS
+cd src/DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
+dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
 rm -rf bin
-open -R "../Publish/$NAME.pkg"
+open -R "../../artifacts/$NAME.pkg"
 ```
 
 ### `.pkg` — Debug
@@ -173,11 +173,11 @@ open -R "../Publish/$NAME.pkg"
 Open a terminal in macOS.
 
 ```bash
-cd DataOrganizer.MacOS
+cd src/DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
+dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
 rm -rf bin
-open -R "../Publish/$NAME.pkg"
+open -R "../../artifacts/$NAME.pkg"
 ```
 
 ### Portable (`.zip`) — Release
@@ -185,14 +185,14 @@ open -R "../Publish/$NAME.pkg"
 Open a terminal in macOS. Regenerate notices first:
 
 ```bash
-cd DataOrganizer.MacOS
+cd src/DataOrganizer.MacOS
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable
-cd ..
-mkdir -p Publish
-ditto -c -k --keepParent "DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" "Publish/$NAME.zip"
-rm -rf DataOrganizer.MacOS/bin
-open -R "Publish/$NAME.zip"
+cd ../..
+mkdir -p artifacts
+ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
+rm -rf src/DataOrganizer.MacOS/bin
+open -R "artifacts/$NAME.zip"
 ```
 
 ### Portable (`.zip`) — Debug
@@ -200,14 +200,14 @@ open -R "Publish/$NAME.zip"
 Open a terminal in macOS.
 
 ```bash
-cd DataOrganizer.MacOS
+cd src/DataOrganizer.MacOS
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable-debug
-cd ..
-mkdir -p Publish
-ditto -c -k --keepParent "DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" "Publish/$NAME.zip"
-rm -rf DataOrganizer.MacOS/bin
-open -R "Publish/$NAME.zip"
+cd ../..
+mkdir -p artifacts
+ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
+rm -rf src/DataOrganizer.MacOS/bin
+open -R "artifacts/$NAME.zip"
 ```
 
 ### Second instance

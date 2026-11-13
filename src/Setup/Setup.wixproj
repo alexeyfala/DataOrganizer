@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
 		<OutputName>$(MsiOutputName)</OutputName>
-		<OutputPath>..\..\Publish</OutputPath>
+		<OutputPath>..\..\artifacts</OutputPath>
 		<ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
 		<Cultures>$(SetupCulture)</Cultures>
 		<!--

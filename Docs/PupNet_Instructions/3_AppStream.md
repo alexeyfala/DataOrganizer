@@ -43,15 +43,15 @@ MetaFile = app.metainfo.xml
 
 ```bash
 sudo apt install -y appstream
-appstreamcli validate Publish/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.metainfo.xml
+appstreamcli validate artifacts/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.metainfo.xml
 ```
 
-> **IMPORTANT:** validate the **generated** file, not the source template. The source `app.metainfo.xml` still contains `${...}` macros (validation would fail on them); PupNet expands them only at build time into the package artifact under `Publish/Artifacts.Deb.amd64/`.
+> **IMPORTANT:** validate the **generated** file, not the source template. The source `app.metainfo.xml` still contains `${...}` macros (validation would fail on them); PupNet expands them only at build time into the package artifact under `artifacts/Artifacts.Deb.amd64/`.
 
-> **Watch the auto-clean:** the Stage 4 recipe has an `rm -rf Publish/Artifacts.Deb.amd64 && \` line that deletes the very file you validate here. Drop that line from the block, run the build, validate, then remove the folder manually.
+> **Watch the auto-clean:** the Stage 4 recipe has an `rm -rf artifacts/Artifacts.Deb.amd64 && \` line that deletes the very file you validate here. Drop that line from the block, run the build, validate, then remove the folder manually.
 
 > **Note — `url-not-reachable` warning:** `appstreamcli` does a network check on the homepage URL (`PublisherLinkUrl` in `app.pupnet.conf`). If that points to a **private / not-yet-created** GitHub repo, it returns 404 and validation *"fails"* on this single warning. This is harmless — the package is fine, and it will pass once the repo is public. To validate offline meanwhile, skip the network check:
 >
 > ```bash
-> appstreamcli validate --no-net Publish/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.metainfo.xml
+> appstreamcli validate --no-net artifacts/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.metainfo.xml
 > ```

@@ -18,7 +18,7 @@
     Template to render. Defaults to Docs/release-notes.template.md.
 
 .PARAMETER OutputFile
-    Destination file. Defaults to Publish/release-notes.md at the repository root.
+    Destination file. Defaults to artifacts/release-notes.md at the repository root.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File build/gen-release-notes.ps1
@@ -62,7 +62,7 @@ if (-not (Test-Path $TemplateFile)) {
     throw "Template not found: $TemplateFile."
 }
 if (-not $OutputFile) {
-    $OutputFile = Join-Path $repoRoot 'Publish\release-notes.md'
+    $OutputFile = Join-Path $repoRoot 'artifacts\release-notes.md'
 }
 
 # --- Render: substitute the {version} placeholder --------------------------------
