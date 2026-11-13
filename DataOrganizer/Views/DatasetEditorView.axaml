@@ -9,7 +9,7 @@
 	xmlns:dragAndDrop="using:DataOrganizer.Behaviors.DragAndDrop"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:DatasetEditorViewModel"
 	mc:Ignorable="d">

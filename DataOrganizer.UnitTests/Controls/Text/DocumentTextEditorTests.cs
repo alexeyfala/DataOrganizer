@@ -18,16 +18,16 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls.Text;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.Editor.Enums;
+using DataOrganizer.Documents.TextProcessing.Enums;
 using DataOrganizer.Messages.Documents;
+using DataOrganizer.Shared.Constants;
 using DataOrganizer.UnitTests.Factories;
-using EditorDocuments.Dto;
-using EditorDocuments.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TextProcessing.Constants;
-using TextProcessing.Enums;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
 

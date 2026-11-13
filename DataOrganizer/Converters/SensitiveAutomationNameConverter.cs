@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Data.Converters;
-using Shared.Properties;
+using DataOrganizer.Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

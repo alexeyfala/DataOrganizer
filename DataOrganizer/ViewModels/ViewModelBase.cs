@@ -1,20 +1,20 @@
-using AppInstance.Interfaces;
-using Clipboard.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Interfaces.Views;
-using Diagnostics.Interfaces;
-using FileExecution.Interfaces;
-using Hierarchy.Dto;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
+using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
 using Serilog;
-using Settings.Interfaces;
-using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels;
 

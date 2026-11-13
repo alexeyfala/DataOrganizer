@@ -1,14 +1,15 @@
-using Clipboard.Enums;
-using Clipboard.Interfaces;
-using Clipboard.Messages;
-using Clipboard.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Interfaces;
+using DataOrganizer.Shared.Threading.Interfaces;
+using DataOrganizer.SystemIntegration.Clipboard.Enums;
+using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
+using DataOrganizer.SystemIntegration.Clipboard.Messages;
+using DataOrganizer.SystemIntegration.Clipboard.Models;
 using DynamicData.Binding;
 using Serilog;
-using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -16,7 +17,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Threading.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

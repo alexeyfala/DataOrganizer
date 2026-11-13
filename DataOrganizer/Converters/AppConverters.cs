@@ -5,7 +5,7 @@ using Avalonia.Media.Imaging;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using INamed = Hierarchy.Interfaces.INamed;
+using INamed = DataOrganizer.Hierarchy.Interfaces.INamed;
 
 namespace DataOrganizer.Converters;
 

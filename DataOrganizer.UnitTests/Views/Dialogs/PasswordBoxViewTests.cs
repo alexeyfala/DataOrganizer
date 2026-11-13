@@ -4,10 +4,10 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using Diagnostics.Interfaces;
-using DialogContracts.Interfaces;
 using NSubstitute;
 using System.Linq;
 

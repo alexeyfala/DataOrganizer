@@ -8,13 +8,13 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using Clipboard.Models;
-using Clipboard.UnitTests.Factories;
 using DataOrganizer.Behaviors.Text;
+using DataOrganizer.Shared.Constants;
+using DataOrganizer.SystemIntegration.Clipboard.Models;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.TestSupport.Common;
 using System;
 using System.Linq;
-using TestSupport.Common;
-using TextProcessing.Constants;
 
 namespace DataOrganizer.UnitTests.Templates;
 

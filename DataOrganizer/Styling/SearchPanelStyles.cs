@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Styling;
 using AvaloniaEdit.Search;
-using Shared.Properties;
+using DataOrganizer.Shared.Properties;
 
 namespace DataOrganizer.Styling;
 

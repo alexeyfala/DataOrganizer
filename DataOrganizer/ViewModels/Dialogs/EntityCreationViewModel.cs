@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Diagnostics.Interfaces;
-using DialogContracts.Interfaces;
-using Settings.Dto;
-using Settings.Interfaces;
-using Shared.Properties;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.Shared.Properties;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels.Dialogs;

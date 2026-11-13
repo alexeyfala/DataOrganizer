@@ -6,15 +6,15 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.Editor.Enums;
+using DataOrganizer.Documents.Editor.Extensions;
+using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Services;
-using EditorDocuments.Dto;
-using EditorDocuments.Enums;
-using EditorDocuments.Extensions;
-using Shared.Properties;
+using DataOrganizer.Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
-using TextProcessing.Dto;
 
 namespace DataOrganizer.Views;
 

@@ -1,9 +1,9 @@
-using EditorDocuments.Helpers;
-using EditorDocuments.Interfaces;
-using Settings.Dto;
+using DataOrganizer.Documents.Editor.Helpers;
+using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.Documents.Notepad.Dto;
+using DataOrganizer.Documents.TextProcessing.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using TextProcessing.Interfaces;
 
 namespace DataOrganizer.ViewModels;
 

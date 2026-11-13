@@ -1,7 +1,7 @@
-using AppInstance.Interfaces;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Interfaces;
 using DynamicData;
 using DynamicData.Binding;
-using Hierarchy.Dto;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables.Fluent;

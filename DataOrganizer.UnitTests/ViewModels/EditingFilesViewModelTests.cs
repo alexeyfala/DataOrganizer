@@ -1,12 +1,12 @@
-using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Shared.Extensions;
 using DataOrganizer.ViewModels;
-using EditorDocuments.Dto;
-using Hierarchy.Dto;
-using Hierarchy.UnitTests.Factories;
-using Shared.Extensions;
+using DataOrganizer.Workflows.AppLifecycle.Services;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

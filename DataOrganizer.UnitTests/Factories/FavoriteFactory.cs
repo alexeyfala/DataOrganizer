@@ -1,8 +1,8 @@
-using Favorites.Dto;
-using Hierarchy.Enums;
+using DataOrganizer.Hierarchy.Enums;
+using DataOrganizer.Hierarchy.Favorites.Dto;
+using DataOrganizer.TestSupport.Common;
 using System;
 using System.Collections.Generic;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Factories;
 

@@ -4,10 +4,10 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
+using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Services;
+using DataOrganizer.Shared.Constants;
 using System.Linq;
-using TextProcessing.Constants;
-using TextProcessing.Dto;
 
 namespace DataOrganizer.UnitTests.Controls.Text;
 

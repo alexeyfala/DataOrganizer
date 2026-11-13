@@ -1,16 +1,18 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Diagnostics.Interfaces;
-using DialogContracts.Constants;
-using DialogContracts.Dto;
-using DialogContracts.Interfaces;
+using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.Documents.Notepad.Dto;
+using DataOrganizer.Documents.Notepad.Interfaces;
+using DataOrganizer.Documents.TextProcessing.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Constants;
+using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Notifications.Constants;
+using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
+using DataOrganizer.Shared.Properties;
 using DynamicData;
 using DynamicData.Binding;
-using EditorDocuments.Interfaces;
-using NotepadDocuments.Interfaces;
-using Notifications.Constants;
-using Settings.Dto;
-using Shared.Properties;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,8 +21,6 @@ using System.Linq;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using TextProcessing.Interfaces;
-using WindowContracts.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

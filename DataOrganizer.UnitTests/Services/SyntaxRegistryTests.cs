@@ -1,6 +1,7 @@
 using AwesomeAssertions;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Services;
-using EditorDocuments.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,6 @@ using TextMateSharp.Grammars;
 using TextMateSharp.Internal.Types;
 using TextMateSharp.Registry;
 using TextMateSharp.Themes;
-using TextProcessing.Dto;
 
 namespace DataOrganizer.UnitTests.Services;
 

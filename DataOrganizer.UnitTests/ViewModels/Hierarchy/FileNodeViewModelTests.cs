@@ -1,9 +1,9 @@
-using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
-using Hierarchy.UnitTests.Factories;
+using DataOrganizer.Workflows.AppLifecycle.Services;
 
 namespace DataOrganizer.UnitTests.ViewModels.Hierarchy;
 

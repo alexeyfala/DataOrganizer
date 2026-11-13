@@ -1,4 +1,4 @@
-using DatasetRecords.Models;
+using DataOrganizer.Documents.DatasetRecords.Models;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Factories;

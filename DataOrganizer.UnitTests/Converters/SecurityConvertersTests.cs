@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
-using DataProtection.Helpers;
+using DataOrganizer.Security.Helpers;
 using System;
 using System.Globalization;
 

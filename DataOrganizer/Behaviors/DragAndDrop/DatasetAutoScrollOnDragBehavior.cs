@@ -4,7 +4,7 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
-using DatasetRecords.Messages;
+using DataOrganizer.Documents.DatasetRecords.Messages;
 using System;
 
 namespace DataOrganizer.Behaviors.DragAndDrop;

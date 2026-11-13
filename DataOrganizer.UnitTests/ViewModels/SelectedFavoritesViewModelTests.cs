@@ -1,24 +1,24 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using Clipboard.Interfaces;
-using Clipboard.Services;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Database.Repository.Interfaces.Database;
+using DataOrganizer.Documents.Editor.Messages;
+using DataOrganizer.Documents.FileContents.Enums;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Favorites.Dto;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
+using DataOrganizer.SystemIntegration.Clipboard.Services;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
-using EditorMessages.Messages;
-using Favorites.Dto;
-using FileContents.Enums;
-using Hierarchy.Dto;
-using Hierarchy.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
-using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

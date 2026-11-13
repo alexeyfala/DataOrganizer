@@ -5,12 +5,12 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using Clipboard.Interfaces;
+using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.Views;
 using NSubstitute;
 using System.Linq;
 using System.Threading.Tasks;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Views;
 

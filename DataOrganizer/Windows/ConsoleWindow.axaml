@@ -8,7 +8,7 @@
 	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:textControls="using:DataOrganizer.Controls.Text"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	x:DataType="windows:ConsoleViewModel"

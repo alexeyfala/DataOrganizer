@@ -1,19 +1,19 @@
-using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Database.Entities.Enums;
+using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Enums;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.ViewModels;
-using EditorDocuments.Interfaces;
-using Entities.Enums;
-using Hierarchy.Dto;
-using Hierarchy.Enums;
-using Hierarchy.UnitTests.Factories;
 using NSubstitute;
 using System;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Documents;
 

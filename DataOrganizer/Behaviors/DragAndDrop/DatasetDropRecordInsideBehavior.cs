@@ -4,10 +4,10 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
-using DatasetRecords.Dto;
-using DatasetRecords.Enums;
-using DatasetRecords.Helpers;
-using DatasetRecords.Models;
+using DataOrganizer.Documents.DatasetRecords.Dto;
+using DataOrganizer.Documents.DatasetRecords.Enums;
+using DataOrganizer.Documents.DatasetRecords.Helpers;
+using DataOrganizer.Documents.DatasetRecords.Models;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 

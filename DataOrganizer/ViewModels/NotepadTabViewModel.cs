@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using EditorDocuments.Interfaces;
-using NotepadDocuments.Interfaces;
-using Shared.Properties;
+using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.Documents.Notepad.Interfaces;
+using DataOrganizer.Shared.Properties;
 using System.Text;
 
 namespace DataOrganizer.ViewModels;

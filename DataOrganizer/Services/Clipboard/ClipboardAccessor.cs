@@ -1,20 +1,20 @@
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using Clipboard.Helpers;
-using Clipboard.Interfaces;
-using Clipboard.Models;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Shared.Constants;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.SystemIntegration.Clipboard.Helpers;
+using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
+using DataOrganizer.SystemIntegration.Clipboard.Models;
 using Serilog;
-using Shared.Extensions;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using TextProcessing.Constants;
 
 namespace DataOrganizer.Services.Clipboard;
 

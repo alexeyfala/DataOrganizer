@@ -1,23 +1,23 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Database.Repository.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Messages;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
+using DataOrganizer.TestSupport.Dto;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Dialogs;
-using DialogContracts.Interfaces;
-using GlobalHotkeys.Extensions;
-using GlobalHotkeys.Interfaces;
-using GlobalHotkeys.Messages;
-using GlobalHotkeys.Services;
 using NSubstitute;
-using Repository.Dto;
-using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 

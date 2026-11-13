@@ -1,10 +1,10 @@
 using Avalonia.Input;
 using AwesomeAssertions;
-using Clipboard.Helpers;
 using DataOrganizer.Helpers.Clipboard;
+using DataOrganizer.SystemIntegration.Clipboard.Helpers;
+using DataOrganizer.TestSupport.Common;
 using System;
 using System.Linq;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Helpers.Clipboard;
 

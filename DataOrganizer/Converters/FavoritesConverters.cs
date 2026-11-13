@@ -1,6 +1,6 @@
 using Avalonia.Data.Converters;
-using Favorites.Dto;
-using Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Favorites.Dto;
 using System.Linq;
 
 namespace DataOrganizer.Converters;

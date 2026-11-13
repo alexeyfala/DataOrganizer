@@ -1,7 +1,7 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using DataOrganizer.Extensions;
-using Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Enums;
 
 namespace DataOrganizer.Converters;
 

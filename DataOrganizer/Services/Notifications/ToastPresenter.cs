@@ -1,13 +1,13 @@
 using Avalonia;
 using Avalonia.Platform;
 using DataOrganizer.Helpers.Views;
+using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Shared.Common;
+using DataOrganizer.Shared.Extensions;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
-using Notifications.Interfaces;
 using Serilog;
-using Shared.Common;
-using Shared.Extensions;
 using System;
 
 namespace DataOrganizer.Services.Notifications;

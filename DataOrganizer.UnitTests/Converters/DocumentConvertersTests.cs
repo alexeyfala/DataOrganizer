@@ -1,9 +1,9 @@
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
 using DataOrganizer.Converters;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.Editor.Enums;
 using DataOrganizer.Services.Documents;
-using EditorDocuments.Dto;
-using EditorDocuments.Enums;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;

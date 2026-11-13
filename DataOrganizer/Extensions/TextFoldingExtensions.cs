@@ -1,5 +1,5 @@
 using AvaloniaEdit.Folding;
-using TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Dto;
 
 namespace DataOrganizer.Extensions;
 

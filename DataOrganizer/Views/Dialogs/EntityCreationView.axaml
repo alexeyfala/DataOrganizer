@@ -8,7 +8,7 @@
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	x:DataType="dialogs:EntityCreationViewModel"
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">

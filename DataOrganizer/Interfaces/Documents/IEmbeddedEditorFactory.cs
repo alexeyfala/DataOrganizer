@@ -1,5 +1,5 @@
+using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.ViewModels;
-using Hierarchy.Dto;
 
 namespace DataOrganizer.Interfaces.Documents;
 

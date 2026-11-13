@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
-using Shared.Properties;
+using DataOrganizer.Shared.Properties;
 using System;
 using System.Reactive.Linq;
 

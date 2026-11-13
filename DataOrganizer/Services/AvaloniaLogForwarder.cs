@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Logging;
-using Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Interfaces;
 using Serilog;
-using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;

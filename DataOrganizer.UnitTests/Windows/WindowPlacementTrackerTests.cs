@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Windows;
-using Settings.Enums;
 
 namespace DataOrganizer.UnitTests.Windows;
 

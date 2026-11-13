@@ -1,7 +1,7 @@
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
+using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Extensions;
-using TextProcessing.Dto;
 
 namespace DataOrganizer.UnitTests.Extensions;
 

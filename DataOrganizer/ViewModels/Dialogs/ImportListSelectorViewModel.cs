@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Diagnostics.Interfaces;
-using DialogContracts.Interfaces;
-using HierarchyExchange.Enums;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Workflows.HierarchyExchange.Enums;
 using System.Threading;
 using System.Threading.Tasks;
 

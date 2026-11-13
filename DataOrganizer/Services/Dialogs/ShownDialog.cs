@@ -1,9 +1,9 @@
 using Avalonia;
-using DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Shared.Threading.Interfaces;
 using DialogHostAvalonia;
 using System;
 using System.Threading.Tasks;
-using Threading.Interfaces;
 
 namespace DataOrganizer.Services.Dialogs;
 

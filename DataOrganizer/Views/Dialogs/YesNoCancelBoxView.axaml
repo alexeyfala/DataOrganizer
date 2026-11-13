@@ -5,7 +5,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	Padding="{StaticResource DialogIndent}"
 	x:DataType="dialogs:YesNoCancelBoxViewModel"
 	mc:Ignorable="d">

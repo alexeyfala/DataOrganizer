@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
-using DialogContracts.Interfaces;
-using Repository.Dto;
+using DataOrganizer.Database.Repository.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.ViewModels.Dialogs;

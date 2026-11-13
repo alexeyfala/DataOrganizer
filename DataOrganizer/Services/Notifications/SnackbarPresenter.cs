@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using DataOrganizer.Infrastructure.Notifications.Dto;
 using DataOrganizer.Interfaces;
 using Material.Styles.Controls;
 using Material.Styles.Models;
-using Notifications.Dto;
 using System;
 using System.Linq;
 

@@ -1,16 +1,16 @@
-using AppInstance.Interfaces;
 using DataOrganizer.Helpers.Views;
+using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Shared.Common;
+using DataOrganizer.Shared.Properties;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
-using Settings.Dto;
-using Settings.Interfaces;
-using Shared.Common;
-using Shared.Properties;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Views;
 

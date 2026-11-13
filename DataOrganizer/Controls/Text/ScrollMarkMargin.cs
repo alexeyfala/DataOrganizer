@@ -7,7 +7,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.VisualTree;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
@@ -15,14 +14,14 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Converters;
 using DataOrganizer.Extensions.Views;
 using DataOrganizer.Messages.Documents;
-using Shared.Properties;
+using DataOrganizer.Shared.Constants;
+using DataOrganizer.Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using TextProcessing.Constants;
 
 namespace DataOrganizer.Controls.Text;
 

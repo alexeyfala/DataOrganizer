@@ -1,10 +1,10 @@
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using TextProcessing.Helpers;
 
 namespace DataOrganizer.Controls.Text;
 

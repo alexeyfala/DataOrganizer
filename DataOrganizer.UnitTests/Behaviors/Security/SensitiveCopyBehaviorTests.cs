@@ -2,10 +2,10 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Interactivity;
 using AwesomeAssertions;
-using Clipboard.Interfaces;
 using DataOrganizer.Behaviors.Security;
+using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
+using DataOrganizer.TestSupport.Common;
 using NSubstitute;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Behaviors.Security;
 

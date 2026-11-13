@@ -1,14 +1,14 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
-using Clipboard.Models;
-using Shared.Properties;
+using DataOrganizer.Shared.Constants;
+using DataOrganizer.Shared.Properties;
+using DataOrganizer.SystemIntegration.Clipboard.Models;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using TextProcessing.Constants;
 
 namespace DataOrganizer.Converters;
 

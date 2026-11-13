@@ -1,10 +1,10 @@
-using AppInstance.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using EditorDocuments.Dto;
-using Hierarchy.Dto;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Shared.Extensions;
 using Serilog;
-using Shared.Extensions;
 using System.Collections.ObjectModel;
 using System.Linq;
 

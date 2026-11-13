@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Constants;
+using DataOrganizer.Infrastructure.DialogContracts.Enums;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
-using Diagnostics.Interfaces;
-using DialogContracts.Constants;
-using DialogContracts.Enums;
-using DialogContracts.Interfaces;
 using NSubstitute;
 using System;
 using System.Threading;

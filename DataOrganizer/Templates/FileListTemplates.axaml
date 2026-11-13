@@ -2,13 +2,13 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
-	xmlns:documents="using:FileContents.Interfaces"
-	xmlns:encryption="using:Hierarchy.Enums"
-	xmlns:entities="using:Hierarchy.Dto"
+	xmlns:documents="using:DataOrganizer.Documents.FileContents.Interfaces"
+	xmlns:encryption="using:DataOrganizer.Hierarchy.Enums"
+	xmlns:entities="using:DataOrganizer.Hierarchy.Dto"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 

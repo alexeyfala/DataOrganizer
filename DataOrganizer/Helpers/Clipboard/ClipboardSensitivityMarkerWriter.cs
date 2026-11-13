@@ -1,9 +1,9 @@
 using Avalonia.Input;
-using Clipboard.Helpers;
+using DataOrganizer.Shared.Constants;
+using DataOrganizer.SystemIntegration.Clipboard.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TextProcessing.Constants;
 
 namespace DataOrganizer.Helpers.Clipboard;
 

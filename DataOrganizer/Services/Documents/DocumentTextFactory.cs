@@ -1,4 +1,4 @@
-using EditorDocuments.Interfaces;
+using DataOrganizer.Documents.Editor.Interfaces;
 
 namespace DataOrganizer.Services.Documents;
 

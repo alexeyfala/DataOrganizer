@@ -1,8 +1,8 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.ViewModels.Dialogs;
 using System.Threading.Tasks;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 

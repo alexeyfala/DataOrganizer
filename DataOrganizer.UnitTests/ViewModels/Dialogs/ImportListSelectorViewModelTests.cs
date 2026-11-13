@@ -1,7 +1,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.ViewModels.Dialogs;
-using HierarchyExchange.Enums;
+using DataOrganizer.Workflows.HierarchyExchange.Enums;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;

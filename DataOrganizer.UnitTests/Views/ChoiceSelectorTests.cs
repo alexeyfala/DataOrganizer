@@ -9,13 +9,13 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Documents.TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
 using System.Linq;
 using System.Text;
-using TextProcessing.Dto;
-using TextProcessing.Helpers;
 
 namespace DataOrganizer.UnitTests.Views;
 

@@ -3,12 +3,12 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:dataset="using:DatasetRecords.Models"
-	xmlns:encryption="using:Hierarchy.Enums"
-	xmlns:entities="using:Hierarchy.Dto"
-	xmlns:entityEnums="using:Entities.Enums"
+	xmlns:dataset="using:DataOrganizer.Documents.DatasetRecords.Models"
+	xmlns:encryption="using:DataOrganizer.Hierarchy.Enums"
+	xmlns:entities="using:DataOrganizer.Hierarchy.Dto"
+	xmlns:entityEnums="using:DataOrganizer.Database.Entities.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 

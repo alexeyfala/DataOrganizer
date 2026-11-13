@@ -4,12 +4,12 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using DataOrganizer.Documents.TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
-using TextProcessing.Dto;
-using TextProcessing.Helpers;
 
 namespace DataOrganizer.Views;
 

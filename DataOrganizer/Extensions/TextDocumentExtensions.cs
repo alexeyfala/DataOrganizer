@@ -1,5 +1,5 @@
 using AvaloniaEdit.Document;
-using EditorDocuments.Enums;
+using DataOrganizer.Documents.Editor.Enums;
 
 namespace DataOrganizer.Extensions;
 

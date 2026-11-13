@@ -6,7 +6,7 @@
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:globalization="using:System.Globalization"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	x:DataType="dialogs:SettingsViewModel"
 	mc:Ignorable="d">
 

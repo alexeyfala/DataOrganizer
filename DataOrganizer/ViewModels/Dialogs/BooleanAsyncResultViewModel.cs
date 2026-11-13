@@ -1,5 +1,5 @@
-using Diagnostics.Interfaces;
-using DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 

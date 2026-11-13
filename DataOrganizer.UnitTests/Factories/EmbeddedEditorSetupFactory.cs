@@ -1,5 +1,5 @@
-using EditorDocuments.Dto;
-using Entities.Enums;
+using DataOrganizer.Database.Entities.Enums;
+using DataOrganizer.Documents.Editor.Dto;
 using System;
 
 namespace DataOrganizer.UnitTests.Factories;

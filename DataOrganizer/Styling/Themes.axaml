@@ -5,7 +5,7 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:system="using:System">
 
 	<ControlTheme

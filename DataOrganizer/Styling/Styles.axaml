@@ -8,7 +8,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:styling="using:DataOrganizer.Styling"
 	xmlns:text="using:DataOrganizer.Behaviors.Text">
 

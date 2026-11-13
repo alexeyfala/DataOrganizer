@@ -1,7 +1,7 @@
 using AwesomeAssertions;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 using DataOrganizer.Services;
 using System.Linq;
-using TextProcessing.Helpers;
 
 namespace DataOrganizer.UnitTests.Helpers;
 

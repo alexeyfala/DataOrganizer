@@ -1,4 +1,7 @@
-using FileSystemOperations.Helpers;
+using DataOrganizer.Documents.TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Helpers;
+using DataOrganizer.Documents.TextProcessing.Interfaces;
+using DataOrganizer.Infrastructure.FileSystemOperations.Helpers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,9 +11,6 @@ using TextMateSharp.Grammars;
 using TextMateSharp.Internal.Types;
 using TextMateSharp.Registry;
 using TextMateSharp.Themes;
-using TextProcessing.Dto;
-using TextProcessing.Helpers;
-using TextProcessing.Interfaces;
 
 namespace DataOrganizer.Services;
 

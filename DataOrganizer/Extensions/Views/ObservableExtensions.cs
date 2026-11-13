@@ -1,7 +1,7 @@
+using DataOrganizer.Shared.Threading.Helpers;
 using System;
 using System.Reactive.Linq;
 using System.Threading;
-using Threading.Helpers;
 
 namespace DataOrganizer.Extensions.Views;
 

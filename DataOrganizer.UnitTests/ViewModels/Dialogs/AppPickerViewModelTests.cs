@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
-using DialogContracts.Dto;
-using DialogContracts.Interfaces;
 using NSubstitute;
 using System.Linq;
 using System.Threading.Tasks;

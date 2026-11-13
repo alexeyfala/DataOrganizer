@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
-using Shared.Extensions;
+using DataOrganizer.Shared.Extensions;
 using System;
 using System.Linq;
 

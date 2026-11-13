@@ -1,6 +1,6 @@
 using AvaloniaEdit.Document;
+using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Interfaces.Documents;
-using EditorDocuments.Interfaces;
 
 namespace DataOrganizer.UnitTests.Factories;
 

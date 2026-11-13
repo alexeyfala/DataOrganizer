@@ -3,9 +3,9 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using DialogContracts.Interfaces;
 using NSubstitute;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;

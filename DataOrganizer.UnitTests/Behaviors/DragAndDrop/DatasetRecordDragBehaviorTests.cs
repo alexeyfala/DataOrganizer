@@ -12,12 +12,12 @@ using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.DragAndDrop;
+using DataOrganizer.Documents.DatasetRecords.Messages;
+using DataOrganizer.Documents.DatasetRecords.Models;
 using DataOrganizer.Interfaces;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
-using DatasetRecords.Messages;
-using DatasetRecords.Models;
 using System.Collections.Generic;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Behaviors.DragAndDrop;
 

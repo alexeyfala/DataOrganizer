@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
 using System;
 
 namespace DataOrganizer.UnitTests.Guards;

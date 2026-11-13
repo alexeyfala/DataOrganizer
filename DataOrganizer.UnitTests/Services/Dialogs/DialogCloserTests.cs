@@ -6,19 +6,19 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.DialogContracts.Constants;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Views;
+using DataOrganizer.Shared.Threading.Interfaces;
+using DataOrganizer.Shared.Threading.Services;
+using DataOrganizer.Shared.UnitTests.Threading.Fakes;
 using DataOrganizer.UnitTests.Factories;
-using DialogContracts.Constants;
-using DialogContracts.Interfaces;
 using DialogHostAvalonia;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Threading.Tasks;
-using Threading.Interfaces;
-using Threading.Services;
-using Threading.UnitTests.Fakes;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;
 

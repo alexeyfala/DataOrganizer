@@ -1,12 +1,12 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.ViewModels.Dialogs;
 using NSubstitute;
-using Settings.Dto;
-using Settings.Interfaces;
 using System.Threading.Tasks;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 

@@ -1,10 +1,10 @@
-using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
-using Hierarchy.Dto;
-using Hierarchy.UnitTests.Factories;
+using DataOrganizer.Workflows.AppLifecycle.Services;
 using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.ViewModels.Hierarchy;

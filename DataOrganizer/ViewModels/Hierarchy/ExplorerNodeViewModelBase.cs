@@ -1,5 +1,5 @@
-using AppInstance.Interfaces;
-using Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 

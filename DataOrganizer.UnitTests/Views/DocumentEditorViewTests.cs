@@ -19,19 +19,19 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors.Text;
 using DataOrganizer.Controls.Text;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.Editor.Enums;
+using DataOrganizer.Documents.Editor.Extensions;
+using DataOrganizer.Documents.TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
-using EditorDocuments.Dto;
-using EditorDocuments.Enums;
-using EditorDocuments.Extensions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using TextProcessing.Dto;
-using TextProcessing.Helpers;
 
 namespace DataOrganizer.UnitTests.Views;
 

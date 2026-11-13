@@ -1,6 +1,6 @@
 using AvaloniaEdit;
-using Settings.Interfaces;
-using Shared.Properties;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.Shared.Properties;
 using System.Globalization;
 
 namespace DataOrganizer.Services.Settings;

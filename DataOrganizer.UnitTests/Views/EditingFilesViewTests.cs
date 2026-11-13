@@ -1,4 +1,3 @@
-using AppLifecycle.Services;
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia;
@@ -11,17 +10,18 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.Database.Entities.Enums;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
-using Entities.Enums;
-using Hierarchy.Dto;
-using Hierarchy.UnitTests.Factories;
+using DataOrganizer.Workflows.AppLifecycle.Services;
 using NSubstitute;
-using Shared.Extensions;
 using System.Linq;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Views;
 

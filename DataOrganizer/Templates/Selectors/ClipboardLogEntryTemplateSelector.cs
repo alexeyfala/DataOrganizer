@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml.Templates;
-using Clipboard.Models;
+using DataOrganizer.SystemIntegration.Clipboard.Models;
 
 namespace DataOrganizer.Templates.Selectors;
 

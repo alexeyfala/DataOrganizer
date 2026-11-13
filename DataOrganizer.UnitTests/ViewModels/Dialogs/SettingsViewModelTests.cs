@@ -1,15 +1,15 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Services;
+using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
 using DataOrganizer.ViewModels.Dialogs;
-using DialogContracts.Interfaces;
 using Material.Colors;
 using NSubstitute;
-using Settings.Dto;
-using Settings.Enums;
-using Settings.Interfaces;
-using Settings.Services;
-using Settings.UnitTests.Factories;
 using System;
 using System.Linq;
 

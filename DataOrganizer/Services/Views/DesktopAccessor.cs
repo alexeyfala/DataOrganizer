@@ -1,8 +1,9 @@
-using AppInstance.Interfaces;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.LogicalTree;
+using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Windows;
@@ -10,7 +11,6 @@ using DialogHostAvalonia;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WindowContracts.Interfaces;
 
 namespace DataOrganizer.Services.Views;
 

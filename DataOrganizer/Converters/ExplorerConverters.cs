@@ -1,11 +1,11 @@
 using Avalonia.Data.Converters;
-using Entities.Enums;
-using GlobalHotkeys.Extensions;
-using Hierarchy.Dto;
-using HierarchyNotes.Helpers;
+using DataOrganizer.Database.Entities.Enums;
+using DataOrganizer.Database.Repository.Dto;
+using DataOrganizer.Documents.Notes.Helpers;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Shared.Properties;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 using Material.Icons;
-using Repository.Dto;
-using Shared.Properties;
 using System.Collections.Generic;
 using System.Linq;
 

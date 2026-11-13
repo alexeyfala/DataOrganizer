@@ -1,4 +1,3 @@
-using AppLifecycle.Services;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -6,13 +5,14 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
+using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.Views;
-using GlobalHotkeys.Extensions;
-using GlobalHotkeys.UnitTests.Factories;
-using Hierarchy.Dto;
-using Hierarchy.UnitTests.Factories;
-using Shared.Extensions;
+using DataOrganizer.Workflows.AppLifecycle.Services;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Templates;

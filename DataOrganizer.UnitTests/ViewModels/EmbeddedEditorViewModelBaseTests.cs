@@ -1,25 +1,25 @@
-using AppInstance.Interfaces;
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.Documents.Editor.Messages;
+using DataOrganizer.Documents.FileContents.Dto;
+using DataOrganizer.Documents.FileContents.Enums;
+using DataOrganizer.Documents.FileContents.Interfaces;
+using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.Notifications.Interfaces;
+using DataOrganizer.Shared.Interfaces;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
-using Diagnostics.Interfaces;
-using EditorDocuments.Interfaces;
-using EditorMessages.Messages;
-using FileContents.Dto;
-using FileContents.Enums;
-using FileContents.Interfaces;
-using Notifications.Interfaces;
 using NSubstitute;
 using Serilog;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 

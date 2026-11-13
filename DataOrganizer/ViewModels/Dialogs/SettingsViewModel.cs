@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DialogContracts.Interfaces;
-using Settings.Dto;
-using Settings.Enums;
-using Settings.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
 using System;
 using System.Globalization;
 

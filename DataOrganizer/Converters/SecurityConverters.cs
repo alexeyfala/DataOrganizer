@@ -1,10 +1,10 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using DataProtection.Enums;
-using DataProtection.Helpers;
-using Hierarchy.Enums;
+using DataOrganizer.Hierarchy.Enums;
+using DataOrganizer.Security.Enums;
+using DataOrganizer.Security.Helpers;
+using DataOrganizer.Shared.Properties;
 using Material.Icons;
-using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

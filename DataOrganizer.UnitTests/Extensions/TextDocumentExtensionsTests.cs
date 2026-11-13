@@ -1,7 +1,7 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
+using DataOrganizer.Documents.Editor.Enums;
 using DataOrganizer.Extensions;
-using EditorDocuments.Enums;
 
 namespace DataOrganizer.UnitTests.Extensions;
 

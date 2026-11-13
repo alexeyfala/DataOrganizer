@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
-using Hierarchy.Dto;
-using Hierarchy.Enums;
-using HierarchyNotes.Interfaces;
+using DataOrganizer.Documents.Notes.Interfaces;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Enums;
 
 namespace DataOrganizer.Views;
 

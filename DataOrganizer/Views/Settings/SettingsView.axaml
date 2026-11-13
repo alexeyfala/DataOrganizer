@@ -7,7 +7,7 @@
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="using:Shared.Properties"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:settings="using:DataOrganizer.Views.Settings"
 	MaxWidth="620.0"
 	Padding="{StaticResource DialogIndent}"

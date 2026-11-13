@@ -4,11 +4,11 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Enums;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using Diagnostics.Interfaces;
-using DialogContracts.Enums;
-using DialogContracts.Interfaces;
 using NSubstitute;
 using System.Threading.Tasks;
 

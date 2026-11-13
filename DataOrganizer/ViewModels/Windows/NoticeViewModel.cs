@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FileSystemOperations.Interfaces;
+using DataOrganizer.Infrastructure.FileSystemOperations.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

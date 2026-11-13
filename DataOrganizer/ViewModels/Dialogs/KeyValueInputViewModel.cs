@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Diagnostics.Interfaces;
-using DialogContracts.Dto;
-using DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels.Dialogs;

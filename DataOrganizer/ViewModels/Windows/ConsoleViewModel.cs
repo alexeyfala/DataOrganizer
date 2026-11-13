@@ -1,16 +1,16 @@
-using AppInstance.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Diagnostics.Interfaces;
-using EditorDocuments.Dto;
-using EditorDocuments.Interfaces;
-using FileSystemOperations.Interfaces;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.FileSystemOperations.Interfaces;
+using DataOrganizer.Shared.Threading.Enums;
+using DataOrganizer.Shared.Threading.Interfaces;
 using System;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using Threading.Enums;
-using Threading.Interfaces;
 
 namespace DataOrganizer.ViewModels.Windows;
 

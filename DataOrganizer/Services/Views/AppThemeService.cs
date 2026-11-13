@@ -1,13 +1,13 @@
 using Avalonia;
 using Avalonia.Styling;
 using DataOrganizer.Extensions;
+using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Interfaces;
+using DataOrganizer.Shared.Extensions;
 using Material.Styles.Themes;
 using Material.Styles.Themes.Base;
 using Serilog;
-using Settings.Dto;
-using Settings.Enums;
-using Settings.Interfaces;
-using Shared.Extensions;
 using System;
 
 namespace DataOrganizer.Services.Views;

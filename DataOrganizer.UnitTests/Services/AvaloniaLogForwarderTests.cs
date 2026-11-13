@@ -3,9 +3,9 @@ using Autofac.Extras.Moq;
 using Avalonia.Logging;
 using AwesomeAssertions;
 using DataOrganizer.Services;
+using DataOrganizer.Shared.Interfaces;
 using NSubstitute;
 using Serilog;
-using Shared.Interfaces;
 using System;
 
 namespace DataOrganizer.UnitTests.Services;

@@ -4,10 +4,10 @@ using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
+using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using Diagnostics.Interfaces;
-using DialogContracts.Interfaces;
 using NSubstitute;
 using System.Linq;
 

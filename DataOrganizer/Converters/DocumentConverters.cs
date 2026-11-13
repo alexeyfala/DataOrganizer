@@ -1,11 +1,11 @@
 using Avalonia.Data.Converters;
 using AvaloniaEdit.Document;
+using DataOrganizer.Documents.Editor.Dto;
+using DataOrganizer.Documents.Editor.Enums;
+using DataOrganizer.Documents.Editor.Extensions;
 using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Services;
-using EditorDocuments.Dto;
-using EditorDocuments.Enums;
-using EditorDocuments.Extensions;
-using Shared.Properties;
+using DataOrganizer.Shared.Properties;
 using System.Globalization;
 using System.Linq;
 

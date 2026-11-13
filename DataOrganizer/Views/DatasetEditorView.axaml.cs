@@ -1,6 +1,6 @@
 using Avalonia.Controls;
+using DataOrganizer.Documents.DatasetRecords.Models;
 using DataOrganizer.ViewModels;
-using DatasetRecords.Models;
 
 namespace DataOrganizer.Views;
 

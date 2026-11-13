@@ -3,9 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Views;
+using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Windows;
-using Settings.Dto;
-using Settings.Enums;
 using System;
 using System.Collections.Generic;
 

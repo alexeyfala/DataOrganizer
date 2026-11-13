@@ -1,6 +1,6 @@
+using DataOrganizer.Infrastructure.Notifications.Dto;
+using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using Material.Styles.Controls;
-using Notifications.Dto;
-using Notifications.Interfaces;
 
 namespace DataOrganizer.Interfaces;
 

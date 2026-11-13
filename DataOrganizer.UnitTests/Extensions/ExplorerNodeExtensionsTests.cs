@@ -1,10 +1,10 @@
-using AppLifecycle.Services;
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
+using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
+using DataOrganizer.Workflows.AppLifecycle.Services;
 using DynamicData.Binding;
-using Hierarchy.Dto;
-using Hierarchy.UnitTests.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;

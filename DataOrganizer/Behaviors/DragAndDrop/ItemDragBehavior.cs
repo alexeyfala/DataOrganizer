@@ -6,7 +6,7 @@ using Avalonia.Layout;
 using Avalonia.Media.Transformation;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Input;
-using FilteredLists.Dto;
+using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using System;
 
 namespace DataOrganizer.Behaviors.DragAndDrop;

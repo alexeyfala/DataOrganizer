@@ -2,7 +2,7 @@
 	x:Class="DataOrganizer.App"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:common="using:Shared.Common"
+	xmlns:common="using:DataOrganizer.Shared.Common"
 	xmlns:dialogHostAvalonia="using:DialogHostAvalonia"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:system="using:System"
