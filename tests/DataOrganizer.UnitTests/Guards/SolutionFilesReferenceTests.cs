@@ -30,7 +30,7 @@ internal class SolutionFilesReferenceTests
 	/// <summary>
 	/// Virtual folders of the solution file whose files the reference covers.
 	/// </summary>
-	private static readonly string[] CoveredSolutionFolders = ["/Deployment/", "/docs/", "/Solution Items/"];
+	private static readonly string[] CoveredSolutionFolders = ["/build/", "/docs/", "/Solution Items/", "/src/", "/tests/"];
 
 	/// <summary>
 	/// Folders described as a whole, so their files need no individual mention.
