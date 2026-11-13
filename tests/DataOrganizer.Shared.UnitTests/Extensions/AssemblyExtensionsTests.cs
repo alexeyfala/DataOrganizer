@@ -4,18 +4,18 @@ using System.Reflection;
 
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DataOrganizer.Shared.Extensions.AssemblyExtensions)}"" type")]
+[TestFixture(Description = $@"Tests of ""{nameof(Shared.Extensions.AssemblyExtensions)}"" type")]
 internal class AssemblyExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="DataOrganizer.Shared.Extensions.AssemblyExtensions.GetVersionWithSuffix" />: the version is the informational one, suffix included.
+	/// <see cref="Shared.Extensions.AssemblyExtensions.GetVersionWithSuffix" />: the version is the informational one, suffix included.
 	/// </summary>
 	[Test]
 	public void GetVersionWithSuffix_Reads_The_Informational_Version()
 	{
 		// Arrange
-		Assembly assembly = typeof(DataOrganizer.Shared.Extensions.AssemblyExtensions).Assembly;
+		Assembly assembly = typeof(Shared.Extensions.AssemblyExtensions).Assembly;
 
 		// Act
 		string? version = assembly.GetVersionWithSuffix();
@@ -27,7 +27,7 @@ internal class AssemblyExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="DataOrganizer.Shared.Extensions.AssemblyExtensions.GetVersionWithSuffix" />: no assembly has no version.
+	/// <see cref="Shared.Extensions.AssemblyExtensions.GetVersionWithSuffix" />: no assembly has no version.
 	/// </summary>
 	[Test]
 	public void GetVersionWithSuffix_Returns_Null_Without_An_Assembly()

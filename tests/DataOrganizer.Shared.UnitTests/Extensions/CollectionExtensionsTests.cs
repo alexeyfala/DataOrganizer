@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DataOrganizer.Shared.Extensions.CollectionExtensions)}"" type")]
+[TestFixture(Description = $@"Tests of ""{nameof(Shared.Extensions.CollectionExtensions)}"" type")]
 internal class CollectionExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="DataOrganizer.Shared.Extensions.CollectionExtensions.ClearAddRange{T}" />: the previous items are gone,
+	/// <see cref="Shared.Extensions.CollectionExtensions.ClearAddRange{T}" />: the previous items are gone,
 	/// not kept in front of the new ones.
 	/// </summary>
 	[Test]
@@ -28,7 +28,7 @@ internal class CollectionExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="DataOrganizer.Shared.Extensions.CollectionExtensions.SortBy{TSource, TKey}" />: the collection itself is sorted by the
+	/// <see cref="Shared.Extensions.CollectionExtensions.SortBy{TSource, TKey}" />: the collection itself is sorted by the
 	/// key, ascending.
 	/// </summary>
 	[Test]
