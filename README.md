@@ -27,19 +27,19 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 
 **Main window** — hierarchical tree with the built-in text editor.
 
-![Main window](Docs/Images/main-window.png)
+![Main window](docs/Images/main-window.png)
 
 **Dataset editor** — structured key-value records and groups.
 
-![Dataset editor](Docs/Images/dataset-editor.png)
+![Dataset editor](docs/Images/dataset-editor.png)
 
 **Favorites** — quick access, grouped by parent folder.
 
-![Favorites](Docs/Images/favorites.png)
+![Favorites](docs/Images/favorites.png)
 
 **Clipboard history** — captured text, links, images, and files.
 
-<img src="Docs/Images/clipboard-log.png" width="360" alt="Clipboard history">
+<img src="docs/Images/clipboard-log.png" width="360" alt="Clipboard history">
 
 
 ## System Requirements

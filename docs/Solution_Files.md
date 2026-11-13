@@ -4,7 +4,7 @@
   - 📁 **`PupNet/`** — Linux packaging; the files live in `build/`.
     - ⚙️ [`app.metainfo.xml`](../build/app.metainfo.xml) — AppStream metadata for software centres.
     - ⚙️ [`app.pupnet.conf`](../build/app.pupnet.conf) — PupNet configuration.
-- 📁 **`Docs/`**
+- 📁 **`docs/`**
   - 📁 **`Database/`**
     - 📄 [`Migrations.md`](Database/Migrations.md) — EF Core migration commands.
   - 📁 **`Images/`**

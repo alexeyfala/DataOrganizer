@@ -21,29 +21,29 @@
       <Build Solution="*|Any CPU" Project="false" />
     </Project>
   </Folder>
-  <Folder Name="/Docs/">
-    <File Path="Docs/Debugging_Tests.md" />
-    <File Path="Docs/Encryption_Format.md" />
-    <File Path="Docs/GitHub_Release.md" />
-    <File Path="Docs/Publish.md" />
-    <File Path="Docs/release-notes.template.md" />
-    <File Path="Docs/Solution_Files.md" />
-    <File Path="Docs/Stryker_Mutation_Testing.md" />
+  <Folder Name="/docs/">
+    <File Path="docs/Debugging_Tests.md" />
+    <File Path="docs/Encryption_Format.md" />
+    <File Path="docs/GitHub_Release.md" />
+    <File Path="docs/Publish.md" />
+    <File Path="docs/release-notes.template.md" />
+    <File Path="docs/Solution_Files.md" />
+    <File Path="docs/Stryker_Mutation_Testing.md" />
   </Folder>
-  <Folder Name="/Docs/Database/">
-    <File Path="Docs/Database/Migrations.md" />
+  <Folder Name="/docs/Database/">
+    <File Path="docs/Database/Migrations.md" />
   </Folder>
-  <Folder Name="/Docs/Images/">
-    <File Path="Docs/Images/clipboard-log.png" />
-    <File Path="Docs/Images/dataset-editor.png" />
-    <File Path="Docs/Images/favorites.png" />
-    <File Path="Docs/Images/main-window.png" />
+  <Folder Name="/docs/Images/">
+    <File Path="docs/Images/clipboard-log.png" />
+    <File Path="docs/Images/dataset-editor.png" />
+    <File Path="docs/Images/favorites.png" />
+    <File Path="docs/Images/main-window.png" />
   </Folder>
-  <Folder Name="/Docs/PupNet_Instructions/">
-    <File Path="Docs/PupNet_Instructions/1_Setup.md" />
-    <File Path="Docs/PupNet_Instructions/2_Config.md" />
-    <File Path="Docs/PupNet_Instructions/3_AppStream.md" />
-    <File Path="Docs/PupNet_Instructions/4_Build.md" />
+  <Folder Name="/docs/PupNet_Instructions/">
+    <File Path="docs/PupNet_Instructions/1_Setup.md" />
+    <File Path="docs/PupNet_Instructions/2_Config.md" />
+    <File Path="docs/PupNet_Instructions/3_AppStream.md" />
+    <File Path="docs/PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Layers/Documents/">
     <Project Path="src/AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />

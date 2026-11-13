@@ -18,7 +18,7 @@
     shows the counts and the scores of each project, followed by the methods Stryker dropped in safe
     mode, and StrykerOutput/<time>/mutation-report.html joins the reports of all projects in one.
 
-    Pairs with Docs/Stryker_Mutation_Testing.md.
+    Pairs with docs/Stryker_Mutation_Testing.md.
 
 .PARAMETER Project
     Names of the projects to run, as their folders are named, separated by commas without spaces.

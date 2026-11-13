@@ -94,8 +94,8 @@ dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCatego
   on the `MockFileSystem` of Testably.
 - Keep changes focused; unrelated changes belong in separate pull requests.
 - Adding a non-code file — a config, a document, a packaging input? Describe it in
-  [`Docs/Solution_Files.md`](Docs/Solution_Files.md); a guard test fails the run when a file
-  from the solution or from `Docs/` is missing there.
+  [`docs/Solution_Files.md`](docs/Solution_Files.md); a guard test fails the run when a file
+  from the solution or from `docs/` is missing there.
 
 ## Pull Request Process
 

@@ -20,22 +20,22 @@ internal class SolutionFilesReferenceTests
 	/// <summary>
 	/// Folder the reference lives in; the links within it are relative to this folder.
 	/// </summary>
-	private const string ReferenceFolderPath = "Docs";
+	private const string ReferenceFolderPath = "docs";
 
 	/// <summary>
 	/// Folders whose files are read from disk in addition to the solution file.
 	/// </summary>
-	private static readonly string[] CoveredDiskFolders = ["Docs"];
+	private static readonly string[] CoveredDiskFolders = ["docs"];
 
 	/// <summary>
 	/// Virtual folders of the solution file whose files the reference covers.
 	/// </summary>
-	private static readonly string[] CoveredSolutionFolders = ["/Deployment/", "/Docs/", "/Solution Items/"];
+	private static readonly string[] CoveredSolutionFolders = ["/Deployment/", "/docs/", "/Solution Items/"];
 
 	/// <summary>
 	/// Folders described as a whole, so their files need no individual mention.
 	/// </summary>
-	private static readonly string[] FoldersDescribedAsGroup = ["Docs/Images"];
+	private static readonly string[] FoldersDescribedAsGroup = ["docs/Images"];
 	#endregion
 
 	#region Methods

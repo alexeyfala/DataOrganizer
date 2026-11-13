@@ -9,13 +9,13 @@
     file, and copies it to the clipboard. The release tag and title are printed to
     the console for pasting into the GitHub "Create a new release" form.
 
-    Pairs with Docs/GitHub_Release.md (the release checklist).
+    Pairs with docs/GitHub_Release.md (the release checklist).
 
 .PARAMETER Version
     Version to render. Defaults to <AppVersion> from Directory.Build.props.
 
 .PARAMETER TemplateFile
-    Template to render. Defaults to Docs/release-notes.template.md.
+    Template to render. Defaults to docs/release-notes.template.md.
 
 .PARAMETER OutputFile
     Destination file. Defaults to artifacts/release-notes.md at the repository root.
@@ -56,7 +56,7 @@ if (-not $appName) {
 }
 
 if (-not $TemplateFile) {
-    $TemplateFile = Join-Path $repoRoot 'Docs\release-notes.template.md'
+    $TemplateFile = Join-Path $repoRoot 'docs\release-notes.template.md'
 }
 if (-not (Test-Path $TemplateFile)) {
     throw "Template not found: $TemplateFile."
