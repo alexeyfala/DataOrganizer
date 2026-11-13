@@ -5,13 +5,8 @@ using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Database.Entities.Models;
 using DataOrganizer.Database.Repository.Dto;
-using DataOrganizer.Database.Repository.Enums;
-using DataOrganizer.Database.Repository.Interfaces;
 using DataOrganizer.Database.Repository.Interfaces.Database;
-using DataOrganizer.Database.Repository.Services;
-using DataOrganizer.Database.Repository.Services.Database;
 using DataOrganizer.Documents.Editor.Dto;
 using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Documents.Editor.Messages;
@@ -36,8 +31,6 @@ using DataOrganizer.Shared.Services;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.UnitTests.Threading.Fakes;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.TestSupport.Database;
-using DataOrganizer.TestSupport.Models;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using Microsoft.Extensions.Time.Testing;
@@ -5588,61 +5581,52 @@ internal class EmbeddedFileEditorViewModelTests
 	public async Task ViewState_Saves_The_Editor_State()
 	{
 		// Arrange
-		using TestDatabase database = new();
-
-		FileEntity file = EntityFactory.CreateFile(contents: TextDefaults.Encoding.GetBytes(RandomString.Create(10)));
+		Guid fileId = Guid.NewGuid();
 
 		string? reported = null;
 
-		List<Task> watched = [];
+		IEditorStateStore editorStateStore = Substitute.For<IEditorStateStore>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
+			ValidatedContents fileContents = new()
+			{
+				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
+				IsValid = true
+			};
 
-			builder.RegisterInstance(database.Context);
+			dbAccess
+				.GetFileContentsAsync(fileId)
+				.Returns(fileContents);
 
-			builder.RegisterInstance(exceptionHandler);
+			// The file has no stored state yet.
+			editorStateStore
+				.ReadAsync(fileId)
+				.Returns((string?)null);
 
 			builder
-				.RegisterType<DbAccess>()
-				.As<IDbAccess>();
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder
-				.RegisterType<DbContextService>()
-				.As<IDbContextService>();
+			builder.RegisterInstance(dbAccess);
 
-			builder
-				.RegisterType<EditorStateStore>()
-				.As<IEditorStateStore>();
+			builder.RegisterInstance(editorStateStore);
 
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
 			builder
-				.RegisterType<FileRepository>()
-				.As<IFileRepository>();
-
-			builder
-				.RegisterType<SystemTextJsonSerializer>()
-				.As<IJsonSerializer>();
-
-			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
 
-		IDbAccess dbAccess = mock.Create<IDbAccess>();
-
-		await dbAccess.AddFilesAsync([file]);
-
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
 		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(
-			fileId: file.Id,
+			fileId: fileId,
 			setEditorStateCallback: x => reported = x));
 
 		await sut.EditorLoaded();
@@ -5664,8 +5648,6 @@ internal class EmbeddedFileEditorViewModelTests
 			},
 			JsonDefaults.Options);
 
-		int watchedBefore = watched.Count;
-
 		// Act
 		sut.Editor.ViewState = new DocumentViewState
 		{
@@ -5684,23 +5666,15 @@ internal class EmbeddedFileEditorViewModelTests
 			SelectionStart = 20
 		};
 
-		// The save of the editor state is the next task handed over.
-		await watched[watchedBefore];
-
 		// Assert
 		reported
 			.Should()
 			.Be(expected);
 
-		FileEntity[] stored = await dbAccess.GetAllFilesAsync(OptionalFileProperties.EditorState);
-
-		stored
-			.Should()
-			.ContainSingle()
-			.Which
-			.EditorState
-			.Should()
-			.Be(expected);
+		await editorStateStore.Received(1).WriteAsync(
+			fileId,
+			expected,
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
