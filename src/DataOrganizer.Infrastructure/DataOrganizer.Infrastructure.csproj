@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- Required by [LibraryImport] source generator (writes unsafe interop stubs). -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Baksteen.Extensions.DeepCopy" />
+		<PackageReference Include="Ben.Demystifier" />
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="Interop.UIAutomationClient" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.Database\DataOrganizer.Database.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.Infrastructure.UnitTests" />
+	</ItemGroup>
+
+</Project>

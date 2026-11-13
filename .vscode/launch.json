@@ -4,13 +4,13 @@
 		{
 			"args": [],
 			"console": "internalConsole",
-			"cwd": "${workspaceFolder}/${config:app.name}.Desktop",
+			"cwd": "${workspaceFolder}/src/${config:app.name}.Desktop",
 			"name": ".NET Launch (Debug)",
 			"preLaunchTask": "build-app",
-			"program": "${workspaceFolder}/${config:app.name}.Desktop/bin/Debug/net10.0/${config:app.name}.dll",
+			"program": "${workspaceFolder}/src/${config:app.name}.Desktop/bin/Debug/net10.0/${config:app.name}.dll",
 			"osx": {
-				"cwd": "${workspaceFolder}/${config:app.name}.MacOS",
-				"program": "${workspaceFolder}/${config:app.name}.MacOS/bin/Debug/net10.0-macos/osx-x64/${config:app.name}.app/Contents/MacOS/${config:app.name}"
+				"cwd": "${workspaceFolder}/src/${config:app.name}.MacOS",
+				"program": "${workspaceFolder}/src/${config:app.name}.MacOS/bin/Debug/net10.0-macos/osx-x64/${config:app.name}.app/Contents/MacOS/${config:app.name}"
 			},
 			"request": "launch",
 			"stopAtEntry": false,
@@ -19,13 +19,13 @@
 		{
 			"args": [],
 			"console": "internalConsole",
-			"cwd": "${workspaceFolder}/${config:app.name}.Desktop",
+			"cwd": "${workspaceFolder}/src/${config:app.name}.Desktop",
 			"name": ".NET Launch (Release)",
 			"preLaunchTask": "build-app-release",
-			"program": "${workspaceFolder}/${config:app.name}.Desktop/bin/Release/net10.0/${config:app.name}.dll",
+			"program": "${workspaceFolder}/src/${config:app.name}.Desktop/bin/Release/net10.0/${config:app.name}.dll",
 			"osx": {
-				"cwd": "${workspaceFolder}/${config:app.name}.MacOS",
-				"program": "${workspaceFolder}/${config:app.name}.MacOS/bin/Release/net10.0-macos/osx-x64/${config:app.name}.app/Contents/MacOS/${config:app.name}"
+				"cwd": "${workspaceFolder}/src/${config:app.name}.MacOS",
+				"program": "${workspaceFolder}/src/${config:app.name}.MacOS/bin/Release/net10.0-macos/osx-x64/${config:app.name}.app/Contents/MacOS/${config:app.name}"
 			},
 			"request": "launch",
 			"stopAtEntry": false,

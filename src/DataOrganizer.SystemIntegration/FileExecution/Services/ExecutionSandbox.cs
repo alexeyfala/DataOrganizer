@@ -1,0 +1,111 @@
+using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Interfaces;
+using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
+using Serilog;
+using System;
+using System.IO;
+using System.IO.Abstractions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.SystemIntegration.FileExecution.Services;
+
+/// <inheritdoc cref="IExecutionSandbox" />
+public sealed class ExecutionSandbox : IExecutionSandbox
+{
+	#region Data
+	/// <summary>
+	/// Number of attempts to remove the folder.
+	/// </summary>
+	private const int MaxAttemptCount = 10;
+
+	/// <summary>
+	/// Pause between the attempts to remove the folder.
+	/// </summary>
+	private static readonly TimeSpan AttemptDelay = TimeSpan.FromMilliseconds(300);
+
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+	#endregion
+
+	#region Constructors
+	public ExecutionSandbox(
+		IAppEnvironment appEnvironment,
+		IFileEraser fileEraser,
+		IFileSystem fileSystem,
+		ILogger logger,
+		TimeProvider timeProvider)
+	{
+		_appEnvironment = appEnvironment;
+
+		_fileEraser = fileEraser;
+
+		_fileSystem = fileSystem;
+
+		_logger = logger;
+
+		_timeProvider = timeProvider;
+	}
+	#endregion
+
+	#region Properties
+	/// <summary>
+	/// Path of the folder.
+	/// </summary>
+	private string DirectoryPath => _appEnvironment.SandboxDirectoryPath;
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public async Task EraseAsync(CancellationToken token = default)
+	{
+		for (int attempt = 1; attempt <= MaxAttemptCount; attempt++)
+		{
+			if (!_fileSystem
+				.Directory
+				.Exists(DirectoryPath))
+			{
+				return;
+			}
+
+			if (attempt > 1)
+			{
+				await Task
+					.Delay(AttemptDelay, _timeProvider, token)
+					.ConfigureAwait(false);
+			}
+
+			try
+			{
+				_fileEraser.EraseAndDeleteDirectory(DirectoryPath);
+
+				_logger.LogInformation($@"Folder ""{DirectoryPath}"" is erased");
+
+				return;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex, breakInDebugger: false);
+			}
+		}
+
+		_logger.LogWarning($@"Can't erase folder ""{DirectoryPath}"" with {MaxAttemptCount} attempts");
+	}
+
+	/// <inheritdoc />
+	public string GetFileDirectoryPath(Guid fileId) => Path.Combine(DirectoryPath, fileId.ToString());
+	#endregion
+}

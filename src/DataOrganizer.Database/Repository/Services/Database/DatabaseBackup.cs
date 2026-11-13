@@ -1,0 +1,116 @@
+using DataOrganizer.Shared.Common;
+using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Interfaces;
+using Serilog;
+using System;
+using System.IO;
+using System.IO.Abstractions;
+using System.Threading;
+
+namespace DataOrganizer.Database.Repository.Services.Database;
+
+/// <summary>
+/// A copy of the database that is erased when the operation owning it ends.
+/// </summary>
+public sealed class DatabaseBackup : IDisposable
+{
+	#region Data
+	/// <summary>
+	/// Folder the copies live in, next to the database.
+	/// </summary>
+	private const string DirectoryName = "Backups";
+
+	/// <inheritdoc cref="IFileEraser" />
+	private readonly IFileEraser _fileEraser;
+
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
+	/// <summary>
+	/// <c>True</c> when the copy has already been erased.
+	/// </summary>
+	private bool _isDisposed;
+	#endregion
+
+	#region Constructors
+	public DatabaseBackup(
+		string filePath,
+		IFileEraser fileEraser,
+		IFileSystem fileSystem,
+		ILogger logger)
+	{
+		FilePath = filePath;
+
+		_fileEraser = fileEraser;
+
+		_fileSystem = fileSystem;
+
+		_logger = logger;
+	}
+	#endregion
+
+	#region Properties
+	/// <summary>
+	/// Path of the copy.
+	/// </summary>
+	public string FilePath { get; }
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Builds the path of a new copy of the given database.
+	/// </summary>
+	public static string CreateFilePath(string databaseFilePath)
+	{
+		// Stryker disable once String : any format of the guid makes a unique name
+		return Path.Combine(
+			GetDirectoryPath(databaseFilePath),
+			Guid.NewGuid().ToString("N") + KnownFileExtensions.Sqlite);
+	}
+
+	/// <summary>
+	/// Returns the folder holding the copies of the given database.
+	/// </summary>
+	public static string GetDirectoryPath(string databaseFilePath)
+	{
+		return Path.Combine(GetDatabaseDirectoryPath(databaseFilePath), DirectoryName);
+	}
+
+	/// <inheritdoc />
+	public void Dispose()
+	{
+		if (Interlocked.Exchange(ref _isDisposed, true))
+		{
+			return;
+		}
+
+		try
+		{
+			if (_fileSystem
+				.File
+				.Exists(FilePath))
+			{
+				_fileEraser.EraseAndDeleteFile(FilePath);
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Returns the folder the database itself lies in.
+	/// </summary>
+	private static string GetDatabaseDirectoryPath(string databaseFilePath)
+	{
+		// Stryker disable once String : only a root, which no database file is, has no folder
+		return Path.GetDirectoryName(databaseFilePath) ?? string.Empty;
+	}
+	#endregion
+}

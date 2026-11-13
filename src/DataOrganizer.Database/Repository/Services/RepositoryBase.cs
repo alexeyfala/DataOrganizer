@@ -1,0 +1,147 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Query;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.Database.Repository.Services;
+
+/// <summary>
+/// Base repository for entities.
+/// </summary>
+public abstract class RepositoryBase<T> where T : class
+{
+	#region Data
+	/// <inheritdoc cref="DbContext" />
+	private readonly DbContext _context;
+	#endregion
+
+	#region Constructors
+	protected RepositoryBase(DbContext context) => _context = context;
+	#endregion
+
+	#region Methods
+	/// <inheritdoc cref="DbSet{T}.AddAsync" />
+	public ValueTask<EntityEntry<T>> AddAsync(T entity, CancellationToken token)
+	{
+		return _context
+			.Set<T>()
+			.AddAsync(entity, token);
+	}
+
+	/// <inheritdoc cref="DbSet{T}.AddRangeAsync(IEnumerable{T},CancellationToken)" />
+	public Task AddRangeAsync(IEnumerable<T> entities, CancellationToken token)
+	{
+		return _context
+			.Set<T>()
+			.AddRangeAsync(entities, token);
+	}
+
+	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AnyAsync{TSource}(IQueryable{TSource},Expression{Func{TSource,bool}},CancellationToken)" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public Task<bool> ExistsAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+	{
+		return _context
+			.Set<T>()
+			.AsNoTracking()
+			.AnyAsync(condition, token);
+	}
+
+	/// <inheritdoc cref="DbSet{T}.Remove(T)" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public EntityEntry<T> Remove(T entity)
+	{
+		return _context
+			.Set<T>()
+			.Remove(entity);
+	}
+
+	/// <inheritdoc cref="DbSet{T}.RemoveRange(IEnumerable{T})" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	public void RemoveRange(IEnumerable<T> entities)
+	{
+		_context
+			.Set<T>()
+			.RemoveRange(entities);
+	}
+
+	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.CountAsync{TSource}(IQueryable{TSource},Expression{Func{TSource,bool}},CancellationToken)" />
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	protected Task<int> CountAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+	{
+		return _context
+			.Set<T>()
+			.AsNoTracking()
+			.CountAsync(condition, token);
+	}
+
+	/// <summary>
+	/// Updates the specified properties of entities matching <paramref name="condition" />.
+	/// </summary>
+	/// <param name="condition">Filter for affected rows.</param>
+	/// <param name="setters">Property setters, e.g. <c>b =&gt; b.SetProperty(x =&gt; x.Foo, value)</c>.</param>
+	/// <param name="token">Cancellation token.</param>
+	/// <returns>The number of rows affected.</returns>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	protected Task<int> ExecuteUpdateAsync(
+		Expression<Func<T, bool>> condition,
+		Action<UpdateSettersBuilder<T>>[] setters,
+		CancellationToken token)
+	{
+		if (setters.Length == 0)
+		{
+			return Task.FromResult(0);
+		}
+
+		return _context
+			.Set<T>()
+			.Where(condition)
+			.ExecuteUpdateAsync(builder =>
+			{
+				foreach (Action<UpdateSettersBuilder<T>> setter in setters)
+				{
+					setter(builder);
+				}
+			}, token);
+	}
+
+	/// <summary>
+	/// Searches for all <typeparamref name="T" /> entities in the database.
+	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	protected IQueryable<T> FindAll(bool trackChanges = false)
+	{
+		return trackChanges
+			? _context.Set<T>()
+			: _context.Set<T>().AsNoTracking();
+	}
+
+	/// <summary>
+	/// Searches for a <typeparamref name="T" /> entity in the database according to a specific condition.
+	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	protected IQueryable<T> FindBy(Expression<Func<T, bool>> condition, bool trackChanges = false)
+	{
+		return trackChanges
+			? _context.Set<T>().Where(condition)
+			: _context.Set<T>().Where(condition).AsNoTracking();
+	}
+
+	/// <summary>
+	/// Removes entities from the database that meet the condition.
+	/// </summary>
+	[ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
+	protected Task<int> RemoveRangeByAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+	{
+		return _context
+			.Set<T>()
+			.Where(condition)
+			.ExecuteDeleteAsync(token);
+	}
+	#endregion
+}

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0-macos</TargetFramework>
+		<RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+		<SelfContained>true</SelfContained>
+		<ApplicationIcon>..\$(AppName)\Assets\Logo.ico</ApplicationIcon>
+		<ApplicationDisplayVersion>$(AppVersion)</ApplicationDisplayVersion>
+		<ApplicationVersion>$(AppVersion)</ApplicationVersion>
+		<AssemblyName>$(AppName)</AssemblyName>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
+		<!--To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute-->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<TrimmerRootDescriptor Include="Roots.xml" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Desktop" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Include="Logo.icns" />
+	</ItemGroup>
+	<!-- Ship license and attribution files inside the .app bundle (Contents/Resources). -->
+	<ItemGroup>
+		<BundleResource Include="..\..\LICENSE;..\..\NOTICE;..\..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
+	</ItemGroup>
+
+	<!-- Installer / disk-image naming (RuntimeIdentifier is fixed to osx-x64 above). -->
+	<PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+		<_RidOs>$(RuntimeIdentifier.Substring(0, $(RuntimeIdentifier.IndexOf('-'))))</_RidOs>
+		<_RidArch>$(RuntimeIdentifier.Substring($([MSBuild]::Add($(RuntimeIdentifier.LastIndexOf('-')), 1))))</_RidArch>
+		<MacInstallerName>$(OutputBaseName)-$(_RidOs)-$(_RidArch)$(_DebugSuffix)</MacInstallerName>
+	</PropertyGroup>
+</Project>

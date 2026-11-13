@@ -16,7 +16,7 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 - **Encryption** — password-protect folders. Contents are encrypted with XChaCha20-Poly1305 using a per-folder Data Encryption Key (DEK); the DEK is wrapped with a key derived from the password (Argon2id), and no password verifier is stored. The cost of the derivation is recorded with the wrapped key, so it can be raised later without making earlier data unreadable. A new password is rated as it is typed, and the rating is shown next to the input.
 - **Datasets** — structured key-value records with a built-in editor for grouping and editing.
 - **Clipboard history** — a cross-platform journal that captures plain text, formatted text (HTML/RTF), URLs, images, and files/folders. Entries can be browsed, searched, and restored; duplicates are merged, the list is capped, and password-manager secrets are skipped. Kept in memory by default, optionally persisted to an encrypted file (XChaCha20-Poly1305 + Argon2id).
-- **Notepad** — a separate window for scratch texts in tabs, each with the same editor as the files, which open in tabs as well. Tabs can be renamed and reordered by dragging; the texts are kept between sessions as plain text (see [SECURITY.md](SECURITY.md)).
+- **Notepad** — a separate window for scratch texts in tabs, each with the same editor as the files, which open in tabs as well. Tabs can be renamed and reordered by dragging; the texts are kept between sessions as plain text (see [SECURITY.md](.github/SECURITY.md)).
 - **File execution** — launch files with their OS-default application; execution history is tracked.
 - **Import & export** — JSON, XML, and the full SQLite database.
 - **Appearance** — Light, Dark, or System theme (Material Design), with configurable primary and secondary accent colors.
@@ -27,19 +27,19 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 
 **Main window** — hierarchical tree with the built-in text editor.
 
-![Main window](Docs/Images/main-window.png)
+![Main window](docs/Images/main-window.png)
 
 **Dataset editor** — structured key-value records and groups.
 
-![Dataset editor](Docs/Images/dataset-editor.png)
+![Dataset editor](docs/Images/dataset-editor.png)
 
 **Favorites** — quick access, grouped by parent folder.
 
-![Favorites](Docs/Images/favorites.png)
+![Favorites](docs/Images/favorites.png)
 
 **Clipboard history** — captured text, links, images, and files.
 
-<img src="Docs/Images/clipboard-log.png" width="360" alt="Clipboard history">
+<img src="docs/Images/clipboard-log.png" width="360" alt="Clipboard history">
 
 
 ## System Requirements
@@ -65,13 +65,13 @@ The portable builds and the Linux and macOS packages are self-contained: the .NE
 ```bash
 git clone https://github.com/alexeyfala/DataOrganizer.git
 cd DataOrganizer
-dotnet run --project DataOrganizer.Desktop
+dotnet run --project src/DataOrganizer.Desktop
 ```
 
 On macOS, run the platform host instead:
 
 ```bash
-dotnet run --project DataOrganizer.MacOS
+dotnet run --project src/DataOrganizer.MacOS
 ```
 
 ## Install Location
@@ -101,11 +101,11 @@ All application data is stored locally:
 
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for build and workflow guidelines, and the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome. See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for build and workflow guidelines, and the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
 ## Security
 
-Vulnerability reports are handled privately — see [SECURITY.md](SECURITY.md). Avoid filing public issues for security matters.
+Vulnerability reports are handled privately — see [SECURITY.md](.github/SECURITY.md). Avoid filing public issues for security matters.
 
 ## License
 

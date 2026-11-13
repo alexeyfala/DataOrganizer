@@ -1,0 +1,78 @@
+<UserControl
+	x:Class="DataOrganizer.Views.IconsBlock"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:encryption="using:DataOrganizer.Hierarchy.Enums"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
+	xmlns:views="using:DataOrganizer.Views"
+	x:Name="View"
+	mc:Ignorable="d">
+
+	<StackPanel
+		DataContext="{Binding #View}"
+		Orientation="Horizontal"
+		Spacing="2.0">
+		<StackPanel.Styles>
+			<Style Selector="materialIcons|MaterialIcon">
+				<Setter Property="Background" Value="Transparent" />
+				<Setter Property="Height" Value="{StaticResource SmallButtonIconSize}" />
+				<Setter Property="Width" Value="{StaticResource SmallButtonIconSize}" />
+			</Style>
+		</StackPanel.Styles>
+
+		<!--  Built from the template on the first note shown, as a hidden control is never measured.  -->
+		<TemplatedControl IsVisible="{Binding HasNote, Mode=OneWay}">
+			<TemplatedControl.Template>
+				<ControlTemplate x:DataType="views:IconsBlock">
+					<views:NoteView
+						IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encryption:EncryptionStatus.Encrypted}}"
+						IsSensitive="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
+						NoteItem="{Binding NoteItem, Mode=OneWay}"
+						NoteName="{Binding NoteName, Mode=OneWay}"
+						NoteReader="{Binding NoteReader, Mode=OneWay}" />
+				</ControlTemplate>
+			</TemplatedControl.Template>
+		</TemplatedControl>
+
+		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
+			Foreground="{StaticResource EditingBrush}"
+			IsVisible="{Binding IsEditing, Mode=OneWay}"
+			Kind="TextBoxEditOutline"
+			ToolTip.Tip="{x:Static prop:Strings.OpenedInEditor}" />
+
+		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
+			Foreground="{StaticResource ExecutingBrush}"
+			IsVisible="{Binding IsExecuting, Mode=OneWay}"
+			Kind="{OnPlatform Default=MicrosoftWindows,
+			                  macOS=Apple,
+			                  Linux=Linux}"
+			ToolTip.Tip="{x:Static prop:Strings.OpenedInTheOperatingSystem}" />
+
+		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
+			Foreground="{StaticResource HotkeysBrush}"
+			IsVisible="{Binding HotkeysToolTip, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+			Kind="KeyboardVariant"
+			ToolTip.Tip="{Binding HotkeysToolTip, Mode=OneWay}" />
+
+		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
+			Foreground="{StaticResource FavoriteBrush}"
+			IsVisible="{Binding IsFavorite, Mode=OneWay}"
+			Kind="StarOutline"
+			ToolTip.Tip="{x:Static prop:Strings.Favorite}" />
+
+		<materialIcons:MaterialIcon
+			Classes="StatusIconStyle"
+			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconBrush}}"
+			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}"
+			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconKind}}"
+			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:SecurityConverters.EncryptionStatusToIconDescription}}" />
+	</StackPanel>
+</UserControl>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<WarningsAsErrors>nullable;GE001</WarningsAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Generator.Equals" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.Security\DataOrganizer.Security.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.Documents.UnitTests" />
+		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
+	</ItemGroup>
+
+</Project>

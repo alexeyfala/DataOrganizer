@@ -1,0 +1,58 @@
+<UserControl
+	x:Class="DataOrganizer.Views.Dialogs.HotkeysEditorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
+	x:DataType="dialogs:HotkeysEditorViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Interaction.Behaviors>
+		<KeyGestureTrigger
+			EventRoutingStrategy="Bubble"
+			FiredOn="KeyUp"
+			Gesture="Enter">
+			<InvokeCommandAction Command="{Binding SaveAndCloseCommand}" />
+		</KeyGestureTrigger>
+
+	</Interaction.Behaviors>
+
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
+		<StackPanel
+			Classes="FlatButtonsStyle"
+			Orientation="Horizontal"
+			Spacing="{StaticResource ElementSpacing}">
+			<Button
+				Classes="primary"
+				Command="{Binding SaveAndCloseCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ClearCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
+		</StackPanel>
+
+		<TextBlock
+			HorizontalAlignment="Center"
+			FontSize="24.0"
+			FontWeight="SemiBold"
+			Text="{Binding Preview, Mode=OneWay}" />
+
+		<TextBlock>
+			<Run Text="{Binding Buffer.Count, Mode=OneWay}" />
+			<Run Text="/" />
+			<Run Text="{Binding MaxHotkeys, Mode=OneTime}" />
+		</TextBlock>
+	</StackPanel>
+</UserControl>

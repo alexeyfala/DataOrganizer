@@ -1,0 +1,272 @@
+using AwesomeAssertions;
+using DataOrganizer.Database.Entities.Models;
+using DataOrganizer.Database.Entities.Serialization;
+using SharpHook.Data;
+using System;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Serialization;
+
+namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
+
+[TestFixture(Description = $@"Tests of ""{nameof(HotkeyXmlSanitizer)}"" type")]
+internal class HotkeyXmlSanitizerTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a key the library still has is left alone.
+	/// </summary>
+	[Test]
+	public void Sanitize_Keeps_A_Key_The_Library_Knows()
+	{
+		// Arrange
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Code))
+			.Should()
+			.Be(nameof(KeyCode.VcA));
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a mask of several flags is left exactly as the serializer wrote it.
+	/// </summary>
+	[Test]
+	public void Sanitize_Keeps_A_Mask_Written_By_The_Serializer()
+	{
+		// Arrange
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
+
+		string mask = ReadHotkey(document, nameof(HotkeyEntity.Mask));
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
+			.Should()
+			.Be(mask);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a mask whose flags are separated by commas is read
+	/// as it stands, so a file written elsewhere does not lose its modifiers.
+	/// </summary>
+	[Test]
+	public void Sanitize_Keeps_A_Mask_Written_With_Commas()
+	{
+		// Arrange
+		const string mask = "LeftCtrl, LeftShift";
+
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
+
+		WriteHotkey(document, nameof(HotkeyEntity.Mask), mask);
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
+			.Should()
+			.Be(mask);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a document without hotkeys is left alone.
+	/// </summary>
+	[Test]
+	public void Sanitize_Leaves_A_Document_Without_Hotkeys_Alone()
+	{
+		// Arrange
+		XDocument document = XDocument.Parse(Serialize([new FolderEntity { Name = "folder" }]));
+
+		string xml = document.ToString();
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		document
+			.ToString()
+			.Should()
+			.Be(xml);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a document with a key the library lost is read
+	/// instead of being rejected as a whole.
+	/// </summary>
+	[Test]
+	public void Sanitize_Makes_A_Document_With_A_Lost_Key_Readable()
+	{
+		// Arrange
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
+
+		WriteHotkey(document, nameof(HotkeyEntity.Code), "VcKanji");
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		HotkeyEntity result = Deserialize(document);
+
+		result
+			.Code
+			.Should()
+			.Be(KeyCode.VcUndefined);
+
+		result
+			.Mask
+			.Should()
+			.Be(EventMask.LeftCtrl | EventMask.LeftShift);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a key the library no longer has is replaced with undefined.
+	/// </summary>
+	[Test]
+	public void Sanitize_Replaces_A_Key_The_Library_Lost()
+	{
+		// Arrange
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
+
+		WriteHotkey(document, nameof(HotkeyEntity.Code), "VcKanji");
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Code))
+			.Should()
+			.Be(nameof(KeyCode.VcUndefined));
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a mask holding a flag the library no longer has
+	/// is replaced with no mask.
+	/// </summary>
+	[Test]
+	public void Sanitize_Replaces_A_Mask_With_A_Lost_Flag()
+	{
+		// Arrange
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
+
+		WriteHotkey(document, nameof(HotkeyEntity.Mask), "LeftShift LeftHyper");
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
+			.Should()
+			.Be(nameof(EventMask.None));
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: an empty mask is replaced with no mask.
+	/// </summary>
+	[Test]
+	public void Sanitize_Replaces_An_Empty_Mask()
+	{
+		// Arrange
+		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
+
+		WriteHotkey(document, nameof(HotkeyEntity.Mask), string.Empty);
+
+		// Act
+		HotkeyXmlSanitizer.Sanitize(document);
+
+		// Assert
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
+			.Should()
+			.Be(nameof(EventMask.None));
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a document holding a single file with a single hotkey.
+	/// </summary>
+	private static XDocument CreateDocument(KeyCode code, EventMask mask)
+	{
+		FileEntity file = new()
+		{
+			Id = Guid.NewGuid(),
+			Name = "file"
+		};
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = code,
+				Id = Guid.NewGuid(),
+				Mask = mask,
+				OwnerId = file.Id
+			});
+
+		return XDocument.Parse(Serialize([file]));
+	}
+
+	/// <summary>
+	/// Reads the single hotkey of a document back.
+	/// </summary>
+	private static HotkeyEntity Deserialize(XDocument document)
+	{
+		XmlSerializer serializer = new(typeof(ExplorerItemBase[]));
+
+		using XmlReader documentReader = document.CreateReader();
+
+		using XmlReader reader = XmlReader.Create(documentReader, new XmlReaderSettings());
+
+		return ((ExplorerItemBase[])serializer.Deserialize(reader)!)
+			.OfType<FileEntity>()
+			.Single()
+			.Hotkeys
+			.Single();
+	}
+
+	/// <summary>
+	/// Returns the value of the given element of the single hotkey of a document.
+	/// </summary>
+	private static string ReadHotkey(XDocument document, string elementName)
+	{
+		return document
+			.Descendants(HotkeyEntity.HotkeyElementName)
+			.Single()
+			.Element(elementName)!
+			.Value;
+	}
+
+	/// <summary>
+	/// Writes entities as the application does when exporting them.
+	/// </summary>
+	private static string Serialize(ExplorerItemBase[] entities)
+	{
+		XmlSerializer serializer = new(typeof(ExplorerItemBase[]));
+
+		using StringWriter writer = new();
+
+		serializer.Serialize(writer, entities);
+
+		return writer.ToString();
+	}
+
+	/// <summary>
+	/// Sets the value of the given element of the single hotkey of a document.
+	/// </summary>
+	private static void WriteHotkey(XDocument document, string elementName, string value)
+	{
+		document
+			.Descendants(HotkeyEntity.HotkeyElementName)
+			.Single()
+			.Element(elementName)!
+			.Value = value;
+	}
+	#endregion
+}

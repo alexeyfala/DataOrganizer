@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- Required by [LibraryImport] source generator (writes unsafe interop stubs). -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Autofac.Extras.Moq" />
+		<PackageReference Include="Avalonia.Headless.NUnit" />
+		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="SharpHook.Testing" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.TestSupport\DataOrganizer.TestSupport.csproj" />
+		<ProjectReference Include="..\..\src\DataOrganizer\DataOrganizer.csproj" />
+	</ItemGroup>
+
+	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
+	<ItemGroup>
+		<Compile Include="..\DataOrganizer.SystemIntegration.UnitTests\Clipboard\Factories\ClipboardEntryFactory.cs" Link="Factories\ClipboardEntryFactory.cs" />
+		<Compile Include="..\DataOrganizer.SystemIntegration.UnitTests\GlobalHotkeys\Factories\HotkeyFactory.cs" Link="Factories\HotkeyFactory.cs" />
+		<Compile Include="..\DataOrganizer.Hierarchy.UnitTests\Factories\ItemDtoFactory.cs" Link="Factories\ItemDtoFactory.cs" />
+		<Compile Include="..\DataOrganizer.Infrastructure.UnitTests\Settings\Factories\SettingsFactory.cs" Link="Factories\SettingsFactory.cs" />
+		<Compile Include="..\DataOrganizer.Documents.UnitTests\TextProcessing\Fakes\FixedFoldingStrategy.cs" Link="Fakes\FixedFoldingStrategy.cs" />
+		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\Fakes\InlineDispatcherAccessor.cs" Link="Fakes\InlineDispatcherAccessor.cs" />
+	</ItemGroup>
+
+</Project>

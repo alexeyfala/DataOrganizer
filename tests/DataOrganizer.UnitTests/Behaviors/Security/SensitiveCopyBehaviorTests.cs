@@ -1,0 +1,266 @@
+using Avalonia.Controls;
+using Avalonia.Headless.NUnit;
+using Avalonia.Interactivity;
+using AwesomeAssertions;
+using DataOrganizer.Behaviors.Security;
+using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
+using DataOrganizer.TestSupport.Common;
+using NSubstitute;
+
+namespace DataOrganizer.UnitTests.Behaviors.Security;
+
+[TestFixture(Description = $@"Tests of ""{nameof(SensitiveCopyBehavior)}"" type")]
+internal class SensitiveCopyBehaviorTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="SensitiveCopyBehavior.IsSensitive" />: ordinary text keeps the built-in copy.
+	/// </summary>
+	[AvaloniaTest]
+	public void Copy_Leaves_An_Ordinary_Control_Alone()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = false,
+			Writer = writer
+		};
+
+		sut.Attach(input);
+
+		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
+
+		// Act
+		input.RaiseEvent(args);
+
+		// Assert
+		args.Handled
+			.Should()
+			.BeFalse();
+
+		writer
+			.DidNotReceive()
+			.WriteTextAsync(Arg.Any<string>(), Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveCopyBehavior.IsSensitive" />: without a selection there is nothing to write.
+	/// </summary>
+	[AvaloniaTest]
+	public void Copy_Leaves_An_Unselected_Text_Alone()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
+
+		input.ClearSelection();
+
+		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
+
+		// Act
+		input.RaiseEvent(args);
+
+		// Assert
+		args.Handled
+			.Should()
+			.BeFalse();
+
+		writer
+			.DidNotReceive()
+			.WriteTextAsync(Arg.Any<string>(), Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveCopyBehavior.IsSensitive" />: the copy of a text block is written with the markers.
+	/// </summary>
+	[AvaloniaTest]
+	public void Copy_Writes_The_Selection_Of_A_Text_Block()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		SelectableTextBlock textBlock = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(textBlock);
+
+		// Act
+		textBlock.Copy();
+
+		// Assert
+		writer
+			.Received(1)
+			.WriteTextAsync(text, isSensitive: true);
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveCopyBehavior.IsSensitive" />: the copy of a text box is written with the markers.
+	/// </summary>
+	[AvaloniaTest]
+	public void Copy_Writes_The_Selection_Of_A_Text_Box()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
+
+		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
+
+		// Act
+		input.RaiseEvent(args);
+
+		// Assert
+		args.Handled
+			.Should()
+			.BeTrue();
+
+		writer
+			.Received(1)
+			.WriteTextAsync(text, isSensitive: true);
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveCopyBehavior.IsSensitive" />: the cut writes the selection and removes it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Cut_Removes_The_Written_Selection()
+	{
+		// Arrange
+		const string text = "abcdef";
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
+
+		input.SelectionEnd = 3;
+
+		RoutedEventArgs args = new(TextBox.CuttingToClipboardEvent);
+
+		// Act
+		input.RaiseEvent(args);
+
+		// Assert
+		args.Handled
+			.Should()
+			.BeTrue();
+
+		input.Text
+			.Should()
+			.Be("def");
+
+		writer
+			.Received(1)
+			.WriteTextAsync("abc", isSensitive: true);
+	}
+
+	/// <summary>
+	/// <see cref="SensitiveCopyBehavior.OnDetaching" />: a detached behavior leaves the control as it found it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Detaching_Stops_The_Interception()
+	{
+		// Arrange
+		string text = RandomString.Create(16);
+
+		TextBox input = new()
+		{
+			Text = text,
+			SelectionStart = 0,
+			SelectionEnd = text.Length
+		};
+
+		IClipboardTextWriter writer = Substitute.For<IClipboardTextWriter>();
+
+		SensitiveCopyBehavior sut = new()
+		{
+			IsSensitive = true,
+			Writer = writer
+		};
+
+		sut.Attach(input);
+
+		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
+
+		// Act
+		sut.Detach();
+
+		input.RaiseEvent(args);
+
+		// Assert
+		args.Handled
+			.Should()
+			.BeFalse();
+
+		writer
+			.DidNotReceive()
+			.WriteTextAsync(Arg.Any<string>(), Arg.Any<bool>());
+	}
+	#endregion
+}

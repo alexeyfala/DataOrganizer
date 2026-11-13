@@ -14,6 +14,15 @@
 		<SetupProductName Condition="'$(Configuration)' != 'Release'">$(AppDisplayName) (Debug)</SetupProductName>
 	</PropertyGroup>
 
+	<!-- C# settings and the assembly version every project shares; a project states only where it differs. -->
+	<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<WarningsAsErrors>nullable</WarningsAsErrors>
+		<FileVersion>$(AppVersion)</FileVersion>
+		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
+	</PropertyGroup>
+
 	<!--
 		Runs the IDE code-style analyzers during the build, so a naming rule from
 		.editorconfig is reported by the compiler and not only inside the IDE.

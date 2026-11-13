@@ -1,0 +1,458 @@
+<!--  https://docs.avaloniaui.net/docs/basics/user-interface/styling/styles  -->
+<!--  https://docs.avaloniaui.net/docs/guides/styles-and-resources/selectors  -->
+
+<Styles
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:materialControls="using:Material.Styles.Controls"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:prop="using:DataOrganizer.Shared.Properties"
+	xmlns:styling="using:DataOrganizer.Styling"
+	xmlns:text="using:DataOrganizer.Behaviors.Text">
+
+	<!--
+		A button that shows no text is named for screen readers and UI Automation by its tip.
+		The binding shadows a name set by a control theme, so a theme names a button by a text tip.
+	-->
+	<Style Selector=":is(Button)">
+		<Setter Property="AutomationProperties.Name">
+			<MultiBinding Converter="{x:Static converters:AppConverters.ToolTipAutomationName}">
+				<Binding
+					Mode="OneWay"
+					Path="$self.Content" />
+
+				<Binding
+					Mode="OneWay"
+					Path="$self.(ToolTip.Tip)" />
+			</MultiBinding>
+		</Setter>
+	</Style>
+
+	<!--  A text box is named for screen readers and UI Automation by its label, or else by its placeholder.  -->
+	<Style Selector=":is(TextBox)">
+		<Setter Property="AutomationProperties.Name">
+			<MultiBinding Converter="{x:Static converters:AppConverters.FieldLabelAutomationName}">
+				<Binding
+					Mode="OneWay"
+					Path="$self.(assists:TextFieldAssist.Label)" />
+
+				<Binding
+					Mode="OneWay"
+					Path="$self.PlaceholderText" />
+			</MultiBinding>
+		</Setter>
+	</Style>
+
+	<!--
+		The buttons that Material puts into a text box get tips in the language of the app instead of the English ones of their themes.
+		Material adds them as inner content only when they show, apart from the template of a box shown before, so they are reached as descendants rather than template parts.
+	-->
+	<Style Selector=":is(TextBox) Button#PART_ClearButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Clear}" />
+	</Style>
+
+	<Style Selector=":is(TextBox) ToggleButton#PART_PasswordRevealToggle:unchecked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
+	</Style>
+
+	<Style Selector=":is(TextBox) ToggleButton#PART_PasswordRevealToggle:checked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
+	</Style>
+
+	<!--
+		The arrows of a button spinner get tips, and through them names, instead of the type names of their icons.
+		The spinner keeps its buttons private and finds them by these template names alone, so only the names tell them apart.
+	-->
+	<Style Selector="ButtonSpinner /template/ RepeatButton#PART_IncreaseButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Increase}" />
+	</Style>
+
+	<Style Selector="ButtonSpinner /template/ RepeatButton#PART_DecreaseButton">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Decrease}" />
+	</Style>
+
+	<!--
+		The expander of a tree row gets a tip, and through it a name, by its state.
+		It is the only toggle in the template of a row, so its type picks it in any theme.
+	-->
+	<Style Selector="TreeViewItem /template/ ToggleButton:unchecked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Expand}" />
+	</Style>
+
+	<Style Selector="TreeViewItem /template/ ToggleButton:checked">
+		<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Collapse}" />
+	</Style>
+
+	<!--  A row without children keeps its expander, which Material only makes transparent, out of screen readers and UI Automation.  -->
+	<Style Selector="TreeViewItem:empty /template/ ToggleButton">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+	</Style>
+
+	<!--  The close button of the search panel of the text editors gets a tip, and through it a name.  -->
+	<styling:SearchPanelStyles />
+
+	<!--  A list item or a tab of an object that has a name is named by it, not by the type of the object.  -->
+	<Style Selector=":is(ListBoxItem), :is(TabItem)">
+		<Setter Property="AutomationProperties.Name" Value="{Binding $self.DataContext, Mode=OneWay, Converter={x:Static converters:AppConverters.NamedItemAutomationName}}" />
+	</Style>
+
+	<!--
+		An icon that tells the state of an object shows to screen readers and UI Automation as an image named by its tip;
+		other icons stay out of the tree, as the control they belong to names itself.
+	-->
+	<Style Selector="materialIcons|MaterialIcon.StatusIconStyle">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Control" />
+		<Setter Property="AutomationProperties.ControlTypeOverride" Value="Image" />
+		<Setter Property="AutomationProperties.Name" Value="{Binding $self.(ToolTip.Tip), Mode=OneWay}" />
+	</Style>
+
+	<!--
+		The arrows, the page buttons and the thumb of a scroll bar stay out of screen readers and UI Automation, as the themes
+		name them in English or not at all; the scroll bar itself stays there with its value.
+	-->
+	<Style Selector="ScrollBar /template/ RepeatButton, ScrollBar /template/ Thumb">
+		<Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+	</Style>
+
+	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
+		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
+	</Style>
+
+	<!--  Compact header, chevron on the left (custom MaterialIcon.HeaderChevron in HeaderTemplate).  -->
+	<Style Selector="Expander.RecordsGroupExpanderStyle">
+		<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
+
+		<!--  The class makes this a style trigger, which outranks the hand cursor that Material sets in its template.  -->
+		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton">
+			<Setter Property="AutomationProperties.Name" Value="{Binding $parent[Expander].(AutomationProperties.Name), Mode=OneWay}" />
+			<Setter Property="Cursor" Value="Arrow" />
+			<Setter Property="MinHeight" Value="0.0" />
+			<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
+		</Style>
+
+		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder">
+			<Setter Property="Padding" Value="0.0" />
+		</Style>
+
+		<!--  Hide Material's built-in chevron (the unnamed Border wrapping the chevron Path inside PART_RootBorder).  -->
+		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder Border">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+
+		<Style Selector="^ materialIcons|MaterialIcon.HeaderChevron">
+			<Setter Property="RenderTransform" Value="rotate(0deg)" />
+			<Setter Property="Transitions">
+				<Transitions>
+					<TransformOperationsTransition
+						Property="RenderTransform"
+						Duration="0:0:0.2" />
+				</Transitions>
+			</Setter>
+		</Style>
+
+		<Style Selector="^ materialIcons|MaterialIcon.HeaderChevron.expanded">
+			<Setter Property="RenderTransform" Value="rotate(90deg)" />
+		</Style>
+	</Style>
+
+	<Style Selector="Panel.VerticalSeparatorPanelStyle">
+		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="Margin" Value="0.0,6.0" />
+		<Setter Property="VerticalAlignment" Value="Stretch" />
+		<Setter Property="Width" Value="1.0" />
+	</Style>
+
+	<!--  https://docs.avaloniaui.net/docs/concepts/custom-itemspanel  -->
+	<Style Selector="ItemsControl.VirtualizedItemsControlStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="TreeView.VirtualizedTreeViewStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="Menu.VerticalMenuStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<StackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="TextBlock.NotImplementedYetStubStyle">
+		<Setter Property="FontSize" Value="32.0" />
+		<Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+		<Setter Property="HorizontalAlignment" Value="Center" />
+		<Setter Property="Margin" Value="6.0" />
+		<Setter Property="Text" Value="Not implemented yet" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="materialIcons|MaterialIcon.FolderIconStyle">
+		<Setter Property="Foreground" Value="{StaticResource FolderBrush}" />
+		<Setter Property="Height" Value="{StaticResource EntityKindIconSize}" />
+		<Setter Property="Kind" Value="{StaticResource FolderIconKind}" />
+		<Setter Property="Width" Value="{StaticResource EntityKindIconSize}" />
+	</Style>
+
+	<Style Selector="TextBlock.DtoNameTextBlockStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+		<Setter Property="Margin" Value="4.0,0.0,0.0,0.0" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<!--  Text of a tab header: capped in width, cut with an ellipsis and shown whole in a tip.  -->
+	<Style Selector="TextBlock.TabHeaderTextBlockStyle">
+		<Setter Property="Margin" Value="0.0" />
+		<Setter Property="MaxWidth" Value="128.0" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+
+		<Setter Property="(Interaction.Behaviors)">
+			<BehaviorCollectionTemplate>
+				<BehaviorCollection>
+					<text:TextBlockAutoToolTipBehavior />
+				</BehaviorCollection>
+			</BehaviorCollectionTemplate>
+		</Setter>
+	</Style>
+
+	<Style Selector="ListBox.NonVirtualizedListBoxStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<StackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="TextBox.SearchTextBoxStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+		<Setter Property="Padding" Value="0.0" />
+		<Setter Property="Theme" Value="{StaticResource SoloTextBox}" />
+		<Setter Property="PlaceholderText" Value="{x:Static prop:Strings.Search}" />
+	</Style>
+
+	<Style Selector="Rectangle.ColorSampleStyle">
+		<Setter Property="Height" Value="16.0" />
+		<Setter Property="Stroke" Value="Gainsboro" />
+		<Setter Property="StrokeThickness" Value="1.0" />
+		<Setter Property="Width" Value="32.0" />
+	</Style>
+
+	<Style Selector="TextBlock.NameInFlyoutTextBlockStyle">
+		<Setter Property="FontSize" Value="14.0" />
+		<Setter Property="Foreground" Value="{StaticResource FileBrush}" />
+		<Setter Property="HorizontalAlignment" Value="Left" />
+		<Setter Property="Margin" Value="0.0,0.0,0.0,4.0" />
+		<Setter Property="MaxWidth" Value="200.0" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+	</Style>
+
+	<!--  Keys of a command in a flyout, dimmed as secondary text.  -->
+	<Style Selector="TextBlock.GestureInFlyoutTextBlockStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyLightBrush}" />
+	</Style>
+
+	<!--
+		The white card of a menu blends into the light page, so it gets an outline. The card of a flyout
+		is a Material card of its own, which takes no border from the presenter.
+	-->
+	<Style Selector="FlyoutPresenter /template/ materialControls|Card#LayoutRoot">
+		<Setter Property="BorderBrush" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="BorderThickness" Value="1.0" />
+	</Style>
+
+	<Style Selector="MenuFlyoutPresenter">
+		<Setter Property="BorderBrush" Value="{StaticResource MaterialDividerBrush}" />
+		<Setter Property="BorderThickness" Value="1.0" />
+	</Style>
+
+	<!--  The buttons inside an element of this class, the items of its menus included, take the flat look.  -->
+	<Style Selector=".FlatButtonsStyle Button">
+		<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+	</Style>
+
+	<!--  The buttons inside an element of this class keep the color of the text.  -->
+	<Style Selector=".BodyColorButtonsStyle Button">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+	</Style>
+
+	<!--  The buttons inside an element of this class, the items of its menus included, keep apart.  -->
+	<Style Selector=".SpacedButtonsStyle Button">
+		<Setter Property="Margin" Value="6.0,0.0" />
+	</Style>
+
+	<!--  After SpacedButtonsStyle, so that a menu of this class takes the margin of a toolbar away from its items.  -->
+	<Style Selector=".MarginlessButtonsStyle Button">
+		<Setter Property="Margin" Value="0.0" />
+	</Style>
+
+	<!--  A flyout opened inside an element of this class has the background of a card.  -->
+	<Style Selector=".CardFlyoutsStyle FlyoutPresenter">
+		<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+	</Style>
+
+	<!--  A flyout opened inside an element of this class takes the Material presenter and the arrow cursor.  -->
+	<Style Selector=".MaterialFlyoutsStyle FlyoutPresenter">
+		<Setter Property="Cursor" Value="Arrow" />
+		<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+	</Style>
+
+	<Style Selector="TextBlock.HeaderTextBlockStyle">
+		<Setter Property="FontSize" Value="16.0" />
+		<Setter Property="FontWeight" Value="Bold" />
+	</Style>
+
+	<Style Selector="TextBlock.CountTextBlockStyle">
+		<Setter Property="FontSize" Value="16.0" />
+		<Setter Property="FontWeight" Value="Bold" />
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+		<Setter Property="HorizontalAlignment" Value="Right" />
+		<Setter Property="IsHitTestVisible" Value="False" />
+		<Setter Property="Margin" Value="0.0,0.0,8.0,0.0" />
+		<Setter Property="VerticalAlignment" Value="Bottom" />
+	</Style>
+
+	<!--  Supporting text of a snackbar message. Mirrors Material's MaterialSnackbarHostSupportingTextBlock metrics.  -->
+	<Style Selector=":is(TextBlock).SnackbarTextBlockStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+		<Setter Property="MaxLines" Value="2" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+		<Setter Property="TextWrapping" Value="Wrap" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector=":is(TextBlock).SnackbarTextBlockStyle.Warning">
+		<Setter Property="Foreground" Value="Orange" />
+	</Style>
+
+	<Style Selector=":is(TextBlock).SnackbarTextBlockStyle.Error">
+		<Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+	</Style>
+
+	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
+					<Border
+						Grid.Row="0"
+						Grid.Column="0"
+						Margin="5.0,0.0,0.0,0.0"
+						Padding="5.0,0.0"
+						Background="{StaticResource MaterialPaperBrush}"
+						ZIndex="1">
+						<TextBlock
+							FontWeight="Bold"
+							Text="{TemplateBinding Header}" />
+					</Border>
+
+					<Border
+						Grid.RowSpan="2"
+						Grid.ColumnSpan="2"
+						Margin="0.0,10.0,0.0,0.0"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0"
+						CornerRadius="4.0">
+						<ContentPresenter
+							Name="PART_ContentPresenter"
+							Padding="{StaticResource DialogIndent}"
+							Content="{TemplateBinding Content}" />
+					</Border>
+				</Grid>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+
+	<Style Selector="HeaderedContentControl.GroupBoxStyle">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
+					<TextBlock
+						Grid.Row="0"
+						Grid.Column="0"
+						Margin="5.0,0.0,0.0,0.0"
+						FontWeight="Bold"
+						Text="{TemplateBinding Header}" />
+
+					<ContentPresenter
+						Name="PART_ContentPresenter"
+						Grid.RowSpan="2"
+						Grid.ColumnSpan="2"
+						Margin="0.0,16.0,0.0,0.0"
+						Padding="{StaticResource DialogIndent}"
+						Content="{TemplateBinding Content}" />
+				</Grid>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+
+	<Style Selector="TextBlock.SupportingTextBlockStyle">
+		<Setter Property="Margin" Value="0.0,4.0,0.0,0.0" />
+		<Setter Property="FontSize" Value="12.0" />
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyLightBrush}" />
+		<Setter Property="TextWrapping" Value="Wrap" />
+	</Style>
+
+	<Style Selector="Image.AppImageStyle">
+		<Setter Property="Height" Value="16.0" />
+		<Setter Property="Source" Value="/Assets/Logo.ico" />
+		<Setter Property="Width" Value="16.0" />
+	</Style>
+
+	<Style Selector="ToggleSwitch.CompactToggleSwitchStyle">
+		<Setter Property="assists:SelectionControlAssist.Size" Value="28.0" />
+	</Style>
+
+	<Style Selector="ToggleSwitch.PinToggleSwitchStyle">
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<!--  Material paints the track black, which the dark theme swallows.  -->
+		<Setter Property="assists:ToggleSwitchAssist.SwitchTrackOffBackground" Value="{StaticResource MaterialBodyBrush}" />
+
+		<!--  The knob is filled with the brush the icon would inherit, so both icons take the opposite one.  -->
+		<Setter Property="OffContent">
+			<Template>
+				<materialIcons:MaterialIcon
+					Width="{StaticResource ToggleSwitchIconSize}"
+					Height="{StaticResource ToggleSwitchIconSize}"
+					Foreground="{StaticResource MaterialPaperBrush}"
+					Kind="PinOutline" />
+			</Template>
+		</Setter>
+
+		<Setter Property="OnContent">
+			<Template>
+				<materialIcons:MaterialIcon
+					Width="{StaticResource ToggleSwitchIconSize}"
+					Height="{StaticResource ToggleSwitchIconSize}"
+					Foreground="{StaticResource LightForegroundBrush}"
+					Kind="Pin" />
+			</Template>
+		</Setter>
+
+		<!--  Material hides the presenter of "OnContent" and never brings it back.  -->
+		<Style Selector="^:checked /template/ ContentPresenter#OnContentPresenter">
+			<Setter Property="IsVisible" Value="True" />
+		</Style>
+	</Style>
+</Styles>
