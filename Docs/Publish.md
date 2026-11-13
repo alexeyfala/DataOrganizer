@@ -8,7 +8,7 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 >
 > ```powershell
 > dotnet restore
-> powershell -NoProfile -ExecutionPolicy Bypass -File tools\gen-third-party-notices.ps1
+> powershell -NoProfile -ExecutionPolicy Bypass -File build\gen-third-party-notices.ps1
 > ```
 >
 > Review the console summary (watch for any `UNKNOWN` licenses) and commit the updated `THIRD-PARTY-NOTICES.txt`.

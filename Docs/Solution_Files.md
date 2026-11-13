@@ -1,9 +1,9 @@
 ﻿# Reference for the non-code files of the solution
 
 - 📁 **`Deployment/`** — packaging; recipes in [Publish.md](Publish.md).
-  - 📁 **`PupNet/`** — Linux packaging; the files live in the repository root.
-    - ⚙️ [`app.metainfo.xml`](../app.metainfo.xml) — AppStream metadata for software centres.
-    - ⚙️ [`app.pupnet.conf`](../app.pupnet.conf) — PupNet configuration.
+  - 📁 **`PupNet/`** — Linux packaging; the files live in `build/`.
+    - ⚙️ [`app.metainfo.xml`](../build/app.metainfo.xml) — AppStream metadata for software centres.
+    - ⚙️ [`app.pupnet.conf`](../build/app.pupnet.conf) — PupNet configuration.
 - 📁 **`Docs/`**
   - 📁 **`Database/`**
     - 📄 [`Migrations.md`](Database/Migrations.md) — EF Core migration commands.
@@ -11,8 +11,8 @@
     - 🖼️ `*.png` — screenshots for [`README.md`](../README.md).
   - 📁 **`PupNet_Instructions/`**
     - 📄 [`1_Setup.md`](PupNet_Instructions/1_Setup.md) — stage 1: the WSL environment.
-    - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — stage 2: [`app.pupnet.conf`](../app.pupnet.conf).
-    - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — stage 3: [`app.metainfo.xml`](../app.metainfo.xml).
+    - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — stage 2: [`app.pupnet.conf`](../build/app.pupnet.conf).
+    - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — stage 3: [`app.metainfo.xml`](../build/app.metainfo.xml).
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — stage 4: building and checking the packages.
   - 📄 [`Debugging_Tests.md`](Debugging_Tests.md) — how to run `Debug All Tests` without stops on expected exceptions.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted data.
@@ -45,11 +45,11 @@
     - ⚖️ [`LICENSE`](../LICENSE) — Apache 2.0.
     - ⚖️ [`NOTICE`](../NOTICE) — the notice Apache 2.0 requires.
     - ⚖️ [`THIRD-PARTY-NOTICES.txt`](../THIRD-PARTY-NOTICES.txt) — third-party licences; generated, never edited by hand.
-  - 📁 **`tools/`** — PowerShell 5.1 scripts.
-    - 💻 [`gen-license-rtf.ps1`](../tools/gen-license-rtf.ps1) — `LICENSE` → `Setup/LICENSE.rtf`.
-    - 💻 [`gen-release-notes.ps1`](../tools/gen-release-notes.ps1) — release notes from the template.
-    - 💻 [`gen-third-party-notices.ps1`](../tools/gen-third-party-notices.ps1) — generates `THIRD-PARTY-NOTICES.txt`.
-    - 💻 [`run-stryker.ps1`](../tools/run-stryker.ps1) — the mutation run.
+  - 📁 **`build/`** — PowerShell 5.1 scripts.
+    - 💻 [`gen-license-rtf.ps1`](../build/gen-license-rtf.ps1) — `LICENSE` → `src/Setup/LICENSE.rtf`.
+    - 💻 [`gen-release-notes.ps1`](../build/gen-release-notes.ps1) — release notes from the template.
+    - 💻 [`gen-third-party-notices.ps1`](../build/gen-third-party-notices.ps1) — generates `THIRD-PARTY-NOTICES.txt`.
+    - 💻 [`run-stryker.ps1`](../build/run-stryker.ps1) — the mutation run.
   - ⚙️ [`.editorconfig`](../.editorconfig) — code style and naming rules.
   - ⚙️ [`.gitattributes`](../.gitattributes) — line ending normalisation.
   - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository.

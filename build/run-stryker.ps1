@@ -28,10 +28,10 @@
     Number of parallel test sessions. Defaults to the Stryker default: half of the logical processors.
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File tools/run-stryker.ps1
+    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File tools/run-stryker.ps1 -Project Hierarchy,TextProcessing
+    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1 -Project Hierarchy,TextProcessing
 #>
 [CmdletBinding(PositionalBinding = $false)]
 param(

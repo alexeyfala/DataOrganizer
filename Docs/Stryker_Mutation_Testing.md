@@ -22,17 +22,17 @@ A survivor is a candidate for a new test, not a defect by itself.
 unobservable (see *What is noise*), the extra time the tests of a mutant get (see *Timeout* below) and
 the reports to write.
 Which project is mutated and which tests have to catch the mutations is decided by
-`tools/run-stryker.ps1`.
+`build/run-stryker.ps1`.
 
 ## Running it
 
 From the solution root, every project at once:
 
-    powershell -ExecutionPolicy Bypass -File tools/run-stryker.ps1
+    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1
 
 Some projects only, by their folder names, separated by commas without spaces:
 
-    powershell -ExecutionPolicy Bypass -File tools/run-stryker.ps1 -Project Hierarchy,TextProcessing
+    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1 -Project Hierarchy,TextProcessing
 
 The script pairs every project `X/X.csproj` with `X.UnitTests` and `X.IntegrationTests`, whichever
 exist, so a renamed or a new project is picked up as long as its test project carries the same name.

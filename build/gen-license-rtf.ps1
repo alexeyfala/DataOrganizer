@@ -22,7 +22,7 @@
     Font size in points.
 
 .EXAMPLE
-    powershell -NoProfile -ExecutionPolicy Bypass -File tools/gen-license-rtf.ps1
+    powershell -NoProfile -ExecutionPolicy Bypass -File build/gen-license-rtf.ps1
 #>
 [CmdletBinding()]
 param(

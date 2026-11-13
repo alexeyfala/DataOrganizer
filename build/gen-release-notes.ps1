@@ -21,7 +21,7 @@
     Destination file. Defaults to Publish/release-notes.md at the repository root.
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File tools/gen-release-notes.ps1
+    powershell -ExecutionPolicy Bypass -File build/gen-release-notes.ps1
 #>
 [CmdletBinding()]
 param(

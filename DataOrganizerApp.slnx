@@ -7,8 +7,8 @@
   </Configurations>
   <Folder Name="/Deployment/" />
   <Folder Name="/Deployment/PupNet/">
-    <File Path="app.metainfo.xml" />
-    <File Path="app.pupnet.conf" />
+    <File Path="build/app.metainfo.xml" />
+    <File Path="build/app.pupnet.conf" />
   </Folder>
   <Folder Name="/Deployment/WIX/">
     <Project Path="src/Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
@@ -94,11 +94,11 @@
     <File Path="NOTICE" />
     <File Path="THIRD-PARTY-NOTICES.txt" />
   </Folder>
-  <Folder Name="/Solution Items/tools/">
-    <File Path="tools/gen-license-rtf.ps1" />
-    <File Path="tools/gen-release-notes.ps1" />
-    <File Path="tools/gen-third-party-notices.ps1" />
-    <File Path="tools/run-stryker.ps1" />
+  <Folder Name="/Solution Items/build/">
+    <File Path="build/gen-license-rtf.ps1" />
+    <File Path="build/gen-release-notes.ps1" />
+    <File Path="build/gen-third-party-notices.ps1" />
+    <File Path="build/run-stryker.ps1" />
   </Folder>
   <Folder Name="/src/">
     <File Path="src/Directory.Build.props" />

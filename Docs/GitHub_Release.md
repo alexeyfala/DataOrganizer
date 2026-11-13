@@ -3,7 +3,7 @@
 How to cut a release on GitHub. Pairs with [Publish.md](Publish.md) (which
 produces the artifacts this step uploads). The release description is rendered
 from [release-notes.template.md](release-notes.template.md) by
-`tools/gen-release-notes.ps1`.
+`build/gen-release-notes.ps1`.
 
 ---
 
@@ -14,7 +14,7 @@ from [release-notes.template.md](release-notes.template.md) by
 2\. **Generate the release text** — from the repository root, run:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File tools/gen-release-notes.ps1
+powershell -ExecutionPolicy Bypass -File build/gen-release-notes.ps1
 ```
 
 It reads `AppVersion` from `Directory.Build.props`, fills the `{version}` placeholders in the template, writes `Publish/release-notes.md`, **copies the notes to the clipboard**, and prints the tag and title to paste:
