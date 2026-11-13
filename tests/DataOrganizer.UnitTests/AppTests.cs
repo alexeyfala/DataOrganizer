@@ -362,6 +362,9 @@ internal partial class AppTests
 
 		((App)Application.Current!).RegisterServices(services, []);
 
+		// The environment of the test keeps the folders of the application untouched.
+		services.AddSingleton(Substitute.For<IAppEnvironment>());
+
 		await using ServiceProvider provider = services.BuildServiceProvider();
 
 		// Act
@@ -390,6 +393,9 @@ internal partial class AppTests
 		ServiceCollection services = [];
 
 		((App)Application.Current!).RegisterServices(services, []);
+
+		// The environment of the test keeps the folders of the application untouched.
+		services.AddSingleton(Substitute.For<IAppEnvironment>());
 
 		using ServiceProvider provider = services.BuildServiceProvider();
 
@@ -442,6 +448,9 @@ internal partial class AppTests
 		ServiceCollection services = [];
 
 		((App)Application.Current!).RegisterServices(services, []);
+
+		// The environment of the test keeps the folders of the application untouched.
+		services.AddSingleton(Substitute.For<IAppEnvironment>());
 
 		await using ServiceProvider provider = services.BuildServiceProvider();
 
