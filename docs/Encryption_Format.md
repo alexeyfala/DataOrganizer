@@ -2,7 +2,7 @@
 
 Reference for the on-the-wire layout of everything `EncryptionService` writes, and for the rule that
 keeps those layouts readable. Written for whoever edits the encryption stack; the user-facing security
-statement lives in [SECURITY.md](../SECURITY.md).
+statement lives in [SECURITY.md](../.github/SECURITY.md).
 
 ## The rule
 

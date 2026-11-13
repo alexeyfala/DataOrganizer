@@ -37,10 +37,10 @@
     - ⚙️ [`launch.json`](../.vscode/launch.json) — launch configurations.
     - ⚙️ [`settings.json`](../.vscode/settings.json) — workspace settings.
     - ⚙️ [`tasks.json`](../.vscode/tasks.json) — build tasks.
-  - 📁 **`Community/`** — a virtual folder; the files live in the repository root.
-    - 📄 [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) — code of conduct.
-    - 📄 [`CONTRIBUTING.md`](../CONTRIBUTING.md) — how to contribute.
-    - 📄 [`SECURITY.md`](../SECURITY.md) — security policy.
+  - 📁 **`Community/`** — a virtual folder; the files live in `.github/`.
+    - 📄 [`CODE_OF_CONDUCT.md`](../.github/CODE_OF_CONDUCT.md) — code of conduct.
+    - 📄 [`CONTRIBUTING.md`](../.github/CONTRIBUTING.md) — how to contribute.
+    - 📄 [`SECURITY.md`](../.github/SECURITY.md) — security policy.
   - 📁 **`License/`** — a virtual folder; the files live in the repository root.
     - ⚖️ [`LICENSE`](../LICENSE) — Apache 2.0.
     - ⚖️ [`NOTICE`](../NOTICE) — the notice Apache 2.0 requires.

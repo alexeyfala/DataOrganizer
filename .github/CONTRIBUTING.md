@@ -28,7 +28,7 @@ dotnet build DataOrganizerApp.slnx
 dotnet run --project DataOrganizer.Desktop
 ```
 
-See the [README](README.md#build-from-source) for platform-specific notes.
+See the [README](../README.md#build-from-source) for platform-specific notes.
 
 ## Running Tests
 
@@ -83,7 +83,7 @@ dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCatego
 ## Coding Guidelines
 
 - Follow the existing code style. It is enforced by the repository
-  [`.editorconfig`](.editorconfig) — most editors apply it automatically.
+  [`.editorconfig`](../.editorconfig) — most editors apply it automatically.
 - Write source-code comments in **English**.
 - Match the patterns already used in the surrounding code (naming, structure,
   MVVM conventions).
@@ -94,7 +94,7 @@ dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCatego
   on the `MockFileSystem` of Testably.
 - Keep changes focused; unrelated changes belong in separate pull requests.
 - Adding a non-code file — a config, a document, a packaging input? Describe it in
-  [`docs/Solution_Files.md`](docs/Solution_Files.md); a guard test fails the run when a file
+  [`docs/Solution_Files.md`](../docs/Solution_Files.md); a guard test fails the run when a file
   from the solution or from `docs/` is missing there.
 
 ## Pull Request Process
@@ -108,4 +108,4 @@ dotnet test DataOrganizerApp.slnx --filter "TestCategory!=Integration&TestCatego
 ## License
 
 By contributing, you agree that your contributions will be licensed under the
-[Apache License 2.0](LICENSE), the same license that covers this project.
+[Apache License 2.0](../LICENSE), the same license that covers this project.

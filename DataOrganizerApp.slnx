@@ -85,9 +85,9 @@
     <File Path=".vscode/tasks.json" />
   </Folder>
   <Folder Name="/Solution Items/Community/">
-    <File Path="CODE_OF_CONDUCT.md" />
-    <File Path="CONTRIBUTING.md" />
-    <File Path="SECURITY.md" />
+    <File Path=".github/CODE_OF_CONDUCT.md" />
+    <File Path=".github/CONTRIBUTING.md" />
+    <File Path=".github/SECURITY.md" />
   </Folder>
   <Folder Name="/Solution Items/License/">
     <File Path="LICENSE" />
