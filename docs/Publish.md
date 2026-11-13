@@ -35,11 +35,22 @@ For a new 10.0 patch, set two values in `src\Bundle\Bundle.wixproj`:
 
 1\. `DotNetVersion` — the new version.
 
-2\. `DotNetInstallerSha512` — the checksum of the x64 Windows installer of the .NET Runtime. The page
-that <https://dotnet.microsoft.com/en-us/download/dotnet/10.0> opens for the installer shows it as
-«Checksum (SHA512)».
+2\. `DotNetInstallerSha512` — the checksum of the x64 Windows installer of that version.
+
+These lines print both for the latest patch, the version first. Paste them into PowerShell and press
+Enter:
+
+```powershell
+$url = 'https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json'
+$m = Invoke-RestMethod $url
+$latest = $m.releases | Where-Object { $_.runtime.version -eq $m.'latest-runtime' }
+$file = $latest.runtime.files | Where-Object name -eq 'dotnet-runtime-win-x64.exe'
+$m.'latest-runtime', $file.hash
+```
 
 The next build of the bundle brings the new installer. The old one in `artifacts\` may be deleted.
+The installer may also be put there by hand: <https://dotnet.microsoft.com/en-us/download/dotnet/10.0>
+has it as the x64 Windows installer of the .NET Runtime.
 
 ### Portable — Release
 
