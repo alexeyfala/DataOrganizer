@@ -38,7 +38,7 @@ All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the
 
 ```bash
 cd "$DATAORG_REPO" && \
-pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
+pupnet build/app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf artifacts/Artifacts.Deb.amd64 && \
 ls -la artifacts/*.deb
 ```
@@ -60,7 +60,7 @@ ls -la artifacts/*.deb
 >
 > ```bash
 > cd "$DATAORG_REPO" && \
-> PATH="$HOME/.local/tar-noble/bin:$PATH" pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
+> PATH="$HOME/.local/tar-noble/bin:$PATH" pupnet build/app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
 > rm -rf artifacts/Artifacts.Deb.amd64 && \
 > ls -la artifacts/*.deb
 > ```
@@ -71,7 +71,7 @@ One-time: `sudo apt install -y rpm`
 
 ```bash
 cd "$DATAORG_REPO" && \
-pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "$(dataorg_ver)[1]" && \
+pupnet build/app.pupnet.conf -r linux-x64 -k rpm -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf artifacts/Artifacts.Rpm.x86_64 && \
 ls -la artifacts/*.rpm
 ```
@@ -90,7 +90,7 @@ sudo chmod +x /usr/local/bin/appimagetool-x86_64.AppImage
 
 ```bash
 cd "$DATAORG_REPO" && \
-APPIMAGE_EXTRACT_AND_RUN=1 pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "$(dataorg_ver)[1]" && \
+APPIMAGE_EXTRACT_AND_RUN=1 pupnet build/app.pupnet.conf -r linux-x64 -k appimage -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf artifacts/Artifacts.AppImage.x86_64 && \
 ls -la artifacts/*.AppImage
 ```
@@ -112,7 +112,7 @@ flatpak install -y --user flathub org.freedesktop.Platform//25.08 org.freedeskto
 
 ```bash
 cd "$DATAORG_REPO" && \
-pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "$(dataorg_ver)[1]" && \
+pupnet build/app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf artifacts/Artifacts.Flatpak.x86_64 && \
 ls -la artifacts/*.flatpak
 ```
@@ -121,7 +121,7 @@ ls -la artifacts/*.flatpak
 
 ```bash
 cd "$DATAORG_REPO" && \
-pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "$(dataorg_ver)[1]" && \
+pupnet build/app.pupnet.conf -r linux-x64 -k zip -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf artifacts/Artifacts.Zip.x86_64 && \
 ls -la artifacts/*.zip
 ```

@@ -18,10 +18,10 @@ Fields filled by hand: `categories`, `keywords`, `content_rating`, `screenshots`
 wsl.exe -d Ubuntu
 ```
 
-Then, inside Ubuntu, go to the repository root:
+Then, inside Ubuntu, go to the `build` folder of the repository:
 
 ```bash
-cd "$DATAORG_REPO"
+cd "$DATAORG_REPO/build"
 ```
 
 **2) Generate the template** — this writes `app.metainfo.xml` (same `app` base name as `app.pupnet.conf`), then confirm:

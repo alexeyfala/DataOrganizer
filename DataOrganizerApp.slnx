@@ -14,6 +14,7 @@
     <File Path="build/run-stryker.ps1" />
   </Folder>
   <Folder Name="/docs/">
+    <File Path="docs/Architecture.md" />
     <File Path="docs/Debugging_Tests.md" />
     <File Path="docs/Encryption_Format.md" />
     <File Path="docs/GitHub_Release.md" />

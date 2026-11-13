@@ -52,6 +52,8 @@ dotnet test DataOrganizerApp.Tests.slnf --filter "TestCategory!=Integration&Test
 
 ## Coding Guidelines
 
+- Put new code where [`docs/Architecture.md`](../docs/Architecture.md) places its topic: the projects,
+  their topics and the references between them are described there.
 - Follow the existing code style. It is enforced by the repository
   [`.editorconfig`](../.editorconfig) — most editors apply it automatically.
 - Write source-code comments in **English**.

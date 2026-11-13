@@ -32,9 +32,9 @@ From the solution root, every project at once:
 
 Some projects only, by their folder names, separated by commas without spaces:
 
-    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1 -Project Hierarchy,TextProcessing
+    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1 -Project DataOrganizer.Hierarchy,DataOrganizer.Documents
 
-The script pairs every project `X/X.csproj` with `X.UnitTests` and `X.IntegrationTests`, whichever
+The script pairs every project `src/X/X.csproj` with `tests/X.UnitTests` and `tests/X.IntegrationTests`, whichever
 exist, so a renamed or a new project is picked up as long as its test project carries the same name.
 A project without a test project of its own is skipped, and so is a project with Avalonia views (see
 below). So is `Setup.CustomActions`: it targets .NET Framework for the Windows Installer, and its tests
@@ -44,7 +44,7 @@ Only the project's own tests catch its mutants. The score then says how well the
 pin its behaviour, not what the whole suite happens to notice. That is why the script starts Stryker
 from the folder of the project: from the solution root Stryker finds `DataOrganizerApp.slnx`, switches
 to solution mode and takes every test project that depends on the project, whatever `-tp` says. For
-`Hierarchy` that is 3546 tests instead of its own 58, and five minutes instead of twenty seconds.
+`DataOrganizer.Hierarchy` that adds the tests of every project above it, and minutes instead of seconds.
 
 Stryker runs as many test sessions as half of the logical processors. `-Concurrency N` changes that;
 more sessions than processors do not make the run faster (see *Timeout* below).
@@ -121,8 +121,8 @@ Statuses, in the order they are worth looking at:
 The percentage is not a target. What pays off is walking the survivors once and deciding for each
 whether a test is worth writing.
 
-For `Repository` Stryker also takes `TestSupport` for a test project and prints a test discovery error
-about it. `TestSupport` has no tests, and the run is not affected.
+For `DataOrganizer.Database` Stryker also takes `DataOrganizer.TestSupport` for a test project and prints a test discovery error
+about it. `DataOrganizer.TestSupport` has no tests, and the run is not affected.
 
 ## What is noise
 

@@ -4,8 +4,8 @@
     Runs the Stryker mutation test of each project against its own test projects.
 
 .DESCRIPTION
-    Pairs every project X/X.csproj of the repository with X.UnitTests/X.UnitTests.csproj and
-    X.IntegrationTests/X.IntegrationTests.csproj, whichever exist. A project without such a test
+    Pairs every project src/X/X.csproj of the repository with tests/X.UnitTests/X.UnitTests.csproj and
+    tests/X.IntegrationTests/X.IntegrationTests.csproj, whichever exist. A project without such a test
     project is skipped, and so is a project with Avalonia views (*.axaml): Stryker cannot build it.
     A project whose test projects compile its files instead of referencing it is skipped too:
     Stryker mutates only a referenced project.
@@ -31,7 +31,7 @@
     powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1 -Project Hierarchy,TextProcessing
+    powershell -ExecutionPolicy Bypass -File build/run-stryker.ps1 -Project DataOrganizer.Hierarchy,DataOrganizer.Documents
 #>
 [CmdletBinding(PositionalBinding = $false)]
 param(
@@ -46,7 +46,7 @@ $configFile = Join-Path $repoRoot 'stryker-config.json'
 # --- Pair each project with its own test projects --------------------------------
 function Get-TestProjects([string]$name) {
     foreach ($suffix in 'UnitTests', 'IntegrationTests') {
-        $testProject = Join-Path $repoRoot "$name.$suffix\$name.$suffix.csproj"
+        $testProject = Join-Path $repoRoot "tests\$name.$suffix\$name.$suffix.csproj"
         if (Test-Path $testProject) {
             $testProject
         }
@@ -68,7 +68,7 @@ function Test-HasViews([string]$folder) {
 $pairs = @()
 $withViews = @()
 $unreferenced = @()
-foreach ($folder in Get-ChildItem $repoRoot -Directory) {
+foreach ($folder in Get-ChildItem (Join-Path $repoRoot 'src') -Directory) {
     if (-not (Test-Path (Join-Path $folder.FullName "$($folder.Name).csproj"))) {
         continue
     }

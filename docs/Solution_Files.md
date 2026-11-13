@@ -17,6 +17,7 @@
     - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — stage 2: [`app.pupnet.conf`](../build/app.pupnet.conf).
     - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — stage 3: [`app.metainfo.xml`](../build/app.metainfo.xml).
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — stage 4: building and checking the packages.
+  - 📄 [`Architecture.md`](Architecture.md) — the projects, their topics and the references between them.
   - 📄 [`Debugging_Tests.md`](Debugging_Tests.md) — how to run `Debug All Tests` without stops on expected exceptions.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted data.
   - 📄 [`GitHub_Release.md`](GitHub_Release.md) — checklist for publishing a release.

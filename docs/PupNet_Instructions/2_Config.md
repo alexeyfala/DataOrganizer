@@ -6,10 +6,10 @@
 wsl.exe -d Ubuntu
 ```
 
-Then, inside Ubuntu, go to the repository root and list it (you should see the `.slnx` and the guide files):
+Then, inside Ubuntu, go to the `build` folder of the repository, where the PupNet inputs live, and list it:
 
 ```bash
-cd "$DATAORG_REPO"
+cd "$DATAORG_REPO/build"
 ls
 ```
 

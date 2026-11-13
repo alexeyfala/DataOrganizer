@@ -65,13 +65,13 @@ The portable builds and the Linux and macOS packages are self-contained: the .NE
 ```bash
 git clone https://github.com/alexeyfala/DataOrganizer.git
 cd DataOrganizer
-dotnet run --project DataOrganizer.Desktop
+dotnet run --project src/DataOrganizer.Desktop
 ```
 
 On macOS, run the platform host instead:
 
 ```bash
-dotnet run --project DataOrganizer.MacOS
+dotnet run --project src/DataOrganizer.MacOS
 ```
 
 ## Install Location
