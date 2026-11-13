@@ -11,12 +11,12 @@
     <File Path="app.pupnet.conf" />
   </Folder>
   <Folder Name="/Deployment/WIX/">
-    <Project Path="Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+    <Project Path="src/Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
     </Project>
-    <Project Path="Setup.CustomActions/Setup.CustomActions.csproj" />
-    <Project Path="Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+    <Project Path="src/Setup.CustomActions/Setup.CustomActions.csproj" />
+    <Project Path="src/Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
     </Project>
@@ -46,11 +46,11 @@
     <File Path="Docs/PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Layers/Documents/">
-    <Project Path="AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
+    <Project Path="src/AvaloniaEdit.Localization/AvaloniaEdit.Localization.csproj" />
   </Folder>
   <Folder Name="/Platforms/">
-    <Project Path="DataOrganizer.Desktop/DataOrganizer.Desktop.csproj" />
-    <Project Path="DataOrganizer.MacOS/DataOrganizer.MacOS.csproj" />
+    <Project Path="src/DataOrganizer.Desktop/DataOrganizer.Desktop.csproj" />
+    <Project Path="src/DataOrganizer.MacOS/DataOrganizer.MacOS.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
@@ -113,10 +113,10 @@
     <Project Path="src/DataOrganizer.Workflows/DataOrganizer.Workflows.csproj" />
   </Folder>
   <Folder Name="/Tests (old)/">
-    <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Tests (old)/Deployment/">
-    <Project Path="Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj" />
+    <Project Path="tests/Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <File Path="tests/Directory.Build.props" />
@@ -131,5 +131,5 @@
     <Project Path="tests/DataOrganizer.TestSupport/DataOrganizer.TestSupport.csproj" />
     <Project Path="tests/DataOrganizer.Workflows.UnitTests/DataOrganizer.Workflows.UnitTests.csproj" />
   </Folder>
-  <Project Path="DataOrganizer/DataOrganizer.csproj" />
+  <Project Path="src/DataOrganizer/DataOrganizer.csproj" />
 </Solution>

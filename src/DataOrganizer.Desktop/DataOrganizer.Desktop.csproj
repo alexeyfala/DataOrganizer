@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net10.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<WarningsAsErrors>nullable</WarningsAsErrors>
 		<ApplicationIcon>..\$(AppName)\Assets\Logo.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AssemblyName>$(AppName)</AssemblyName>
@@ -13,8 +10,6 @@
 
 	<PropertyGroup>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<FileVersion>$(AppVersion)</FileVersion>
-		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 		<!-- ↓↓↓ You can add a suffix to version here. -->
 		<Version>$(AppVersion)</Version>
 	</PropertyGroup>
@@ -25,7 +20,7 @@
 
 	<!-- Ship license and attribution files alongside the published application. -->
 	<ItemGroup>
-		<None Include="..\LICENSE;..\NOTICE;..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\LICENSE;..\..\NOTICE;..\..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

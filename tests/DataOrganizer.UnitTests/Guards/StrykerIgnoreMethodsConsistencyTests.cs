@@ -82,8 +82,7 @@ internal class StrykerIgnoreMethodsConsistencyTests
 	/// </summary>
 	private static bool IsProjectCode(string[] segments)
 	{
-		return !segments[0].EndsWith("Tests", StringComparison.Ordinal)
-			&& segments[0] != "TestSupport"
+		return segments[0] == RepositoryFiles.SourceFolder
 			&& !segments.Contains("bin")
 			&& !segments.Contains("obj");
 	}

@@ -428,7 +428,7 @@ FodyWeavers.xsd
 *.msp
 
 # Generated from the plain-text LICENSE by tools/gen-license-rtf.ps1 (single source of truth)
-Setup/LICENSE.rtf
+src/Setup/LICENSE.rtf
 
 # macOS Finder metadata
 .DS_Store

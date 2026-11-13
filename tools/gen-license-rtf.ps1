@@ -1,19 +1,19 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Generates Setup/LICENSE.rtf from the plain-text LICENSE (single source of truth).
+    Generates src/Setup/LICENSE.rtf from the plain-text LICENSE (single source of truth).
 
 .DESCRIPTION
     The WiX installer license dialog (WixUILicenseRtf) can only display RTF, so the
     plain-text LICENSE is wrapped into an RTF document. LICENSE is the only
-    hand-maintained copy; Setup/LICENSE.rtf is a generated build artifact and is
+    hand-maintained copy; src/Setup/LICENSE.rtf is a generated build artifact and is
     git-ignored. This script runs automatically from Setup.wixproj's PreBuild.
 
 .PARAMETER LicenseFile
     Source plain-text license. Defaults to LICENSE at the repository root.
 
 .PARAMETER OutputFile
-    Destination RTF. Defaults to Setup/LICENSE.rtf.
+    Destination RTF. Defaults to src/Setup/LICENSE.rtf.
 
 .PARAMETER FontName
     Monospace font that preserves the license's fixed-width layout.
@@ -36,7 +36,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 
 if (-not $LicenseFile) { $LicenseFile = Join-Path $repoRoot 'LICENSE' }
-if (-not $OutputFile)  { $OutputFile  = Join-Path $repoRoot 'Setup\LICENSE.rtf' }
+if (-not $OutputFile)  { $OutputFile  = Join-Path $repoRoot 'src\Setup\LICENSE.rtf' }
 
 if (-not (Test-Path $LicenseFile)) {
     throw "License source not found at $LicenseFile."

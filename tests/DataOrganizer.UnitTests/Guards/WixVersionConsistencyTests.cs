@@ -61,7 +61,7 @@ internal class WixVersionConsistencyTests
 	/// </summary>
 	private static XDocument LoadProject(string projectName)
 	{
-		return XDocument.Load(Path.Combine(RepositoryFiles.LocateRoot(), projectName, $"{projectName}.wixproj"));
+		return XDocument.Load(Path.Combine(RepositoryFiles.LocateRoot(), RepositoryFiles.SourceFolder, projectName, $"{projectName}.wixproj"));
 	}
 
 	/// <summary>

@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
 		<OutputName>$(MsiOutputName)</OutputName>
-		<OutputPath>..\Publish</OutputPath>
+		<OutputPath>..\..\Publish</OutputPath>
 		<ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
 		<Cultures>$(SetupCulture)</Cultures>
 		<!--
@@ -41,7 +41,7 @@
 			<_DesktopPublishDir>@(_WixReferencedProjectOutputs->WithMetadataValue('OriginalItemSpec', '..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj')->'%(RootDir)%(Directory)')Publish</_DesktopPublishDir>
 		</PropertyGroup>
 		<!-- Generate the RTF license from the plain-text LICENSE. -->
-		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File ..\tools\gen-license-rtf.ps1" WorkingDirectory="$(MSBuildProjectDirectory)" />
+		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File ..\..\tools\gen-license-rtf.ps1" WorkingDirectory="$(MSBuildProjectDirectory)" />
 		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
 	</Target>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(DesignTimeBuild)' != 'true'">

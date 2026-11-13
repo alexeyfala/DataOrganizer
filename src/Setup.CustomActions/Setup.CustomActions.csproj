@@ -8,10 +8,6 @@
 		<AcceptEula>wix7</AcceptEula>
 		<TargetFramework>net472</TargetFramework>
 		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
-		<WarningsAsErrors>nullable</WarningsAsErrors>
-		<FileVersion>$(AppVersion)</FileVersion>
-		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

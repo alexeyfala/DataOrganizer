@@ -1,13 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<WarningsAsErrors>nullable</WarningsAsErrors>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<RootNamespace>$(AppName)</RootNamespace>
 		<AssemblyName>$(AppName)Main</AssemblyName>
-		<FileVersion>$(AppVersion)</FileVersion>
-		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -79,8 +74,8 @@
 		<!-- Brings only the Russian satellite of AvaloniaEdit; the main assembly of that project is empty. -->
 		<ProjectReference Include="..\AvaloniaEdit.Localization\AvaloniaEdit.Localization.csproj" ReferenceOutputAssembly="false" />
 		<!-- Ensures the migrations assembly is deployed so EF Core can load it at runtime. -->
-		<ProjectReference Include="..\src\DataOrganizer.Database.Migrations\DataOrganizer.Database.Migrations.csproj" />
-		<ProjectReference Include="..\src\DataOrganizer.Workflows\DataOrganizer.Workflows.csproj" />
+		<ProjectReference Include="..\DataOrganizer.Database.Migrations\DataOrganizer.Database.Migrations.csproj" />
+		<ProjectReference Include="..\DataOrganizer.Workflows\DataOrganizer.Workflows.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -21,6 +21,11 @@ internal static class RepositoryFiles
 	/// Solution file at the repository root.
 	/// </summary>
 	public const string SolutionFileName = "DataOrganizerApp.slnx";
+
+	/// <summary>
+	/// Folder of the projects of the application, relative to the repository root.
+	/// </summary>
+	public const string SourceFolder = "src";
 	#endregion
 
 	#region Methods
@@ -85,7 +90,7 @@ internal static class RepositoryFiles
 	/// </summary>
 	private static IEnumerable<string> EnumerateProjectFiles(string searchPattern)
 	{
-		string root = Path.Combine(LocateRoot(), "DataOrganizer");
+		string root = Path.Combine(LocateRoot(), SourceFolder, "DataOrganizer");
 
 		return Directory
 			.EnumerateFiles(root, searchPattern, SearchOption.AllDirectories)

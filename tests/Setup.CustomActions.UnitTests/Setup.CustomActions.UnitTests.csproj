@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AcceptEula>wix7</AcceptEula>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NUnit" />
+		<PackageReference Include="WixToolset.Dtf.WindowsInstaller" />
+	</ItemGroup>
+
+	<!--
+		Setup.CustomActions targets .NET Framework for the Windows Installer, so it cannot be referenced from here.
+		The matching logic needs no installer session: its files are compiled into this project as they are.
+	-->
+	<ItemGroup>
+		<Compile Include="..\..\src\Setup.CustomActions\Enums\*.cs" Link="Enums\%(Filename)%(Extension)" />
+		<Compile Include="..\..\src\Setup.CustomActions\Helpers\*.cs" Link="Helpers\%(Filename)%(Extension)" />
+		<Compile Include="..\..\src\Setup.CustomActions\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
+	</ItemGroup>
+
+</Project>

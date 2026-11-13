@@ -65,7 +65,7 @@ if (-not $appName) {
 }
 
 if (-not $AssetsFile) {
-    $AssetsFile = @(Join-Path $repoRoot 'DataOrganizer.Desktop\obj\project.assets.json')
+    $AssetsFile = @(Join-Path $repoRoot 'src\DataOrganizer.Desktop\obj\project.assets.json')
 }
 if (-not $OutputFile) {
     $OutputFile = Join-Path $repoRoot 'THIRD-PARTY-NOTICES.txt'
