@@ -586,36 +586,6 @@ internal class DatasetRecordTreeTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordTree.Sort" />: records of a kind the sort does not know would be lost, so the records keep
-	/// their order.
-	/// </summary>
-	[Test]
-	public void Sort_Keeps_Records_It_Cannot_Sort()
-	{
-		// Arrange
-		ForeignRecord foreign = new();
-
-		ValueRecord value = new()
-		{
-			Value = RandomString.Create(10)
-		};
-
-		ObservableCollection<DatasetRecordBase> records = [foreign, value];
-
-		// Act
-		bool result = DatasetRecordTree.Sort(records, ListSortDirection.Ascending);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		records
-			.Should()
-			.Equal(foreign, value);
-	}
-
-	/// <summary>
 	/// <see cref="DatasetRecordTree.Sort" />: groups come first, then key and value records, then value records, whatever
 	/// the direction.
 	/// </summary>
@@ -651,30 +621,6 @@ internal class DatasetRecordTreeTests
 		records
 			.Should()
 			.Equal(group, keyValue, value);
-	}
-
-	/// <summary>
-	/// <see cref="DatasetRecordTree.Sort" />: the records of the groups count too, so a sort that would lose one deep in a
-	/// group is refused.
-	/// </summary>
-	[Test]
-	public void Sort_Refuses_A_Sort_That_Would_Lose_A_Nested_Record()
-	{
-		// Arrange
-		RecordsGroup group = new()
-		{
-			Children = [new ForeignRecord(), new ValueRecord()]
-		};
-
-		ObservableCollection<DatasetRecordBase> records = [group];
-
-		// Act
-		bool result = DatasetRecordTree.Sort(records, ListSortDirection.Ascending);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
 	}
 
 	/// <summary>
@@ -1127,12 +1073,5 @@ internal class DatasetRecordTreeTests
 			.Should()
 			.Be(1);
 	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Record of a kind that the sort does not know.
-	/// </summary>
-	private sealed class ForeignRecord : DatasetRecordBase;
 	#endregion
 }

@@ -12,23 +12,9 @@ internal static class ClipboardLogMapper
 {
 	#region Methods
 	/// <summary>
-	/// Reconstructs domain entries from a persisted history. Entries that cannot be
-	/// mapped (unknown type) are skipped.
+	/// Reconstructs domain entries from a persisted history.
 	/// </summary>
-	public static List<ClipboardLogEntryBase> ToDomain(PersistedClipboardLog history)
-	{
-		List<ClipboardLogEntryBase> result = [with(history.Entries.Count)];
-
-		foreach (PersistedClipboardEntryBase entry in history.Entries)
-		{
-			if (ToDomainEntry(entry) is { } domain)
-			{
-				result.Add(domain);
-			}
-		}
-
-		return result;
-	}
+	public static List<ClipboardLogEntryBase> ToDomain(PersistedClipboardLog history) => [.. history.Entries.Select(ToDomainEntry)];
 
 	/// <summary>
 	/// Projects domain entries into a persisted history container.
@@ -37,13 +23,9 @@ internal static class ClipboardLogMapper
 	{
 		PersistedClipboardLog history = new();
 
-		foreach (ClipboardLogEntryBase entry in entries)
-		{
-			if (ToPersistedEntry(entry) is { } persisted)
-			{
-				history.Entries.Add(persisted);
-			}
-		}
+		history
+			.Entries
+			.AddRange(entries.Select(ToPersistedEntry));
 
 		return history;
 	}
@@ -51,9 +33,9 @@ internal static class ClipboardLogMapper
 
 	#region Helpers
 	/// <summary>
-	/// Maps a single persisted entry to its domain counterpart; <c>null</c> for unknown types.
+	/// Maps a single persisted entry to its domain counterpart.
 	/// </summary>
-	private static ClipboardLogEntryBase? ToDomainEntry(PersistedClipboardEntryBase entry) => entry switch
+	private static ClipboardLogEntryBase ToDomainEntry(PersistedClipboardEntryBase entry) => entry switch
 	{
 		PersistedImageEntry image => ClipboardLogEntryFactory.CreateImage(
 			image.OriginalPng,
@@ -68,14 +50,13 @@ internal static class ClipboardLogMapper
 			text.Html,
 			text.Rtf,
 			text.Hash,
-			isPinned: text.IsPinned),
-		_ => null
+			isPinned: text.IsPinned)
 	};
 
 	/// <summary>
-	/// Maps a single domain entry to its persisted counterpart; <c>null</c> for unknown types.
+	/// Maps a single domain entry to its persisted counterpart.
 	/// </summary>
-	private static PersistedClipboardEntryBase? ToPersistedEntry(ClipboardLogEntryBase entry) => entry switch
+	private static PersistedClipboardEntryBase ToPersistedEntry(ClipboardLogEntryBase entry) => entry switch
 	{
 		ClipboardImageEntry image => new PersistedImageEntry
 		{
@@ -97,8 +78,7 @@ internal static class ClipboardLogMapper
 			Rtf = text.Rtf,
 			Hash = text.Hash,
 			IsPinned = text.IsPinned
-		},
-		_ => null
+		}
 	};
 	#endregion
 }

@@ -16,7 +16,7 @@ namespace DataOrganizer.Hierarchy.Dto;
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(Kind)} = {{{nameof(Kind)}}}, " +
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
-public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
+public closed partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 {
 	#region Properties
 	/// <inheritdoc cref="ExplorerItemBase.CreatedAt" />

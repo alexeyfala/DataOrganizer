@@ -305,7 +305,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			RecordsGroup group => group.Name,
 			KeyValueRecord keyValue => keyValue.Key,
-			_ => null
+			ValueRecord => null
 		};
 
 		TextInputResult result = await _textInputPrompt.RequestMultilineTextAsync(

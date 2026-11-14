@@ -11,7 +11,7 @@ namespace DataOrganizer.Documents.DatasetRecords.Models;
 [JsonDerivedType(typeof(KeyValueRecord), "KeyValue")]
 [JsonDerivedType(typeof(RecordsGroup), "Group")]
 [JsonDerivedType(typeof(ValueRecord), "Value")]
-public abstract partial class DatasetRecordBase : ObservableObject
+public closed partial class DatasetRecordBase : ObservableObject
 {
 	#region Properties
 	/// <summary>

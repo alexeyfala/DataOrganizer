@@ -63,8 +63,7 @@ public sealed class DeletionScenario : IDeletionScenario
 		FileDto[] deletedFiles = item switch
 		{
 			FileDto file => [file],
-			FolderDto folder => [.. folder.Children.GetFiles()],
-			_ => []
+			FolderDto folder => [.. folder.Children.GetFiles()]
 		};
 
 		foreach (FileDto deletedFile in deletedFiles)
