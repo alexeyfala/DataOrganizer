@@ -4,6 +4,7 @@
 		<AppDisplayName>Data Organizer</AppDisplayName>
 		<AppIconPath>..\$(AppName)\Assets\Logo.ico</AppIconPath>
 		<AppVersion>0.3.0</AppVersion>
+		<AppTargetFramework>net11.0</AppTargetFramework>
 		<Manufacturer>Alexey Fala</Manufacturer>
 		<License>Apache-2.0</License>
 		<_DebugSuffix Condition="'$(Configuration)' != 'Release'">-debug</_DebugSuffix>
@@ -16,7 +17,7 @@
 
 	<!-- C# settings and the assembly version every project shares; a project states only where it differs. -->
 	<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
-		<TargetFramework>net10.0</TargetFramework>
+		<TargetFramework>$(AppTargetFramework)</TargetFramework>
 		<Nullable>enable</Nullable>
 		<WarningsAsErrors>nullable</WarningsAsErrors>
 		<FileVersion>$(AppVersion)</FileVersion>
