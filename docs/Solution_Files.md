@@ -8,6 +8,7 @@
   - 💻 [`gen-third-party-notices.ps1`](../build/gen-third-party-notices.ps1) — generates `THIRD-PARTY-NOTICES.txt`.
   - 💻 [`post-publish.sh`](../build/post-publish.sh) — opens the published files to every user before PupNet packs them.
   - 💻 [`run-stryker.ps1`](../build/run-stryker.ps1) — the mutation run.
+  - 💻 [`update-dotnet-runtime.ps1`](../build/update-dotnet-runtime.ps1) — pins the bundle to the latest .NET runtime patch.
 - 📁 **`docs/`**
   - 📁 **`Database/`**
     - 📄 [`Migrations.md`](Database/Migrations.md) — EF Core migration commands.

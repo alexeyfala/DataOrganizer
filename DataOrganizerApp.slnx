@@ -13,6 +13,7 @@
     <File Path="build/gen-third-party-notices.ps1" />
     <File Path="build/post-publish.sh" />
     <File Path="build/run-stryker.ps1" />
+    <File Path="build/update-dotnet-runtime.ps1" />
   </Folder>
   <Folder Name="/docs/">
     <File Path="docs/Architecture.md" />

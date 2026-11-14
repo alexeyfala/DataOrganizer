@@ -31,24 +31,14 @@ The bundle embeds the installer of the .NET Runtime, `dotnet-runtime-<version>-w
 takes the file from `artifacts\` and downloads it from Microsoft when it is not there. Either way the
 file must match the checksum of the project, or the build fails.
 
-For a new patch of the .NET the application targets, set two values in `src\Bundle\Bundle.wixproj`:
-
-1\. `DotNetVersion` — the new version.
-
-2\. `DotNetInstallerSha512` — the checksum of the x64 Windows installer of that version.
-
-These lines print both for the latest patch, the version first. They take the .NET version from the
-target framework of the solution. Paste them into PowerShell opened at the repository root and press
-Enter:
+For a new patch of the .NET the application targets, run this script in PowerShell opened at the
+repository root. It takes the latest patch of that .NET from Microsoft's release metadata and writes its
+version and the checksum of its x64 Windows installer into `src\Bundle\Bundle.wixproj`
+(`DotNetVersion`, `DotNetInstallerSha512`); when the bundle has that patch already, it changes nothing.
+Check the change in the diff and commit it:
 
 ```powershell
-$framework = ([xml](Get-Content Directory.Build.props)).SelectSingleNode('//AppTargetFramework').InnerText
-$release = $framework -replace '^net', ''
-$url = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/$release/releases.json"
-$m = Invoke-RestMethod $url
-$latest = $m.releases | Where-Object { $_.runtime.version -eq $m.'latest-runtime' }
-$file = $latest.runtime.files | Where-Object name -eq 'dotnet-runtime-win-x64.exe'
-$m.'latest-runtime', $file.hash
+powershell -ExecutionPolicy Bypass -File build\update-dotnet-runtime.ps1
 ```
 
 The next build of the bundle brings the new installer. The old one in `artifacts\` may be deleted.
