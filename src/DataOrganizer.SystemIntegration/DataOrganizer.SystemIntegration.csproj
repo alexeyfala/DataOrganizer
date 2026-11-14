@@ -6,7 +6,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Comparation" />
 		<PackageReference Include="System.Drawing.Common" />
 	</ItemGroup>
 
