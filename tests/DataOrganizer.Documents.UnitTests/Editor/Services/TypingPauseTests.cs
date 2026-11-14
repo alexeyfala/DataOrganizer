@@ -109,7 +109,7 @@ internal class TypingPauseTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance<Action>(static () => { });
+			builder.RegisterInstance(static () => { });
 
 			builder.RegisterInstance(dispatcher);
 

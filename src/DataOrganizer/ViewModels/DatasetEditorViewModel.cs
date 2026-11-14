@@ -368,7 +368,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Saves the records as a change of the view once the user has expanded or collapsed a group.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsEditingEnabled))]
-	private Task GroupExpandedCollapsedByUser() => SaveContentsAsync(FileContentsChange.View);
+	private Task<bool> GroupExpandedCollapsedByUser() => SaveContentsAsync(FileContentsChange.View);
 
 	/// <summary>
 	/// Sets <see cref="ValueRecordBase.IsHidden" /> value to <c>True</c> to all records in <see cref="RecordsGroup" />.
@@ -797,7 +797,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
-	private static bool HasChildren(RecordsGroup? group) => group?.Children.Any() ?? false;
+	private static bool HasChildren(RecordsGroup? group) => group?.Children.Count > 0;
 
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
@@ -829,7 +829,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// <c>True</c> when <see cref="Records" /> has elements.
 	/// </summary>
-	private bool HasRecords() => Records.Any();
+	private bool HasRecords() => Records.Count != 0;
 
 	/// <summary>
 	/// Saves the records, which also hold an earlier change whose save failed; <c>false</c> when they are not saved.

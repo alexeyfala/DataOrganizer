@@ -200,7 +200,7 @@ public static class HierarchyExtensions
 	public static void SortChildrenByIndexRecursively(this FolderDto target)
 	{
 		// Stryker disable once Block,Statement : an empty list has nothing to sort, so the early return only saves the walk
-		if (!target.Children.Any())
+		if (target.Children.Count == 0)
 		{
 			return;
 		}

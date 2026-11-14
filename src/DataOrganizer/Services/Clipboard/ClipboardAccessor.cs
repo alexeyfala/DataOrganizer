@@ -142,7 +142,7 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	{
 		try
 		{
-			List<IStorageItem> resolved = new(entries.Count);
+			List<IStorageItem> resolved = [with(entries.Count)];
 
 			foreach (ClipboardFileSystemEntry entry in entries)
 			{
@@ -327,7 +327,7 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 			return null;
 		}
 
-		List<ClipboardFileSystemEntry> result = new(items.Length);
+		List<ClipboardFileSystemEntry> result = [with(items.Length)];
 
 		foreach (IStorageItem item in items)
 		{

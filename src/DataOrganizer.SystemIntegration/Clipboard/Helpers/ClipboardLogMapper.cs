@@ -17,7 +17,7 @@ internal static class ClipboardLogMapper
 	/// </summary>
 	public static List<ClipboardLogEntryBase> ToDomain(PersistedClipboardLog history)
 	{
-		List<ClipboardLogEntryBase> result = new(history.Entries.Count);
+		List<ClipboardLogEntryBase> result = [with(history.Entries.Count)];
 
 		foreach (PersistedClipboardEntryBase entry in history.Entries)
 		{

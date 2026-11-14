@@ -319,7 +319,7 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 
 		_grid = new Grid
 		{
-			RowDefinitions = new RowDefinitions("*,Auto,Auto")
+			RowDefinitions = [with("*,Auto,Auto")]
 		};
 
 		_grid.Children.Add(PrimaryEditor);

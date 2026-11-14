@@ -347,7 +347,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	/// Reads the text of a tab again from the same bytes in the encoding chosen for it; a change of the encoding writes the
 	/// settings, so they name it before any text is written in it.
 	/// </summary>
-	private Task ChangeEncodingAsync(NotepadTabViewModel tab, string? encoding)
+	private Task<bool> ChangeEncodingAsync(NotepadTabViewModel tab, string? encoding)
 	{
 		return _encodingSwitcher.SwitchAsync(
 			tab.Editor,
