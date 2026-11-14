@@ -54,8 +54,13 @@
 		<Chain>
 			<PackageGroupRef Id="NetRuntimeRedist" />
 
+			<!--
+				Both packages are permanent, so the bundle never uninstalls them:
+				Cache="remove" leaves no copy of them in the Package Cache.
+			-->
 			<MsiPackage
 				bal:DisplayInternalUICondition="1"
+				Cache="remove"
 				Compressed="yes"
 				Id="AppMsiInstaller"
 				Permanent="yes"
@@ -73,7 +78,7 @@
 
 		<PackageGroup Id="NetRuntimeRedist">
 			<ExePackage
-				Cache="keep"
+				Cache="remove"
 				Compressed="yes"
 				DetectCondition="NetCoreRuntimeVersion >= v$(DotNetVersion)"
 				DisplayName="$(RuntimeDescription)"
