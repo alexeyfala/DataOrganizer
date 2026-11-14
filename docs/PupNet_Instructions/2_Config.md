@@ -19,6 +19,8 @@ ls
 pupnet --new conf
 ```
 
+> The repository already has the filled-in `app.pupnet.conf`: PupNet asks `app.pupnet.conf exists. Replace? [N/y]` — answer `N`, as `y` overwrites it. To see a fresh template, run the command in another folder.
+
 **3) See what was created** — it is named `app.pupnet.conf` (the rest of the guide uses this name):
 
 ```bash

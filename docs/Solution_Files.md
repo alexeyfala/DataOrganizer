@@ -1,11 +1,12 @@
 ﻿# Reference for the non-code files of the solution
 
-- 📁 **`build/`** — scripts (PowerShell 5.1) and the inputs of the Linux packages; recipes in [Publish.md](Publish.md).
+- 📁 **`build/`** — scripts (PowerShell 5.1, one POSIX shell) and the inputs of the Linux packages; recipes in [Publish.md](Publish.md).
   - ⚙️ [`app.metainfo.xml`](../build/app.metainfo.xml) — AppStream metadata for software centres.
   - ⚙️ [`app.pupnet.conf`](../build/app.pupnet.conf) — PupNet configuration.
   - 💻 [`gen-license-rtf.ps1`](../build/gen-license-rtf.ps1) — `LICENSE` → `src/Setup/LICENSE.rtf`.
   - 💻 [`gen-release-notes.ps1`](../build/gen-release-notes.ps1) — release notes from the template.
   - 💻 [`gen-third-party-notices.ps1`](../build/gen-third-party-notices.ps1) — generates `THIRD-PARTY-NOTICES.txt`.
+  - 💻 [`post-publish.sh`](../build/post-publish.sh) — opens the published files to every user before PupNet packs them.
   - 💻 [`run-stryker.ps1`](../build/run-stryker.ps1) — the mutation run.
 - 📁 **`docs/`**
   - 📁 **`Database/`**

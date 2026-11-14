@@ -31,6 +31,8 @@ pupnet --new meta
 ls -la *.metainfo.xml
 ```
 
+> The repository already has the filled-in `app.metainfo.xml`: PupNet asks `app.metainfo.xml exists. Replace? [N/y]` — answer `N`, as `y` overwrites it. To see a fresh template, run the command in another folder.
+
 **3) Link it** in `app.pupnet.conf`:
 
 ```ini
