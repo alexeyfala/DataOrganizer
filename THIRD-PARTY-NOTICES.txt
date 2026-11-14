@@ -549,10 +549,10 @@ License of vscode-swift:
   * Serilog.Enrichers.Demystifier 1.0.3 - Copyright (c) Serilog Contributors
   * Serilog.Sinks.Async 2.1.0 - Copyright (c) Jezz Santos,Serilog Contributors
   * Serilog.Sinks.FileEx 5.1.8 - Copyright (c) Ashkan Shirian
-  * SQLitePCLRaw.bundle_e_sqlite3 2.1.13 - Copyright (c) Eric Sink
-  * SQLitePCLRaw.core 2.1.13 - Copyright (c) Eric Sink
-  * SQLitePCLRaw.lib.e_sqlite3 2.1.13 - Copyright (c) Eric Sink
-  * SQLitePCLRaw.provider.e_sqlite3 2.1.13 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.bundle_e_sqlite3 3.0.5 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.config.e_sqlite3 3.0.5 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.core 3.0.5 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.provider.e_sqlite3 3.0.5 - Copyright (c) Eric Sink
 
     These components are licensed under the Apache License, Version 2.0. The full
     text of the Apache License 2.0 is reproduced in the LICENSE file that
@@ -601,29 +601,22 @@ License of vscode-swift:
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
   * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime
   * Microsoft.Bcl.HashCode 6.0.0 - Copyright (c) Microsoft
-  * Microsoft.Data.Sqlite.Core 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Abstractions 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Analyzers 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Relational 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Sqlite 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Sqlite.Core 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Caching.Abstractions 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Caching.Memory 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Configuration 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Configuration.Abstractions 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Configuration.Binder 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyInjection 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyInjection.Abstractions 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyModel 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Diagnostics 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Diagnostics.Abstractions 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Http 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Logging 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Logging.Abstractions 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Options 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Options.ConfigurationExtensions 10.0.14 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Primitives 10.0.14 - Copyright (c) Microsoft
+  * Microsoft.Data.Sqlite.Core 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Abstractions 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Analyzers 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Relational 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Sqlite 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Sqlite.Core 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Caching.Memory 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Configuration 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Configuration.Binder 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyInjection 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyModel 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Diagnostics 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Http 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Logging 11.0.0 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Options.ConfigurationExtensions 11.0.0 - Copyright (c) Microsoft
   * Microsoft.Win32.SystemEvents 11.0.0 - Copyright (c) Microsoft
   * NSec.Cryptography 26.4.0 - Copyright (c) Klaus Hartke
   * Onigwrap 1.0.11 - Copyright (c) Aikawa Yataro
@@ -638,7 +631,6 @@ License of vscode-swift:
   * SkiaSharp.NativeAssets.Win32 3.119.4 - Copyright (c) Microsoft
   * System.Drawing.Common 11.0.0 - Copyright (c) Microsoft
   * System.Reactive 7.0.0 - Copyright (c) .NET Foundation and Contributors
-  * System.Reflection.TypeExtensions 4.7.0 - Copyright (c) Microsoft
   * Testably.Abstractions 11.0.0 - Copyright (c) Testably
   * Testably.Abstractions.FileSystem.Interface 11.0.0 - Copyright (c) Testably
   * Testably.Abstractions.Interface 11.0.0 - Copyright (c) Testably
@@ -721,6 +713,17 @@ The above components are licensed under the ISC License:
     WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
     ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
     IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+--------------------------------------------------------------------------
+8. SQLite Blessing (blessing)
+--------------------------------------------------------------------------
+
+  * SQLite 3.53.4 - Copyright (c) Eric Sink
+
+The above components are in the public domain; the SQLite authors disclaim
+copyright to the source code:
+
+    https://sqlite.org/copyright.html
 
 --------------------------------------------------------------------------
 Notes
