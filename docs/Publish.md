@@ -31,17 +31,20 @@ The bundle embeds the installer of the .NET Runtime, `dotnet-runtime-<version>-w
 takes the file from `artifacts\` and downloads it from Microsoft when it is not there. Either way the
 file must match the checksum of the project, or the build fails.
 
-For a new 10.0 patch, set two values in `src\Bundle\Bundle.wixproj`:
+For a new patch of the .NET the application targets, set two values in `src\Bundle\Bundle.wixproj`:
 
 1\. `DotNetVersion` — the new version.
 
 2\. `DotNetInstallerSha512` — the checksum of the x64 Windows installer of that version.
 
-These lines print both for the latest patch, the version first. Paste them into PowerShell and press
+These lines print both for the latest patch, the version first. They take the .NET version from the
+target framework of the solution. Paste them into PowerShell opened at the repository root and press
 Enter:
 
 ```powershell
-$url = 'https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json'
+$framework = ([xml](Get-Content Directory.Build.props)).SelectSingleNode('//AppTargetFramework').InnerText
+$release = $framework -replace '^net', ''
+$url = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/$release/releases.json"
 $m = Invoke-RestMethod $url
 $latest = $m.releases | Where-Object { $_.runtime.version -eq $m.'latest-runtime' }
 $file = $latest.runtime.files | Where-Object name -eq 'dotnet-runtime-win-x64.exe'
@@ -49,8 +52,8 @@ $m.'latest-runtime', $file.hash
 ```
 
 The next build of the bundle brings the new installer. The old one in `artifacts\` may be deleted.
-The installer may also be put there by hand: <https://dotnet.microsoft.com/en-us/download/dotnet/10.0>
-has it as the x64 Windows installer of the .NET Runtime.
+The installer may also be put there by hand: the page of that .NET version at
+<https://dotnet.microsoft.com/en-us/download/dotnet> has it as the x64 Windows installer of the .NET Runtime.
 
 ### Portable — Release
 
@@ -144,9 +147,10 @@ Open a terminal in macOS. Regenerate notices first:
 cd src/DataOrganizer.MacOS
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts/dmg-staging
-cp -R "src/DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
+cp -R "src/DataOrganizer.MacOS/bin/Release/$TFM/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
 ln -s /Applications artifacts/dmg-staging/Applications
 hdiutil create -volname "Data Organizer" -srcfolder artifacts/dmg-staging -ov -format UDZO "artifacts/$NAME.dmg"
 rm -rf artifacts/dmg-staging
@@ -162,9 +166,10 @@ Open a terminal in macOS.
 cd src/DataOrganizer.MacOS
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts/dmg-staging
-cp -R "src/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
+cp -R "src/DataOrganizer.MacOS/bin/Debug/$TFM/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
 ln -s /Applications artifacts/dmg-staging/Applications
 hdiutil create -volname "Data Organizer" -srcfolder artifacts/dmg-staging -ov -format UDZO "artifacts/$NAME.dmg"
 rm -rf artifacts/dmg-staging
@@ -204,9 +209,10 @@ Open a terminal in macOS. Regenerate notices first:
 cd src/DataOrganizer.MacOS
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts
-ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
+ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Release/$TFM/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
 rm -rf src/DataOrganizer.MacOS/bin
 open -R "artifacts/$NAME.zip"
 ```
@@ -219,9 +225,10 @@ Open a terminal in macOS.
 cd src/DataOrganizer.MacOS
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable-debug
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts
-ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
+ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Debug/$TFM/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
 rm -rf src/DataOrganizer.MacOS/bin
 open -R "artifacts/$NAME.zip"
 ```
