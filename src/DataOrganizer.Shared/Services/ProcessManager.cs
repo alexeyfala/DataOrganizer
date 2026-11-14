@@ -2,10 +2,12 @@ using DataOrganizer.Shared.Common;
 using DataOrganizer.Shared.Enums;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.Shared.Interfaces;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 
 namespace DataOrganizer.Shared.Services;
 
@@ -31,15 +33,9 @@ public sealed class ProcessManager :
 	/// <inheritdoc />
 	public IExecutingFileProcess? FindById(int processId)
 	{
-		try
-		{
-			return new ExecutingFileProcess(Process.GetProcessById(processId));
-		}
-		catch (ArgumentException)
-		{
-			// No process of that id runs.
-			return null;
-		}
+		return Process.TryGetProcessById(processId, out Process? process)
+			? new ExecutingFileProcess(process)
+			: null;
 	}
 
 	/// <inheritdoc />
@@ -76,46 +72,24 @@ public sealed class ProcessManager :
 	/// <inheritdoc />
 	public int? Run(string fileName, IReadOnlyList<string> arguments, TimeSpan timeout)
 	{
-		using Process process = new()
-		{
-			StartInfo = new(fileName, arguments)
+		// The output goes to the null device, so no pipe can fill up and stall the process.
+		using SafeFileHandle nullDevice = File.OpenNullHandle();
+
+		ProcessExitStatus status = Process.Run(
+			new ProcessStartInfo(fileName, arguments)
 			{
 				CreateNoWindow = true,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				UseShellExecute = false
-			}
-		};
+				StandardErrorHandle = nullDevice,
+				StandardInputHandle = nullDevice,
+				StandardOutputHandle = nullDevice
+			},
+			timeout);
 
-		process.Start();
-
-		// The output is read and dropped, so that a full pipe cannot stall the process.
-		process.BeginErrorReadLine();
-
-		process.BeginOutputReadLine();
-
-		if (process.WaitForExit(timeout))
-		{
-			return process.ExitCode;
-		}
-
-		try
-		{
-			process.Kill(entireProcessTree: true);
-		}
-		catch
-		{
-			// The process has ended meanwhile.
-		}
-
-		return null;
+		return status.Canceled ? null : status.ExitCode;
 	}
 
 	/// <inheritdoc />
-	public void StartProcess(string fileName, IReadOnlyList<string> arguments)
-	{
-		using Process process = Process.Start(fileName, arguments);
-	}
+	public void StartProcess(string fileName, IReadOnlyList<string> arguments) => Process.StartAndForget(fileName, arguments);
 	#endregion
 
 	#region Helpers
