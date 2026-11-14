@@ -1,10 +1,13 @@
 ﻿<Project Sdk="WixToolset.Sdk/7.0.1" InitialTargets="BuildSetupDependency">
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
-		<DotNetVersion>10.0.15</DotNetVersion>
+		<!-- Release and major version of the runtime the application targets. -->
+		<DotNetRelease>$([MSBuild]::GetTargetFrameworkVersion('$(AppTargetFramework)'))</DotNetRelease>
+		<DotNetMajorVersion>$([MSBuild]::GetTargetFrameworkVersion('$(AppTargetFramework)', 1))</DotNetMajorVersion>
+		<DotNetVersion>11.0.0</DotNetVersion>
 		<DotNetInstallerName>dotnet-runtime-$(DotNetVersion)-win-x64.exe</DotNetInstallerName>
 		<!-- SHA-512 of that installer, as Microsoft publishes it next to the download. -->
-		<DotNetInstallerSha512>c202a6721d66f49086e087a58e31c448062b0718fdd66b31807d7b2b31673adae5d3ccb36fc7451e113172ce59913d6c8034a35d5cc1cf6b079d5b544f1f425b</DotNetInstallerSha512>
+		<DotNetInstallerSha512>748f5d9613c5de1b41d2eb65021c629671c23ee4e3bb5073131516387d6b5cea656cd22a605055da3a8df2b67704b0d1dd3d3ca8a9c4d8a0c22a63431c028a41</DotNetInstallerSha512>
 		<OutputName>$(MsiOutputName)-bundle</OutputName>
 		<OutputPath>..\..\artifacts</OutputPath>
 		<OutputType>Bundle</OutputType>
@@ -20,13 +23,14 @@
 		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);DotNetInstallerName=$(DotNetInstallerName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);DotNetMajorVersion=$(DotNetMajorVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);DotNetVersion=$(DotNetVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Runtime (v$(DotNetVersion)) - Windows x64</DefineConstants>
+		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET $(DotNetRelease) Runtime (v$(DotNetVersion)) - Windows x64</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupProductName=$(SetupProductName)</DefineConstants>
 	</PropertyGroup>
