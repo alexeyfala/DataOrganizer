@@ -25,7 +25,7 @@ internal class SystemAppResolverTests
 		// Assert
 		result
 			.Should()
-			.Be(new AppResolution(IsCancelled: false, AppPath: null));
+			.Be(new SystemAppResolution());
 	}
 	#endregion
 }

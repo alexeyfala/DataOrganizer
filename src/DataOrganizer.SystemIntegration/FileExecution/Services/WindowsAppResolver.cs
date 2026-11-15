@@ -49,7 +49,7 @@ public sealed class WindowsAppResolver : IAppResolver
 		{
 			_logger.LogDebug($@"File ""{fileName}"" opens in the program the operating system assigns");
 
-			return new(IsCancelled: false, AppPath: null);
+			return new SystemAppResolution();
 		}
 
 		AssociatedAppInfo? selected = await _appPicker
@@ -60,10 +60,10 @@ public sealed class WindowsAppResolver : IAppResolver
 		{
 			_logger.LogInformation($@"User cancelled the application picker for ""{filePath}"".");
 
-			return new(IsCancelled: true, AppPath: null);
+			return new CancelledAppResolution();
 		}
 
-		return new(IsCancelled: false, AppPath: selected.AppPath);
+		return new ChosenAppResolution(selected.AppPath);
 	}
 	#endregion
 }

@@ -14,7 +14,7 @@ public sealed class SystemAppResolver : IAppResolver
 	/// <inheritdoc />
 	public Task<AppResolution> ResolveAsync(string filePath, CancellationToken token = default)
 	{
-		return Task.FromResult(new AppResolution(IsCancelled: false, AppPath: null));
+		return Task.FromResult<AppResolution>(new SystemAppResolution());
 	}
 	#endregion
 }

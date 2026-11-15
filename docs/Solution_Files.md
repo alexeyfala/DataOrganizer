@@ -29,6 +29,7 @@
   - 📄 [`Stryker_Mutation_Testing.md`](Stryker_Mutation_Testing.md) — running and reading the mutation tests.
 - 📁 **`Solution Items/`** — a virtual folder; the files live in the repository root.
   - 📁 **`.config/`**
+    - ⚙️ [`dotnet-ef.json`](../.config/dotnet-ef.json) — default options of `dotnet ef`: the migrations project.
     - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local .NET tools.
   - 📁 **`.github/`**
     - 📁 **`ISSUE_TEMPLATE/`**
@@ -51,6 +52,7 @@
   - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository.
   - ⚙️ [`DataOrganizerApp.Tests.slnf`](../DataOrganizerApp.Tests.slnf) — the projects the tests build, without macOS and the installers.
   - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — version, names and assembly metadata of the application, C# settings shared by the projects.
+  - ⚙️ [`Directory.Build.targets`](../Directory.Build.targets) — settings that depend on the target framework of a project.
   - ⚙️ [`Directory.Packages.props`](../Directory.Packages.props) — the version of every NuGet package.
   - ⚙️ [`global.json`](../global.json) — the .NET SDK the repository builds with.
   - ⚖️ [`LICENSE`](../LICENSE) — Apache 2.0.

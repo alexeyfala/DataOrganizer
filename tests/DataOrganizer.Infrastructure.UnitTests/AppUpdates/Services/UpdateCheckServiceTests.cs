@@ -74,17 +74,13 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeTrue();
-
-		result.LatestVersion
-			.Should()
-			.Be("0.2.0");
-
-		result.ReleaseUrl
-			.Should()
-			.Be(url);
+			.Be(new UpdateAvailable
+			{
+				LatestVersion = "0.2.0",
+				ReleaseUrl = url
+			});
 	}
 
 	/// <summary>
@@ -184,9 +180,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 
 		settings.LastUpdateCheckAt
 			.Should()
@@ -255,7 +251,7 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		(result is UpdateAvailable)
 			.Should()
 			.Be(expectedUpdate);
 	}
@@ -311,11 +307,11 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeTrue();
-
-		result.LatestVersion
+			.BeOfType<UpdateAvailable>()
+			.Which
+			.LatestVersion
 			.Should()
 			.Be("0.3.0");
 	}
@@ -356,9 +352,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 
 		settingsStore
 			.DidNotReceive()
@@ -403,9 +399,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 	}
 
 	/// <summary>
@@ -446,9 +442,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 
 		settings.LastUpdateCheckAt
 			.Should()
@@ -507,9 +503,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 	}
 
 	/// <summary>
@@ -565,9 +561,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeTrue();
+			.BeOfType<UpdateAvailable>();
 
 		factory
 			.Received(1)
@@ -624,11 +620,11 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeTrue();
-
-		result.LatestVersion
+			.BeOfType<UpdateAvailable>()
+			.Which
+			.LatestVersion
 			.Should()
 			.Be("0.2.0");
 	}
@@ -669,9 +665,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 
 		factory
 			.DidNotReceive()
@@ -733,9 +729,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 	}
 
 	/// <summary>
@@ -769,9 +765,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 
 		factory
 			.DidNotReceive()
@@ -817,9 +813,9 @@ internal class UpdateCheckServiceTests
 		UpdateCheckResult result = await sut.CheckAsync();
 
 		// Assert
-		result.IsUpdateAvailable
+		result
 			.Should()
-			.BeFalse();
+			.BeOfType<UpdateNotAvailable>();
 
 		factory
 			.DidNotReceive()

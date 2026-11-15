@@ -58,7 +58,7 @@ internal class WindowsAppResolverTests
 		// Assert
 		result
 			.Should()
-			.Be(new AppResolution(IsCancelled: false, AppPath: null));
+			.Be(new SystemAppResolution());
 
 		await appPicker
 			.DidNotReceive()
@@ -102,7 +102,7 @@ internal class WindowsAppResolverTests
 		// Assert
 		result
 			.Should()
-			.Be(new AppResolution(IsCancelled: true, AppPath: null));
+			.Be(new CancelledAppResolution());
 	}
 
 	/// <summary>
@@ -144,7 +144,7 @@ internal class WindowsAppResolverTests
 		// Assert
 		result
 			.Should()
-			.Be(new AppResolution(IsCancelled: false, AppPath: PickedAppPath));
+			.Be(new ChosenAppResolution(PickedAppPath));
 	}
 	#endregion
 }

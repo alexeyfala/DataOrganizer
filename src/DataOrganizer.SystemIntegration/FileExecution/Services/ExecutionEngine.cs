@@ -274,7 +274,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			.ResolveAsync(filePath, token)
 			.ConfigureAwait(false);
 
-		if (app.IsCancelled)
+		if (app is CancelledAppResolution)
 		{
 			return false;
 		}
@@ -311,7 +311,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				token).ConfigureAwait(false);
 
 			IExecutingFileProcess? process = StartFileProcess(
-				app.AppPath,
+				app,
 				filePath,
 				parameters.File.Id);
 
@@ -542,17 +542,17 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
-	/// Starts the process that opens <paramref name="filePath" />: via <paramref name="selectedAppPath" /> when provided,
-	/// otherwise in the program the operating system assigns; <c>null</c> when no process of its own started.
+	/// Starts the process that opens <paramref name="filePath" />: in the program the user chose, otherwise in the one the
+	/// operating system assigns; <c>null</c> when no process of its own started.
 	/// </summary>
 	private IExecutingFileProcess? StartFileProcess(
-		string? selectedAppPath,
+		AppResolution app,
 		string filePath,
 		Guid fileId)
 	{
-		if (selectedAppPath is not null)
+		if (app is ChosenAppResolution chosen)
 		{
-			return _processLauncher.OpenFile(selectedAppPath, filePath);
+			return _processLauncher.OpenFile(chosen.AppPath, filePath);
 		}
 
 		IExecutingFileProcess? process = _processLauncher.OpenFile(filePath);

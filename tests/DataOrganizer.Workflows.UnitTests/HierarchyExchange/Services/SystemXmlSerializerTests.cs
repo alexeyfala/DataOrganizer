@@ -157,7 +157,7 @@ internal class SystemXmlSerializerTests
 
 		SystemXmlSerializer sut = mock.Create<SystemXmlSerializer>();
 
-		await using MemoryStream stream = new(Encoding.UTF8.GetBytes(MaliciousXml));
+		await using StringStream stream = new(MaliciousXml, Encoding.UTF8);
 
 		// Act
 		Func<Task> act = () => sut.LoadDocumentAsync(stream);

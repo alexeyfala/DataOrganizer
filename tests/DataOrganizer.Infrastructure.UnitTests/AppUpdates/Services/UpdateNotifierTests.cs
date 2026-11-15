@@ -25,9 +25,8 @@ internal class UpdateNotifierTests
 	public async Task NotifyIfUpdateAvailableAsync_Does_Not_Open_When_User_Declines()
 	{
 		// Arrange
-		UpdateCheckResult result = new()
+		UpdateAvailable result = new()
 		{
-			IsUpdateAvailable = true,
 			LatestVersion = "0.2.0",
 			ReleaseUrl = ReleaseUrl
 		};
@@ -71,47 +70,6 @@ internal class UpdateNotifierTests
 	}
 
 	/// <summary>
-	/// <see cref="UpdateNotifier.NotifyIfUpdateAvailableAsync" />: shows no prompt for a release that is no update, even
-	/// with its URL.
-	/// </summary>
-	[Test]
-	public async Task NotifyIfUpdateAvailableAsync_Does_Nothing_For_A_Release_That_Is_No_Update()
-	{
-		// Arrange
-		UpdateCheckResult result = new()
-		{
-			IsUpdateAvailable = false,
-			LatestVersion = "0.2.0",
-			ReleaseUrl = ReleaseUrl
-		};
-
-		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IUpdateCheckService updateCheckService = Substitute.For<IUpdateCheckService>();
-
-			updateCheckService
-				.CheckAsync(Arg.Any<CancellationToken>())
-				.Returns(result);
-
-			builder.RegisterInstance(updateCheckService);
-
-			builder.RegisterInstance(prompt);
-		});
-
-		UpdateNotifier sut = mock.Create<UpdateNotifier>();
-
-		// Act
-		await sut.NotifyIfUpdateAvailableAsync();
-
-		// Assert
-		await prompt
-			.DidNotReceive()
-			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
 	/// <see cref="UpdateNotifier.NotifyIfUpdateAvailableAsync" />: shows no prompt when no update is available.
 	/// </summary>
 	[Test]
@@ -128,7 +86,7 @@ internal class UpdateNotifierTests
 
 			updateCheckService
 				.CheckAsync(Arg.Any<CancellationToken>())
-				.Returns(UpdateCheckResult.None);
+				.Returns(new UpdateNotAvailable());
 
 			builder.RegisterInstance(updateCheckService);
 
@@ -159,9 +117,8 @@ internal class UpdateNotifierTests
 	public async Task NotifyIfUpdateAvailableAsync_Does_Nothing_When_Release_Url_Is_Not_Secure()
 	{
 		// Arrange
-		UpdateCheckResult result = new()
+		UpdateAvailable result = new()
 		{
-			IsUpdateAvailable = true,
 			LatestVersion = "0.2.0",
 			ReleaseUrl = "http://example.test/release"
 		};
@@ -199,9 +156,8 @@ internal class UpdateNotifierTests
 	public async Task NotifyIfUpdateAvailableAsync_Does_Nothing_When_Release_Url_Missing()
 	{
 		// Arrange
-		UpdateCheckResult result = new()
+		UpdateAvailable result = new()
 		{
-			IsUpdateAvailable = true,
 			LatestVersion = "0.2.0",
 			ReleaseUrl = null
 		};
@@ -247,9 +203,8 @@ internal class UpdateNotifierTests
 	public async Task NotifyIfUpdateAvailableAsync_Opens_Release_Page_When_User_Accepts()
 	{
 		// Arrange
-		UpdateCheckResult result = new()
+		UpdateAvailable result = new()
 		{
-			IsUpdateAvailable = true,
 			LatestVersion = "0.2.0",
 			ReleaseUrl = ReleaseUrl
 		};
