@@ -72,6 +72,43 @@ internal class DatasetRecordTreeTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetRecordTree.ApplyOrders" />: an order that loses a record leaves every collection as it was, also
+	/// those whose own order comes earlier in the plan and is sound.
+	/// </summary>
+	[Test]
+	public void ApplyOrders_Changes_Nothing_When_An_Order_Loses_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		ValueRecord fourth = new();
+
+		ObservableCollection<DatasetRecordBase> sound = [first, second];
+
+		ObservableCollection<DatasetRecordBase> faulty = [third, fourth];
+
+		// Act
+		bool result = DatasetRecordTree.ApplyOrders([(sound, [second, first]), (faulty, [fourth])]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		sound
+			.Should()
+			.Equal(first, second);
+
+		faulty
+			.Should()
+			.Equal(third, fourth);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetRecordTree.Delete" />: a record deep in the groups leaves its own group, and the other records
 	/// stay.
 	/// </summary>

@@ -147,29 +147,16 @@ public static class DatasetRecordTree
 		ObservableCollection<DatasetRecordBase> records,
 		ListSortDirection direction)
 	{
-		// Every collection gets its new order before any of them changes, so a faulty order never reaches the records.
 		// The records of a group come before the collection that holds it, so each list lays out its groups at their
 		// final size.
-		(ObservableCollection<DatasetRecordBase> Records, DatasetRecordBase[] Order)[] plan =
+		return ApplyOrders(
 		[
 			.. Flatten(records)
 				.OfType<RecordsGroup>()
 				.Reverse()
 				.Select(x => (x.Children, OrderRecords(x.Children, direction))),
 			(records, OrderRecords(records, direction))
-		];
-
-		if (!plan.All(static x => HoldsSameRecords(x.Records, x.Order)))
-		{
-			return false;
-		}
-
-		foreach ((ObservableCollection<DatasetRecordBase> target, DatasetRecordBase[] order) in plan)
-		{
-			target.ClearAddRange(order);
-		}
-
-		return true;
+		]);
 	}
 
 	/// <summary>
@@ -237,6 +224,27 @@ public static class DatasetRecordTree
 
 				return true;
 		}
+	}
+
+	/// <summary>
+	/// Gives each collection of <paramref name="plan" /> its new order, in the order of the plan; <c>false</c>, with nothing
+	/// changed, when any order loses or adds records.
+	/// </summary>
+	internal static bool ApplyOrders(
+		(ObservableCollection<DatasetRecordBase> Records, DatasetRecordBase[] Order)[] plan)
+	{
+		// Every collection gets its new order before any of them changes, so a faulty order never reaches the records.
+		if (!plan.All(static x => HoldsSameRecords(x.Records, x.Order)))
+		{
+			return false;
+		}
+
+		foreach ((ObservableCollection<DatasetRecordBase> target, DatasetRecordBase[] order) in plan)
+		{
+			target.ClearAddRange(order);
+		}
+
+		return true;
 	}
 
 	/// <summary>

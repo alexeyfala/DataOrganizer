@@ -378,6 +378,51 @@ internal class FileContentsReaderTests
 	}
 
 	/// <summary>
+	/// <see cref="FileContentsReader.ReadAsync" />: contents under an unlocked keeper that the key of the session cannot open
+	/// stay closed instead of throwing.
+	/// </summary>
+	[Test]
+	[TestCaseSource(nameof(SessionCipherFailures))]
+	public async Task ReadAsync_Keeps_The_File_Closed_When_The_Decryption_Fails(Exception failure)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(new ValidatedContents
+				{
+					Contents = RandomValues.CreateBytes(16),
+					IsValid = true
+				});
+
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
+
+			contentCipher
+				.Decrypt(file, Arg.Any<byte[]>())
+				.Throws(failure);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(contentCipher);
+		});
+
+		FileContentsReader sut = mock.Create<FileContentsReader>();
+
+		// Act
+		FileContentsReading result = await sut.ReadAsync(file, Header);
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(FileContentsStatus.Closed);
+	}
+
+	/// <summary>
 	/// <see cref="FileContentsReader.ReadAsync" />: the contents under an unlocked keeper are opened with the key of the
 	/// session, and no password is asked for.
 	/// </summary>

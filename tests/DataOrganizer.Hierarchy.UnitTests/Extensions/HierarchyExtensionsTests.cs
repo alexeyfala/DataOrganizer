@@ -979,5 +979,38 @@ internal class HierarchyExtensionsTests
 			.Should()
 			.Be(rootFolder);
 	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.ToHierarchical" />: a folder and a file whose parent is not among the folders given
+	/// come back as root items instead of being lost.
+	/// </summary>
+	[Test]
+	public void ToHierarchical_Yields_The_Items_Whose_Parent_Is_Missing()
+	{
+		// Arrange
+		Guid missingParentId = Guid.NewGuid();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.ParentId = missingParentId;
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file.ParentId = missingParentId;
+
+		FolderDto[] folders = [folder];
+
+		FileDto[] files = [file];
+
+		// Act
+		ExplorerItemDtoBase[] result = [.. folders.ToHierarchical(files)];
+
+		// Assert
+		result
+			.Should()
+			.HaveCount(2)
+			.And
+			.Contain([folder, file]);
+	}
 	#endregion
 }

@@ -221,7 +221,7 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 				_runTask,
 				token).ConfigureAwait(false);
 
-			// Stryker disable once Boolean,Block,Statement : the branch only keeps a warning out of the log
+			// Stryker disable once Boolean,Block,Statement,Logical,Equality : the branch only keeps a warning out of the log
 			if (isStopped && failure is null)
 			{
 				return;
