@@ -134,8 +134,9 @@ Three output formats: a `.dmg` (recommended for end users — drag-to-Applicatio
 Once per Mac and again after each move to a new .NET: install the SDK that `global.json` of the repository
 names, with Microsoft's install script, and the `macos` workload, which belongs to one SDK. `~/.dotnet` goes
 first on `PATH`, as a .NET installed from a `.pkg` sits in `/usr/local/share/dotnet` and would win otherwise.
-The workload may ask for a newer Xcode; its error names the version. Run from the repository root, then
-verify (expect the SDK version of `global.json`):
+The workload may ask for a newer Xcode; its error names the version. On an Intel Mac, which cannot run that
+Xcode, see [MacOS_Intel_Build.md](MacOS_Intel_Build.md). Run from the repository root, then verify (expect the
+SDK version of `global.json`):
 
 ```bash
 curl -fsSL -o /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh && \
