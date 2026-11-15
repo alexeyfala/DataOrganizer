@@ -141,26 +141,33 @@ public static class DatasetRecordTree
 
 	/// <summary>
 	/// Sorts <paramref name="records" /> and the records of their groups in <paramref name="direction" />: groups first, then
-	/// key and value records, then value records; <c>false</c> when the sort would lose records.
+	/// key and value records, then value records; <c>false</c>, with nothing changed, when the sort would lose records.
 	/// </summary>
 	public static bool Sort(
 		ObservableCollection<DatasetRecordBase> records,
 		ListSortDirection direction)
 	{
-		int beforeCount = GetCount(records);
+		// Every collection gets its new order before any of them changes, so a faulty order never reaches the records.
+		// The records of a group come before the collection that holds it, so each list lays out its groups at their
+		// final size.
+		(ObservableCollection<DatasetRecordBase> Records, DatasetRecordBase[] Order)[] plan =
+		[
+			.. Flatten(records)
+				.OfType<RecordsGroup>()
+				.Reverse()
+				.Select(x => (x.Children, OrderRecords(x.Children, direction))),
+			(records, OrderRecords(records, direction))
+		];
 
-		DatasetRecordBase[] sorted = SortRecords(records, direction);
-
-		int afterCount = GetCount(sorted);
-
-		if (afterCount != beforeCount)
+		if (!plan.All(static x => HoldsSameRecords(x.Records, x.Order)))
 		{
 			return false;
 		}
 
-		records.Clear();
-
-		records.AddRange(sorted);
+		foreach ((ObservableCollection<DatasetRecordBase> target, DatasetRecordBase[] order) in plan)
+		{
+			target.ClearAddRange(order);
+		}
 
 		return true;
 	}
@@ -231,6 +238,19 @@ public static class DatasetRecordTree
 				return true;
 		}
 	}
+
+	/// <summary>
+	/// <c>True</c> when <paramref name="order" /> is <paramref name="records" /> rearranged: as many records, none lost and
+	/// none added.
+	/// </summary>
+	internal static bool HoldsSameRecords(
+		IReadOnlyCollection<DatasetRecordBase> records,
+		IReadOnlyCollection<DatasetRecordBase> order)
+	{
+		HashSet<DatasetRecordBase> ordered = [with(ReferenceEqualityComparer.Instance), .. order];
+
+		return order.Count == records.Count && ordered.SetEquals(records);
+	}
 	#endregion
 
 	#region Helpers
@@ -248,9 +268,15 @@ public static class DatasetRecordTree
 	}
 
 	/// <summary>
-	/// Counts <paramref name="records" /> together with the records of every nested group.
+	/// The rank of the kind and the text by which a record is sorted: groups by name, then key and value records by key,
+	/// then value records by value.
 	/// </summary>
-	private static int GetCount(IEnumerable<DatasetRecordBase> records) => Flatten(records).Count();
+	private static (int Rank, string? Text) GetSortKey(DatasetRecordBase record) => record switch
+	{
+		RecordsGroup group => (0, group.Name),
+		KeyValueRecord keyValue => (1, keyValue.Key),
+		ValueRecord value => (2, value.Value)
+	};
 
 	/// <summary>
 	/// <c>True</c> when <paramref name="target" /> is the children of <paramref name="group" /> or of any group inside it.
@@ -276,45 +302,21 @@ public static class DatasetRecordTree
 	}
 
 	/// <summary>
-	/// Orders records by a key in a direction.
+	/// Returns <paramref name="records" /> in the sorted order: groups first, then key and value records, then value records,
+	/// each kind by its text in <paramref name="direction" />.
 	/// </summary>
-	private static IOrderedEnumerable<T> Order<T>(
-		IEnumerable<T> records,
-		Func<T, string?> key,
+	private static DatasetRecordBase[] OrderRecords(
+		IEnumerable<DatasetRecordBase> records,
 		ListSortDirection direction)
 	{
+		IOrderedEnumerable<DatasetRecordBase> byKind = records.OrderBy(static x => GetSortKey(x).Rank);
+
 		return direction switch
 		{
-			ListSortDirection.Ascending => records.OrderBy(key),
-			ListSortDirection.Descending => records.OrderByDescending(key),
+			ListSortDirection.Ascending => [.. byKind.ThenBy(static x => GetSortKey(x).Text)],
+			ListSortDirection.Descending => [.. byKind.ThenByDescending(static x => GetSortKey(x).Text)],
 			_ => throw new NotImplementedException()
 		};
-	}
-
-	/// <summary>
-	/// Returns <paramref name="records" /> in the sorted order, groups first, then key and value records, then value records,
-	/// and sorts the records of the groups in place.
-	/// </summary>
-	private static DatasetRecordBase[] SortRecords(
-		ICollection<DatasetRecordBase> records,
-		ListSortDirection direction)
-	{
-		RecordsGroup[] groups = [.. Order(records.OfType<RecordsGroup>(), static x => x.Name, direction)];
-
-		KeyValueRecord[] keyValues = [.. Order(records.OfType<KeyValueRecord>(), static x => x.Key, direction)];
-
-		ValueRecord[] values = [.. Order(records.OfType<ValueRecord>(), static x => x.Value, direction)];
-
-		foreach (RecordsGroup group in groups)
-		{
-			DatasetRecordBase[] sorted = SortRecords(group.Children, direction);
-
-			group
-				.Children
-				.ClearAddRange(sorted);
-		}
-
-		return [.. groups, .. keyValues, .. values];
 	}
 	#endregion
 }

@@ -3,6 +3,7 @@ using DataOrganizer.Documents.DatasetRecords.Enums;
 using DataOrganizer.Documents.DatasetRecords.Helpers;
 using DataOrganizer.Documents.DatasetRecords.Models;
 using DataOrganizer.TestSupport.Common;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -279,6 +280,114 @@ internal class DatasetRecordTreeTests
 		result
 			.Should()
 			.Contain([root, nested, leaf1, leaf2]);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: the same records in another order are accepted.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Accepts_The_Same_Records_In_Another_Order()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second, third], [third, first, second]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order that adds a second copy of a record is refused, though
+	/// it holds no other record.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_That_Adds_A_Copy_Of_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second], [first, second, second]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order that lost a record is refused.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_That_Loses_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second, third], [first, third]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order that repeats a record in place of another is refused,
+	/// though it has as many records.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_That_Repeats_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second, third], [first, first, third]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order with a record that is not among the records is refused.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_With_A_Foreign_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second], [first, new ValueRecord()]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -621,6 +730,43 @@ internal class DatasetRecordTreeTests
 		records
 			.Should()
 			.Equal(group, keyValue, value);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.Sort" />: the records of a group are rewritten before the collection that holds the
+	/// group, so the list of that collection lays out its groups at their final size.
+	/// </summary>
+	[Test]
+	public void Sort_Rewrites_The_Records_Of_Groups_Before_Their_Owner()
+	{
+		// Arrange
+		RecordsGroup inner = new()
+		{
+			Children = [new ValueRecord { Value = "b" }, new ValueRecord { Value = "a" }]
+		};
+
+		RecordsGroup outer = new()
+		{
+			Children = [new ValueRecord { Value = "d" }, inner]
+		};
+
+		ObservableCollection<DatasetRecordBase> records = [new ValueRecord { Value = "c" }, outer];
+
+		List<string> rewritten = [];
+
+		inner.Children.CollectionChanged += (_, _) => rewritten.Add(nameof(inner));
+
+		outer.Children.CollectionChanged += (_, _) => rewritten.Add(nameof(outer));
+
+		records.CollectionChanged += (_, _) => rewritten.Add(nameof(records));
+
+		// Act
+		DatasetRecordTree.Sort(records, ListSortDirection.Ascending);
+
+		// Assert
+		rewritten.Distinct()
+			.Should()
+			.Equal(nameof(inner), nameof(outer), nameof(records));
 	}
 
 	/// <summary>
