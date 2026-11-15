@@ -155,7 +155,7 @@ Open a terminal in macOS. Regenerate notices first:
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Release -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
 TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
@@ -174,7 +174,7 @@ Open a terminal in macOS.
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Debug -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
 TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
@@ -194,7 +194,7 @@ Open a terminal in macOS. Regenerate notices first:
 ```bash
 cd src/DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
+dotnet publish -c:Release -r:osx-x64 -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
 rm -rf bin
 open -R "../../artifacts/$NAME.pkg"
 ```
@@ -206,7 +206,7 @@ Open a terminal in macOS.
 ```bash
 cd src/DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
+dotnet publish -c:Debug -r:osx-x64 -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
 rm -rf bin
 open -R "../../artifacts/$NAME.pkg"
 ```
@@ -217,7 +217,7 @@ Open a terminal in macOS. Regenerate notices first:
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Release -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable
 TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
@@ -233,7 +233,7 @@ Open a terminal in macOS.
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Debug -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable-debug
 TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..

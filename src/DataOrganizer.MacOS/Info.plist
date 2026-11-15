@@ -9,7 +9,7 @@
 		<key>NSPrincipalClass</key>
 		<string>NSApplication</string>
 		<key>CFBundleIdentifier</key>
-		<string>com.dataorganizer.plist</string>
+		<string>com.alexeyfala.dataorganizer</string>
 		<key>CFBundleIconFile</key>
 		<string>Logo.icns</string>
 	</dict>
