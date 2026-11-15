@@ -2,6 +2,7 @@ using Bogus;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 /// <summary>
 /// Texts of data and document formats made up for trying the application, with values from a generator.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal static partial class SampleDocuments
 {
 	#region Data

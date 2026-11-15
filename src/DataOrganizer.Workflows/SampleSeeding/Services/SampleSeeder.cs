@@ -12,6 +12,7 @@ using DataOrganizer.Workflows.SampleSeeding.Dto;
 using DataOrganizer.Workflows.SampleSeeding.Helpers;
 using DataOrganizer.Workflows.SampleSeeding.Interfaces;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Workflows.SampleSeeding.Services;
 
 /// <inheritdoc cref="ISampleSeeder" />
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 public sealed class SampleSeeder : ISampleSeeder
 {
 	#region Data

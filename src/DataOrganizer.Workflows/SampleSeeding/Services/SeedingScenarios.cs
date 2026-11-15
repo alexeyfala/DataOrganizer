@@ -7,12 +7,14 @@ using DataOrganizer.Workflows.SampleSeeding.Interfaces;
 using Serilog;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Workflows.SampleSeeding.Services;
 
 /// <inheritdoc cref="ISeedingScenarios" />
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 public sealed class SeedingScenarios : ISeedingScenarios
 {
 	#region Data

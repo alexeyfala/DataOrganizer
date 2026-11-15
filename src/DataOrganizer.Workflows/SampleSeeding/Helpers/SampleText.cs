@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 
 namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 
 /// <summary>
 /// Placeholder texts used to fill objects created for demonstration: source files of several languages and a paragraph.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal static class SampleText
 {
 	#region Properties
