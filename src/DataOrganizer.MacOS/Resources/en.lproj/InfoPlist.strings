@@ -1,0 +1,2 @@
+/* The name of the app that Finder, the Dock and Spotlight show. */
+CFBundleDisplayName = "Data Organizer";
