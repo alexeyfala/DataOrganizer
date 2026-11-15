@@ -60,10 +60,11 @@ Then quit VS Code with Cmd+Q and start it again: it keeps the environment it was
 On an Intel Mac with macOS Tahoe 26.7.3, Xcode 26.6 and .NET for macOS 27.2.11039:
 
 - the Debug build passes;
-- the app starts from the built `.app` and through F5 in VS Code.
+- the app starts from the built `.app` and through F5 in VS Code;
+- the Release builds of [Publish.md](Publish.md) pass, and the app from each package (`.dmg`, `.pkg`,
+  `.zip`) installs, starts and is removed.
 
-Not checked: the Release build and the packages of [Publish.md](Publish.md) (`.dmg`, `.pkg`, `.zip`). A
-later release of .NET for macOS may need more of the newer SDK, and the workaround may stop working.
+A later release of .NET for macOS may need more of the newer SDK, and the workaround may stop working.
 
 ## Undoing it
 
