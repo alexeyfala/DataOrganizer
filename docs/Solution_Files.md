@@ -23,6 +23,7 @@
   - 📄 [`Debugging_Tests.md`](Debugging_Tests.md) — how to run `Debug All Tests` without stops on expected exceptions.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted data.
   - 📄 [`GitHub_Release.md`](GitHub_Release.md) — checklist for publishing a release.
+  - 📄 [`MacOS_Intel_Build.md`](MacOS_Intel_Build.md) — building the macOS app on an Intel Mac with an older Xcode.
   - 📄 [`Publish.md`](Publish.md) — building the distributables for Windows, Linux and macOS.
   - 📄 [`release-notes.template.md`](release-notes.template.md) — release description template.
   - 📄 [`Solution_Files.md`](Solution_Files.md) — this file; `SolutionFilesReferenceTests` checks it against the solution.

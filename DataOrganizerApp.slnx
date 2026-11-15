@@ -20,6 +20,7 @@
     <File Path="docs/Debugging_Tests.md" />
     <File Path="docs/Encryption_Format.md" />
     <File Path="docs/GitHub_Release.md" />
+    <File Path="docs/MacOS_Intel_Build.md" />
     <File Path="docs/Publish.md" />
     <File Path="docs/release-notes.template.md" />
     <File Path="docs/Solution_Files.md" />
