@@ -84,7 +84,9 @@ of that method and says so:
 
 These mutants count as CompileError and stay out of the score, so the percentage does not show that the
 method went unchecked. The script lists such methods after the table. Which methods fall out depends on
-the whole set of mutants, so take the list from the latest run.
+the whole set of mutants, so take the list from the latest run. A method under `[ExcludeFromCodeCoverage]`
+can show up there too: Stryker checks the build before it leaves such a method out, and the method needs
+no check by hand.
 
 A dropped method is checked by hand and needs no tooling:
 
