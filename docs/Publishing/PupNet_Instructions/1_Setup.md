@@ -27,14 +27,20 @@ wsl.exe -d Ubuntu
 wsl --set-default Ubuntu
 ```
 
-**3) Enable `metadata` on the Windows drive mount.** Builds run from `/mnt/c`. By default WSL mounts it as `uid=0` without `metadata`, so every file belongs to `root` and the build (running as your user) cannot set timestamps on the files it creates — it fails with `MSB3374: ... last write time ... cannot be set. Access to the path ... is denied`. Append the option to `/etc/wsl.conf` (inside Ubuntu):
+**3) Enable `metadata` on the Windows drive mount.** Builds run from `/mnt/c`. By default WSL mounts it as `uid=0` without `metadata`, so every file belongs to `root` and the build (running as your user) cannot set timestamps on the files it creates — it fails with `MSB3374: ... last write time ... cannot be set. Access to the path ... is denied`. `umask=022` goes with it: WSL shows the files of Windows as `0777`, and the files the packages take from the repository (licenses, icons) would install writable by every user; with it they show as `0755`. Append the options to `/etc/wsl.conf` (inside Ubuntu):
 
 ```bash
 sudo tee -a /etc/wsl.conf >/dev/null <<'CONF'
 
 [automount]
-options = "metadata"
+options = "metadata,umask=022"
 CONF
+```
+
+On a WSL set up with `options = "metadata"` alone, change that line instead of appending a second section:
+
+```bash
+sudo sed -i 's/^options = "metadata"$/options = "metadata,umask=022"/' /etc/wsl.conf
 ```
 
 Restart WSL from **Windows PowerShell** so `/mnt/c` remounts:
@@ -43,7 +49,7 @@ Restart WSL from **Windows PowerShell** so `/mnt/c` remounts:
 wsl --shutdown
 ```
 
-Re-open Ubuntu and confirm the mount now reports `uid=1000;gid=1000;metadata`:
+Re-open Ubuntu and confirm the mount now reports `uid=1000`, `gid=1000`, `metadata` and `umask=22`:
 
 ```bash
 mount | grep ' /mnt/c '

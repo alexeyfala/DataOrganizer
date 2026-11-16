@@ -115,7 +115,7 @@ ls -la artifacts/*.zip
 Each build drops two shipping files in `artifacts/` (this is what you distribute) plus one intermediate folder (removed by the `rm -rf Artifacts.*` line in each recipe):
 
 - **`artifacts/<name>`** — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside. Names: `dataorganizer_<version>-<rev>_amd64.deb` (Debian convention — lowercase, `amd64`), `dataorganizer_<version>-<rev>.x86_64.rpm`, `DataOrganizer-<version>-<rev>.x86_64.{AppImage,flatpak}`, `DataOrganizer-<version>-<rev>.linux-x64.zip`.
-- **`artifacts/<name>.sha256.txt`** — the SHA-256 checksum, so users can verify the download (`sha256sum -c`). Handy for GitHub Releases; shipping it is optional.
+- **`artifacts/<name>.sha256.txt`** — the SHA-256 checksum alone, without the file name, so users can verify the download with `echo "$(cat <name>.sha256.txt)  <name>" | sha256sum -c`. Handy for GitHub Releases; shipping it is optional.
 - **`artifacts/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml`, see [AppStream metainfo](#appstream-metainfo)). Kept for inspection, not for distribution.
 
 ---

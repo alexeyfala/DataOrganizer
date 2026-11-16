@@ -24,4 +24,4 @@ The portable builds and the Linux and macOS packages are self-contained — the 
 ### Notes
 
 - x64 only in this release.
-- `*.sha256.txt` files are provided for the Linux packages to verify downloads (`sha256sum -c`).
+- `*.sha256.txt` files are provided for the Linux packages to verify downloads. Each holds the checksum alone: `echo "$(cat dataorganizer_{version}-1_amd64.deb.sha256.txt)  dataorganizer_{version}-1_amd64.deb" | sha256sum -c`.
