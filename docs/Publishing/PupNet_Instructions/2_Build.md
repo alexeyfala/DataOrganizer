@@ -1,4 +1,4 @@
-﻿# Stage 2 — Build and verify Linux packages
+﻿# Stage 2 — Build Linux packages
 
 > **Prerequisite:** Stage 1. Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
 
@@ -107,47 +107,6 @@ pupnet build/app.pupnet.conf -r linux-x64 -k zip -y --app-version "$(dataorg_ver
 rm -rf artifacts/Artifacts.Zip.x86_64 && \
 ls -la artifacts/*.zip
 ```
-
----
-
-## Output
-
-Each build drops two shipping files in `artifacts/` (this is what you distribute) plus one intermediate folder (removed by the `rm -rf Artifacts.*` line in each recipe):
-
-- **`artifacts/<name>`** — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside. Names: `dataorganizer_<version>-<rev>_amd64.deb` (Debian convention — lowercase, `amd64`), `dataorganizer_<version>-<rev>.x86_64.rpm`, `DataOrganizer-<version>-<rev>.x86_64.{AppImage,flatpak}`, `DataOrganizer-<version>-<rev>.linux-x64.zip`.
-- **`artifacts/<name>.sha256.txt`** — the SHA-256 checksum alone, without the file name, so users can verify the download with `echo "$(cat <name>.sha256.txt)  <name>" | sha256sum -c`. Handy for GitHub Releases; shipping it is optional.
-- **`artifacts/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml`, see [AppStream metainfo](#appstream-metainfo)). Kept for inspection, not for distribution.
-
----
-
-## Verify — Debian example
-
-**Install** (`apt` resolves dependencies; do **not** use `dpkg -i`, which does not):
-
-```bash
-sudo apt install ./artifacts/dataorganizer_*.deb
-```
-
-**Confirm it landed** and that the desktop entry exists:
-
-```bash
-which dataorganizer
-ls /usr/share/applications/ | grep -i dataorganizer
-```
-
-**Launch** — from the application menu (look for *"Data Organizer"* with the icon), or from a terminal:
-
-```bash
-dataorganizer
-```
-
-**Uninstall**:
-
-```bash
-sudo apt remove dataorganizer
-```
-
-> Other formats run differently: an `.AppImage` just needs `chmod +x` then `./DataOrganizer*.AppImage`; a `.flatpak` installs with `flatpak install --user ./artifacts/DataOrganizer*.flatpak`; a `.zip` is unpacked and run in place.
 
 ---
 

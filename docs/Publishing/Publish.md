@@ -114,7 +114,7 @@ chmod +x DataOrganizer-*
 A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
 
 - [Stage 1 — Prepare the Linux build environment (WSL)](PupNet_Instructions/1_Setup.md)
-- [Stage 2 — Build and verify Linux packages](PupNet_Instructions/2_Build.md)
+- [Stage 2 — Build Linux packages](PupNet_Instructions/2_Build.md)
 
 ---
 
