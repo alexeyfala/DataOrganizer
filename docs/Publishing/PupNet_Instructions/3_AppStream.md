@@ -33,13 +33,13 @@ ls -la *.metainfo.xml
 
 > The repository already has the filled-in `app.metainfo.xml`: PupNet asks `app.metainfo.xml exists. Replace? [N/y]` — answer `N`, as `y` overwrites it. To see a fresh template, run the command in another folder.
 
-**3) Link it** in `app.pupnet.conf`:
+**3) Link it** in `app.pupnet.conf`: the file links it by the line `MetaFile = app.metainfo.xml`; the repository's file has it already. Confirm it (expect that line):
 
-```ini
-MetaFile = app.metainfo.xml
+```bash
+grep -n MetaFile app.pupnet.conf
 ```
 
-**4) Edit `app.metainfo.xml`** to fill the manual fields.
+**4) Edit `app.metainfo.xml`** to fill the manual fields. The repository's file has them filled in already.
 
 **5) Rebuild** (same build command as Stage 4) to verify the note is gone. Optional validation:
 
