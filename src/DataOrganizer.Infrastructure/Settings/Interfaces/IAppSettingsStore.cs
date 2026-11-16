@@ -13,6 +13,7 @@ public interface IAppSettingsStore
 	/// <summary>
 	/// Sequence of application languages.
 	/// </summary>
+	// Stryker disable once String : a list of languages; a test per entry would copy it
 	public static CultureInfo[] Languages { get; } =
 	[
 		new("en-us"),
