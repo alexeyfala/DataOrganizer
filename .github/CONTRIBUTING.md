@@ -19,7 +19,7 @@ For security vulnerabilities, do **not** open a public issue — follow the
 
 ## Getting Started
 
-**Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
+**Prerequisites:** [.NET 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0).
 
 ```bash
 git clone https://github.com/alexeyfala/DataOrganizer.git

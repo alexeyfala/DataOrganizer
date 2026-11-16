@@ -21,6 +21,7 @@
     - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — stage 4: building and checking the packages.
   - 📄 [`Architecture.md`](Architecture.md) — the projects, their topics and the references between them.
   - 📄 [`Debugging_Tests.md`](Debugging_Tests.md) — how to run `Debug All Tests` without stops on expected exceptions.
+  - 📄 [`Development_Setup.md`](Development_Setup.md) — setting up Linux and macOS to build from source.
   - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted data.
   - 📄 [`GitHub_Release.md`](GitHub_Release.md) — checklist for publishing a release.
   - 📄 [`MacOS_Intel_Build.md`](MacOS_Intel_Build.md) — building the macOS app on an Intel Mac with an older Xcode.

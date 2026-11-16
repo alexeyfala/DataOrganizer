@@ -60,7 +60,7 @@ The portable builds and the Linux and macOS packages are self-contained: the .NE
 
 ## Build from Source
 
-**Prerequisites:** [.NET 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0).
+**Prerequisites:** [.NET 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0); on Linux and macOS, set it up as [Development_Setup.md](docs/Development_Setup.md) describes.
 
 ```bash
 git clone https://github.com/alexeyfala/DataOrganizer.git

@@ -18,6 +18,7 @@
   <Folder Name="/docs/">
     <File Path="docs/Architecture.md" />
     <File Path="docs/Debugging_Tests.md" />
+    <File Path="docs/Development_Setup.md" />
     <File Path="docs/Encryption_Format.md" />
     <File Path="docs/GitHub_Release.md" />
     <File Path="docs/MacOS_Intel_Build.md" />

@@ -73,27 +73,6 @@ explorer "/select,$(Resolve-Path ..\..\artifacts\$name.zip)"
 
 ## Linux
 
-### Prerequisites
-
-To build and run the app on Linux itself, F5 in VS Code included, install the SDK that `global.json` of the
-repository names, with Microsoft's install script: a distro's feed can lag behind a new .NET. The recipes below
-run on Windows and need none of it. The script installs no dependencies; those of each distro, ICU among them,
-are listed on [Install .NET on Linux](https://learn.microsoft.com/dotnet/core/install/linux). `~/.dotnet` goes
-first on `PATH`, as a .NET installed from the distro's packages (`/usr/bin/dotnet`) would win otherwise. Run from
-the repository root, then verify (expect the SDK version of `global.json`):
-
-```bash
-curl -fsSL -o /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh && \
-bash /tmp/dotnet-install.sh --jsonfile global.json && \
-rm /tmp/dotnet-install.sh
-echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.bashrc
-echo 'export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-dotnet --version
-```
-
-Then quit VS Code, all its windows, and start it again: it keeps the environment it was started with.
-
 ### Portable — Release
 
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:
@@ -149,26 +128,6 @@ Three output formats: a `.dmg` (recommended for end users — drag-to-Applicatio
 > `bin`, which macOS LaunchServices may register instead of the copy installed into `/Applications`. Until
 > `bin` is removed the installed app is not discoverable in Finder/Launchpad and cannot be uninstalled by
 > dragging it to Trash.
-
-### Prerequisites
-
-Once per Mac and again after each move to a new .NET: install the SDK that `global.json` of the repository
-names, with Microsoft's install script, and the `macos` workload, which belongs to one SDK. `~/.dotnet` goes
-first on `PATH`, as a .NET installed from a `.pkg` sits in `/usr/local/share/dotnet` and would win otherwise.
-The workload may ask for a newer Xcode; its error names the version. On an Intel Mac, which cannot run that
-Xcode, see [MacOS_Intel_Build.md](MacOS_Intel_Build.md). Run from the repository root, then verify (expect the
-SDK version of `global.json`):
-
-```bash
-curl -fsSL -o /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh && \
-bash /tmp/dotnet-install.sh --jsonfile global.json && \
-rm /tmp/dotnet-install.sh
-echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.zshrc
-echo 'export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-dotnet workload install macos
-dotnet --version
-```
 
 ### `.dmg` — Release
 
