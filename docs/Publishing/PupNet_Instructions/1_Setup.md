@@ -71,7 +71,7 @@ Confirm both resolve (expect the path, then the current `<AppVersion>`):
 echo "$DATAORG_REPO" && dataorg_ver
 ```
 
-**6) WSL1 only: put the `tar` of Ubuntu 24.04 first on `PATH`.** The `tar` of Ubuntu 26.04 calls `openat2`, which the WSL1 kernel lacks, so it cannot unpack nested folders (`Cannot mkdir: Function not implemented`). That breaks the SDK install of step 7 and `dpkg-deb` in the Debian build. The same `tar` 1.35 built for Ubuntu 24.04 does not call it. Skip this step on WSL2 (`wsl -l -v` in Windows PowerShell shows the version):
+**6) WSL1 only: put the `tar` of Ubuntu 24.04 first on `PATH`.** The `tar` of Ubuntu 26.04 calls `openat2`, which the WSL1 kernel lacks, so it cannot unpack nested folders (`Cannot mkdir: Function not implemented`). That breaks the SDK install of step 8 and `dpkg-deb` in the Debian build. The same `tar` 1.35 built for Ubuntu 24.04 does not call it. Skip this step on WSL2 (`wsl -l -v` in Windows PowerShell shows the version):
 
 ```bash
 mkdir -p ~/.local/tar-noble/bin && \
@@ -84,27 +84,29 @@ echo 'export PATH="$HOME/.local/tar-noble/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-**7) Install the .NET SDK** the repository needs, as the Linux section of [Development_Setup.md](../../Development/Development_Setup.md#linux) describes. Of the SDK's dependencies, the WSL image of Ubuntu 26.04 lacks only ICU (`libicu78`; another release names its own, see [Install .NET on Ubuntu](https://learn.microsoft.com/dotnet/core/install/linux-ubuntu-install)). So install it and go to the repository root first, then run the commands of that section:
+**7) Install ICU and go to the repository root.** Of the dependencies of the .NET SDK, the WSL image of Ubuntu 26.04 lacks only ICU (`libicu78`; another release names its own, see [Install .NET on Ubuntu](https://learn.microsoft.com/dotnet/core/install/linux-ubuntu-install)), and step 8 runs from the repository root:
 
 ```bash
 sudo apt install -y libicu78
 cd "$DATAORG_REPO"
 ```
 
-**8) Verify the Debian packaging tool** is present (ships with Ubuntu by default):
+**8) Install the .NET SDK** the repository needs: in the same terminal, run the commands of the Linux section of [Development_Setup.md](../../Development/Development_Setup.md#linux).
+
+**9) Verify the Debian packaging tool** is present (ships with Ubuntu by default):
 
 ```bash
 dpkg-deb --version
 ```
 
-**9) Install the PupNet tool** (global dotnet tool) and confirm it is listed (look for `kuiperzone.pupnet`). Global dotnet tools live in `~/.dotnet/tools`, which step 7 put on `PATH`:
+**10) Install the PupNet tool** (global dotnet tool) and confirm it is listed (look for `kuiperzone.pupnet`). Global dotnet tools live in `~/.dotnet/tools`, which step 8 put on `PATH`:
 
 ```bash
 dotnet tool install -g KuiperZone.PupNet
 dotnet tool list -g
 ```
 
-**10) Verify PupNet works:**
+**11) Verify PupNet works:**
 
 ```bash
 pupnet --version
