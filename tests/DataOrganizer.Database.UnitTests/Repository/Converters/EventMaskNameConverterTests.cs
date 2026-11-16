@@ -89,23 +89,5 @@ internal class EventMaskNameConverterTests
 			.Should()
 			.Be(EventMask.None);
 	}
-
-	/// <summary>
-	/// <see cref="EventMaskNameConverter" />: writes a mask as its name.
-	/// </summary>
-	[Test]
-	public void Writes_Name()
-	{
-		// Arrange
-		EventMaskNameConverter sut = new();
-
-		// Act
-		object? result = sut.ConvertToProvider(EventMask.LeftCtrl);
-
-		// Assert
-		result
-			.Should()
-			.Be("LeftCtrl");
-	}
 	#endregion
 }

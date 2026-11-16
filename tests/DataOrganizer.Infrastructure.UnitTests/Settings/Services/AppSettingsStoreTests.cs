@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Dto;
-using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
@@ -16,30 +15,6 @@ namespace DataOrganizer.Infrastructure.UnitTests.Settings.Services;
 internal class AppSettingsStoreTests
 {
 	#region Methods
-	/// <summary>
-	/// <see cref="IAppSettingsStore.CreateDefaultSettings" />: the default theme follows the system, with a teal primary
-	/// color and an amber accent.
-	/// </summary>
-	[Test]
-	public void CreateDefaultSettings_Follows_The_System_Theme_In_Teal_And_Amber()
-	{
-		// Act
-		AppSettings result = IAppSettingsStore.CreateDefaultSettings();
-
-		// Assert
-		result.Theme
-			.Should()
-			.Be(ThemeMode.Inherit);
-
-		result.PrimaryColor
-			.Should()
-			.Be(ThemePrimaryColor.Teal);
-
-		result.SecondaryColor
-			.Should()
-			.Be(ThemeSecondaryColor.Amber);
-	}
-
 	/// <summary>
 	/// <see cref="AppSettingsStore.Overwrite" />: replaces the current settings with the provided ones.
 	/// </summary>

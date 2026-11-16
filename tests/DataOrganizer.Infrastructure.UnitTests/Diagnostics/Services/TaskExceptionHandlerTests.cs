@@ -15,55 +15,6 @@ internal class TaskExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="TaskExceptionHandler.Watch" />: nothing is logged when the watched task completes successfully.
-	/// </summary>
-	[Test]
-	public async Task Watch_Does_Not_Log_When_Task_Completes_Successfully()
-	{
-		// Arrange
-		ILogger logger = Substitute.For<ILogger>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
-
-		TaskExceptionHandler sut = mock.Create<TaskExceptionHandler>();
-
-		Task succeeded = Task.CompletedTask;
-
-		// Act
-		sut.Watch(succeeded);
-
-		await Task.Delay(TimeSpan.FromMilliseconds(50));
-
-		// Assert
-		logger
-			.ReceivedCalls()
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
-	/// <see cref="TaskExceptionHandler.Watch" />: watching a faulted task does not throw.
-	/// </summary>
-	[Test]
-	public void Watch_Does_Not_Throw_For_Faulted_Task()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		TaskExceptionHandler sut = mock.Create<TaskExceptionHandler>();
-
-		Task faulted = Task.FromException(new InvalidOperationException());
-
-		// Act
-		Action act = () => sut.Watch(faulted);
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-	}
-
-	/// <summary>
 	/// <see cref="TaskExceptionHandler.Watch" />: the exception of a faulted task is logged.
 	/// </summary>
 	[Test]

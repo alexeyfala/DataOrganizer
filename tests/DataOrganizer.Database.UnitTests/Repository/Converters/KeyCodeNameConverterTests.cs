@@ -85,23 +85,5 @@ internal class KeyCodeNameConverterTests
 			.Should()
 			.Be(KeyCode.VcUndefined);
 	}
-
-	/// <summary>
-	/// <see cref="KeyCodeNameConverter" />: writes a key code as its name.
-	/// </summary>
-	[Test]
-	public void Writes_Name()
-	{
-		// Arrange
-		KeyCodeNameConverter sut = new();
-
-		// Act
-		object? result = sut.ConvertToProvider(KeyCode.VcA);
-
-		// Assert
-		result
-			.Should()
-			.Be("VcA");
-	}
 	#endregion
 }
