@@ -81,11 +81,11 @@ ls -la artifacts/*.AppImage
 
 > **WSL2 or a Linux machine only.** Under WSL1 the build fails and cannot be worked around: `flatpak-builder` mounts with `rofiles-fuse`, but WSL1 has no `/dev/fuse`; its sandbox `bwrap` needs kernel namespaces WSL1 lacks; and the build commands inside the sandbox call `statx`, which WSL1 does not implement.
 
-**One-time setup (copy once).** Install the toolchain, then add the `flathub` remote. In WSL `flatpak remote-add` hangs fetching `flathub.org` directly (HTTP 301 redirect times out), so download the small repo file with `curl` first and add it from disk; the actual runtime download from `dl.flathub.org` works fine. Runtimes are installed `--user`:
+**One-time setup (copy once).** Install the toolchain, then add the `flathub` remote. In WSL `flathub.org` may hang or refuse the connection, so download the small repo file with `curl` from `dl.flathub.org`, where `flathub.org` redirects it and where the runtimes come from too, and add it from disk. Runtimes are installed `--user`:
 
 ```bash
 sudo apt install -y flatpak flatpak-builder && \
-curl -L -o /tmp/flathub.flatpakrepo https://flathub.org/repo/flathub.flatpakrepo && \
+curl -L -o /tmp/flathub.flatpakrepo https://dl.flathub.org/repo/flathub.flatpakrepo && \
 flatpak remote-add --if-not-exists --user flathub /tmp/flathub.flatpakrepo && \
 flatpak install -y --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 ```
