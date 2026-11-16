@@ -24,9 +24,7 @@
   - 📁 **`Publishing/`**
     - 📁 **`PupNet_Instructions/`**
       - 📄 [`1_Setup.md`](Publishing/PupNet_Instructions/1_Setup.md) — stage 1: the WSL environment.
-      - 📄 [`2_Config.md`](Publishing/PupNet_Instructions/2_Config.md) — stage 2: [`app.pupnet.conf`](../build/app.pupnet.conf).
-      - 📄 [`3_AppStream.md`](Publishing/PupNet_Instructions/3_AppStream.md) — stage 3: [`app.metainfo.xml`](../build/app.metainfo.xml).
-      - 📄 [`4_Build.md`](Publishing/PupNet_Instructions/4_Build.md) — stage 4: building and checking the packages.
+      - 📄 [`2_Build.md`](Publishing/PupNet_Instructions/2_Build.md) — stage 2: building and checking the packages.
     - 📄 [`GitHub_Release.md`](Publishing/GitHub_Release.md) — checklist for publishing a release.
     - 📄 [`Publish.md`](Publishing/Publish.md) — building the distributables for Windows, Linux and macOS.
     - 📄 [`release-notes.template.md`](Publishing/release-notes.template.md) — release description template.

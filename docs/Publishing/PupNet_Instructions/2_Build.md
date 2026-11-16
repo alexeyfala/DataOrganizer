@@ -1,6 +1,6 @@
-﻿# Stage 4 — Build and verify Linux packages
+﻿# Stage 2 — Build and verify Linux packages
 
-> **Prerequisite:** `app.pupnet.conf` is filled in and the icons exist in `IconFiles`. Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
+> **Prerequisite:** Stage 1. Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
 
 ---
 
@@ -116,7 +116,7 @@ Each build drops two shipping files in `artifacts/` (this is what you distribute
 
 - **`artifacts/<name>`** — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside. Names: `dataorganizer_<version>-<rev>_amd64.deb` (Debian convention — lowercase, `amd64`), `dataorganizer_<version>-<rev>.x86_64.rpm`, `DataOrganizer-<version>-<rev>.x86_64.{AppImage,flatpak}`, `DataOrganizer-<version>-<rev>.linux-x64.zip`.
 - **`artifacts/<name>.sha256.txt`** — the SHA-256 checksum, so users can verify the download (`sha256sum -c`). Handy for GitHub Releases; shipping it is optional.
-- **`artifacts/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml` validated in Stage 3). Kept for inspection, not for distribution.
+- **`artifacts/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml`, see [AppStream metainfo](#appstream-metainfo)). Kept for inspection, not for distribution.
 
 ---
 
@@ -148,3 +148,19 @@ sudo apt remove dataorganizer
 ```
 
 > Other formats run differently: an `.AppImage` just needs `chmod +x` then `./DataOrganizer*.AppImage`; a `.flatpak` installs with `flatpak install --user ./artifacts/DataOrganizer*.flatpak`; a `.zip` is unpacked and run in place.
+
+---
+
+## AppStream metainfo
+
+`build/app.metainfo.xml` describes the app for software centres (GNOME Software, KDE Discover) and Flathub; `app.pupnet.conf` links it by the line `MetaFile = app.metainfo.xml`. PupNet expands its `${...}` macros at build time, so validate the expanded file of a build, not the source. After a change to it, this block builds the Debian package, keeps the intermediate folder for the check, validates the file and then removes the folder:
+
+```bash
+cd "$DATAORG_REPO" && \
+sudo apt install -y appstream && \
+pupnet build/app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
+appstreamcli validate artifacts/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.metainfo.xml && \
+rm -rf artifacts/Artifacts.Deb.amd64
+```
+
+After a PupNet update, `pupnet --new conf` and `pupnet --new meta` run in an empty folder show its current templates, to compare with the files of `build`.

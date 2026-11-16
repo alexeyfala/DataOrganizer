@@ -42,9 +42,7 @@
   </Folder>
   <Folder Name="/docs/Publishing/PupNet_Instructions/">
     <File Path="docs/Publishing/PupNet_Instructions/1_Setup.md" />
-    <File Path="docs/Publishing/PupNet_Instructions/2_Config.md" />
-    <File Path="docs/Publishing/PupNet_Instructions/3_AppStream.md" />
-    <File Path="docs/Publishing/PupNet_Instructions/4_Build.md" />
+    <File Path="docs/Publishing/PupNet_Instructions/2_Build.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />

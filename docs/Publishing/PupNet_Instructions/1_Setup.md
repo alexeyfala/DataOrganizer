@@ -57,7 +57,7 @@ sudo apt update && sudo apt upgrade -y
 
 > **WSL1:** run only `sudo apt update`. Under WSL1 the setup script of the new `systemd` cannot open `/etc/machine-id` (`Bad file descriptor`), so the upgrade stops with half-configured packages, and every later `apt install` fails on them. The build needs only the fresh package list.
 
-**5) Define the repository path and version helper.** Step 7 and the build recipes in Stage 4 use `$DATAORG_REPO` (the repo path) and `$(dataorg_ver)` (the current `<AppVersion>`) instead of hardcoding them. The path is a fixed value; the version is a function so it is re-read from `Directory.Build.props` on every call and never goes stale. Replace `<user-name>` with the Windows user name — drive `C:` is visible inside WSL as `/mnt/c` — and keep the `&&`: a wrong folder makes `cd` fail, and then nothing is appended to `~/.bashrc`:
+**5) Define the repository path and version helper.** Step 7 and the build recipes in Stage 2 use `$DATAORG_REPO` (the repo path) and `$(dataorg_ver)` (the current `<AppVersion>`) instead of hardcoding them. The path is a fixed value; the version is a function so it is re-read from `Directory.Build.props` on every call and never goes stale. Replace `<user-name>` with the Windows user name — drive `C:` is visible inside WSL as `/mnt/c` — and keep the `&&`: a wrong folder makes `cd` fail, and then nothing is appended to `~/.bashrc`:
 
 ```bash
 cd /mnt/c/Users/<user-name>/source/repos/DataOrganizerAvaloniaApp && echo "export DATAORG_REPO=\"$PWD\"" >> ~/.bashrc
