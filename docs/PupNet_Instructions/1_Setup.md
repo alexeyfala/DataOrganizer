@@ -84,7 +84,7 @@ echo 'export PATH="$HOME/.local/tar-noble/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-**7) Install the .NET SDK** the repository needs. The Ubuntu feed can lag behind a new .NET: Ubuntu 26.04 has none for .NET 11 yet ([Install .NET on Ubuntu](https://learn.microsoft.com/dotnet/core/install/linux-ubuntu-install)). So install it with Microsoft's install script, which takes the version from `global.json` of the repository. The script installs no dependencies; of those, the WSL image of Ubuntu 26.04 lacks only ICU (`libicu78`; another release names its own, see the same page). Then verify (expect the SDK version of `global.json`):
+**7) Install the .NET SDK** the repository needs. The Ubuntu feed can lag behind a new .NET: Ubuntu 26.04 has none for .NET 11 yet ([Install .NET on Ubuntu](https://learn.microsoft.com/dotnet/core/install/linux-ubuntu-install)). So install it with Microsoft's install script, which takes the version from `global.json` of the repository. The script installs no dependencies; of those, the WSL image of Ubuntu 26.04 lacks only ICU (`libicu78`; another release names its own, see the same page). `~/.dotnet` goes first on `PATH`, as a .NET installed from the distro's packages (`/usr/bin/dotnet`) would win otherwise. Then verify (expect the SDK version of `global.json`):
 
 ```bash
 sudo apt install -y libicu78 && \
@@ -92,7 +92,7 @@ curl -fsSL -o /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh && \
 bash /tmp/dotnet-install.sh --jsonfile "$DATAORG_REPO/global.json" && \
 rm /tmp/dotnet-install.sh
 echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.bashrc
-echo 'export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"' >> ~/.bashrc
+echo 'export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 dotnet --version
 ```
