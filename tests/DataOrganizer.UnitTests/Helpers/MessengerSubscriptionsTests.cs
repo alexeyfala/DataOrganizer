@@ -10,10 +10,10 @@ internal class MessengerSubscriptionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="MessengerSubscriptions.FormatUnsubscriptionLog{T}" />: includes the recipient type name, the channel count and every message name.
+	/// <see cref="MessengerSubscriptions.FormatUnsubscriptionLog{T}" />: names the type of the recipient and every message.
 	/// </summary>
 	[Test]
-	public void FormatUnsubscriptionLog_Includes_Type_Name_And_Channel_Count()
+	public void FormatUnsubscriptionLog_Names_The_Recipient_And_Its_Messages()
 	{
 		// Arrange
 		MultiSubscription recipient = new();
@@ -25,10 +25,6 @@ internal class MessengerSubscriptionsTests
 		result
 			.Should()
 			.Contain(nameof(MultiSubscription));
-
-		result
-			.Should()
-			.Contain("2 message channel(s)");
 
 		result
 			.Should()

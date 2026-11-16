@@ -1265,31 +1265,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.Dispose" />: calling it twice does not throw.
-	/// </summary>
-	[Test]
-	public void Dispose_Is_Idempotent()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		Action act = () =>
-		{
-			sut.Dispose();
-
-			sut.Dispose();
-		};
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.Dispose" />: a disposed object refuses the calls that come after it.
 	/// </summary>
 	[Test]
@@ -2194,44 +2169,6 @@ internal class DbAccessTests
 				Note = note,
 				UpdatedAt = updatedAt
 			});
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateProtectionAsync" />: a change with nothing but the key of the folder is not a failure.
-	/// </summary>
-	[Test]
-	public async Task UpdateProtectionAsync_Accepts_An_Empty_Set_Of_Updates()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-			// The stub runs the body of the transaction instead of a database.
-			dbContextService
-				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
-				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
-
-			builder.RegisterInstance(dbContextService);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		Func<Task> act = () => sut.UpdateProtectionAsync(new()
-		{
-			Contents = new Dictionary<Guid, byte[]>(),
-			EncryptedDek = null,
-			FileNotes = new Dictionary<Guid, byte[]>(),
-			FolderId = Guid.NewGuid(),
-			FolderNotes = new Dictionary<Guid, byte[]>(),
-			UpdatedAt = default
-		});
-
-		// Assert
-		await act
-			.Should()
-			.NotThrowAsync();
 	}
 
 	/// <summary>

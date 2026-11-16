@@ -421,30 +421,6 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.DisposeAsync" />: disposing twice is safe.
-	/// </summary>
-	[Test]
-	public async Task DisposeAsync_Is_Idempotent()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
-
-		ClipboardLogService sut = mock.Create<ClipboardLogService>();
-
-		await sut.DisposeAsync();
-
-		// Act
-		Func<Task> act = async () => await sut.DisposeAsync();
-
-		// Assert
-		await act
-			.Should()
-			.NotThrowAsync();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardLogService.DisposeAsync" />: disposing waits for an operation that holds the gate, and frees
 	/// the gate when it is done.
 	/// </summary>

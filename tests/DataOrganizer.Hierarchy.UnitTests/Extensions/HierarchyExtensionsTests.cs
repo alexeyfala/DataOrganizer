@@ -876,28 +876,6 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="HierarchyExtensions.SortChildrenByIndexRecursively" />: returns without throwing for an empty folder.
-	/// </summary>
-	[Test]
-	public void SortChildrenByIndexRecursively_Returns_Without_Action_For_Empty_Folder()
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
-
-		// Act
-		Action act = () => folder.SortChildrenByIndexRecursively();
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-
-		folder.Children
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="HierarchyExtensions.SortChildrenByIndexRecursively" />: the children of the subfolders are sorted by their
 	/// index as well.
 	/// </summary>

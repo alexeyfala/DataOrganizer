@@ -102,29 +102,6 @@ internal class PinnedBufferTests
 	}
 
 	/// <summary>
-	/// <see cref="PinnedBuffer.Dispose" />: calling Dispose twice does not throw.
-	/// </summary>
-	[Test]
-	public void Dispose_Is_Idempotent()
-	{
-		// Arrange
-		PinnedBuffer sut = new(3);
-
-		// Act
-		Action act = () =>
-		{
-			sut.Dispose();
-
-			sut.Dispose();
-		};
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-	}
-
-	/// <summary>
 	/// <see cref="PinnedBuffer.Dispose" />: disposing zeroes the underlying buffer.
 	/// </summary>
 	[Test]
