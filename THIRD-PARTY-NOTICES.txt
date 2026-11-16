@@ -622,7 +622,7 @@ License of vscode-swift:
   * OSVersionExt.NetStd 3.0.1 - Copyright (c) Stefan Prugg
   * ProItemsRepeater 12.0.0 - Copyright (c) Wiesław Šoltés
   * Serilog.Exceptions 8.4.0 - Copyright (c) Muhammad Rehan Saeed (RehanSaeed.com)
-  * SharpHook 8.0.1 - Copyright (c) Tolik Pylypchuk
+  * SharpHook 8.0.3 - Copyright (c) Tolik Pylypchuk
   * SkiaSharp 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.Linux 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.macOS 3.119.4 - Copyright (c) Microsoft
