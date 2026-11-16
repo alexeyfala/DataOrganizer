@@ -84,7 +84,7 @@ echo 'export PATH="$HOME/.local/tar-noble/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-**7) Install the .NET SDK** the repository needs, as the Linux section of [Development_Setup.md](../Development_Setup.md#linux) describes. Of the SDK's dependencies, the WSL image of Ubuntu 26.04 lacks only ICU (`libicu78`; another release names its own, see [Install .NET on Ubuntu](https://learn.microsoft.com/dotnet/core/install/linux-ubuntu-install)). So install it and go to the repository root first, then run the commands of that section:
+**7) Install the .NET SDK** the repository needs, as the Linux section of [Development_Setup.md](../../Development/Development_Setup.md#linux) describes. Of the SDK's dependencies, the WSL image of Ubuntu 26.04 lacks only ICU (`libicu78`; another release names its own, see [Install .NET on Ubuntu](https://learn.microsoft.com/dotnet/core/install/linux-ubuntu-install)). So install it and go to the repository root first, then run the commands of that section:
 
 ```bash
 sudo apt install -y libicu78

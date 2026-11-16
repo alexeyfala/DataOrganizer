@@ -44,7 +44,7 @@ dotnet build -p:ValidateXcodeVersion=false -p:Registrar=dynamic
 open bin/Debug/*/osx-x64/DataOrganizer.app
 ```
 
-3\. For F5 in VS Code and for the recipes of [Publish.md](Publish.md), set both properties as environment
+3\. For F5 in VS Code and for the recipes of [Publish.md](../Publishing/Publish.md), set both properties as environment
 variables, which MSBuild reads as properties:
 
 ```bash
@@ -61,7 +61,7 @@ On an Intel Mac with macOS Tahoe 26.7.3, Xcode 26.6 and .NET for macOS 27.2.1103
 
 - the Debug build passes;
 - the app starts from the built `.app` and through F5 in VS Code;
-- the Release builds of [Publish.md](Publish.md) pass, and the app from each package (`.dmg`, `.pkg`,
+- the Release builds of [Publish.md](../Publishing/Publish.md) pass, and the app from each package (`.dmg`, `.pkg`,
   `.zip`) installs, starts and is removed.
 
 A later release of .NET for macOS may need more of the newer SDK, and the workaround may stop working.

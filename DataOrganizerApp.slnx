@@ -16,19 +16,18 @@
     <File Path="build/update-dotnet-runtime.ps1" />
   </Folder>
   <Folder Name="/docs/">
-    <File Path="docs/Architecture.md" />
-    <File Path="docs/Debugging_Tests.md" />
-    <File Path="docs/Development_Setup.md" />
-    <File Path="docs/Encryption_Format.md" />
-    <File Path="docs/GitHub_Release.md" />
-    <File Path="docs/MacOS_Intel_Build.md" />
-    <File Path="docs/Publish.md" />
-    <File Path="docs/release-notes.template.md" />
     <File Path="docs/Solution_Files.md" />
-    <File Path="docs/Stryker_Mutation_Testing.md" />
   </Folder>
-  <Folder Name="/docs/Database/">
-    <File Path="docs/Database/Migrations.md" />
+  <Folder Name="/docs/Design/">
+    <File Path="docs/Design/Architecture.md" />
+    <File Path="docs/Design/Encryption_Format.md" />
+  </Folder>
+  <Folder Name="/docs/Development/">
+    <File Path="docs/Development/Database_Migrations.md" />
+    <File Path="docs/Development/Debugging_Tests.md" />
+    <File Path="docs/Development/Development_Setup.md" />
+    <File Path="docs/Development/MacOS_Intel_Build.md" />
+    <File Path="docs/Development/Stryker_Mutation_Testing.md" />
   </Folder>
   <Folder Name="/docs/Images/">
     <File Path="docs/Images/clipboard-log.png" />
@@ -36,11 +35,16 @@
     <File Path="docs/Images/favorites.png" />
     <File Path="docs/Images/main-window.png" />
   </Folder>
-  <Folder Name="/docs/PupNet_Instructions/">
-    <File Path="docs/PupNet_Instructions/1_Setup.md" />
-    <File Path="docs/PupNet_Instructions/2_Config.md" />
-    <File Path="docs/PupNet_Instructions/3_AppStream.md" />
-    <File Path="docs/PupNet_Instructions/4_Build.md" />
+  <Folder Name="/docs/Publishing/">
+    <File Path="docs/Publishing/GitHub_Release.md" />
+    <File Path="docs/Publishing/Publish.md" />
+    <File Path="docs/Publishing/release-notes.template.md" />
+  </Folder>
+  <Folder Name="/docs/Publishing/PupNet_Instructions/">
+    <File Path="docs/Publishing/PupNet_Instructions/1_Setup.md" />
+    <File Path="docs/Publishing/PupNet_Instructions/2_Config.md" />
+    <File Path="docs/Publishing/PupNet_Instructions/3_AppStream.md" />
+    <File Path="docs/Publishing/PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
