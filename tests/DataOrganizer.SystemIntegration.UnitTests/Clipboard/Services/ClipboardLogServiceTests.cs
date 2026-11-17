@@ -464,26 +464,59 @@ internal class ClipboardLogServiceTests
 
 	/// <summary>
 	/// <see cref="ClipboardLogService.StartAsync" /> / <see cref="ClipboardLogService.DisposeAsync" />:
-	/// the running flag toggles around the loop's lifetime.
+	/// the running flag toggles around the loop's lifetime, and the disposal ends only once the loop has ended.
 	/// </summary>
 	[Test]
 	public async Task IsRunning_Toggles_With_Start_And_Dispose()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<InlineDispatcherAccessor>()
-			.As<IDispatcherAccessor>());
+		TaskCompletionSource<bool> held = new();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			// The poll under way stays on its first read, so the loop cannot end before the test lets it.
+			clipboard
+				.ContainsSensitivityMarkerAsync()
+				.Returns(held.Task);
+
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		// Act, Assert
 		await sut.StartAsync();
 
-		sut.IsRunning
+		bool isRunningAfterStart = sut.IsRunning;
+
+		await PassPollIntervalAsync(time);
+
+		// Act
+		ValueTask disposing = sut.DisposeAsync();
+
+		bool wasDoneWhileThePollLasted = disposing.IsCompleted;
+
+		held.SetResult(false);
+
+		await disposing;
+
+		// Assert
+		isRunningAfterStart
 			.Should()
 			.BeTrue();
 
-		await sut.DisposeAsync();
+		wasDoneWhileThePollLasted
+			.Should()
+			.BeFalse();
 
 		sut.IsRunning
 			.Should()
