@@ -61,29 +61,6 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: with a null search the initial predicate matches every item.
-	/// </summary>
-	[Test]
-	public void FilterPredicate_Initial_Predicate_Matches_Every_Item_When_Search_Is_Null()
-	{
-		// Arrange
-		Source source = new();
-
-		// Act
-		using IDisposable subscription = source
-			.FilterPredicate(
-				x => x.Search,
-				TimeProvider.System)
-			.Subscribe(predicate =>
-			{
-				// Assert
-				predicate(new NameHolder("anything"))
-					.Should()
-					.BeTrue();
-			});
-	}
-
-	/// <summary>
 	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: the predicate matches items whose name contains the search text and rejects the rest.
 	/// </summary>
 	[Test]

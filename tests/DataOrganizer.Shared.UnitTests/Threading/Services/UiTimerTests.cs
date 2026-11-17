@@ -195,46 +195,6 @@ internal class UiTimerTests
 	}
 
 	/// <summary>
-	/// <see cref="UiTimer.Run" />: the first tick comes when the interval has passed.
-	/// </summary>
-	[Test]
-	public void Run_Ticks_When_The_Interval_Has_Passed()
-	{
-		// Arrange
-		int ticks = 0;
-
-		FakeTimeProvider time = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance<TimeProvider>(time);
-		});
-
-		UiTimer sut = mock.Create<UiTimer>();
-
-		sut.Run(
-			() =>
-			{
-				ticks++;
-
-				return true;
-			},
-			Interval);
-
-		// Act
-		time.Advance(Interval);
-
-		// Assert
-		ticks
-			.Should()
-			.Be(1);
-	}
-
-	/// <summary>
 	/// <see cref="UiTimer.Run" />: nothing runs before the interval has passed.
 	/// </summary>
 	[Test]

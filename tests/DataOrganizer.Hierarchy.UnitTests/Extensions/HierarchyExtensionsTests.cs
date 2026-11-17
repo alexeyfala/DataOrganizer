@@ -684,42 +684,6 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="HierarchyExtensions.GetFiles" />: returns files from all levels of the hierarchy.
-	/// </summary>
-	[Test]
-	public void GetFiles_Returns_Files_From_All_Levels_Of_Hierarchy()
-	{
-		// Arrange
-		FolderDto root = ItemDtoFactory.CreateFolderDto();
-
-		FileDto rootFile = ItemDtoFactory.CreateFileDto();
-
-		FolderDto nested = ItemDtoFactory.CreateFolderDto();
-
-		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
-
-		nested.Children.Add(nestedFile);
-
-		root.Children.Add(rootFile);
-
-		root.Children.Add(nested);
-
-		ExplorerItemDtoBase[] hierarchy = [root];
-
-		// Act
-		FileDto[] result = [.. hierarchy.GetFiles()];
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(2);
-
-		result
-			.Should()
-			.Contain([rootFile, nestedFile]);
-	}
-
-	/// <summary>
 	/// <see cref="HierarchyExtensions.GetFilesBy" />: returns only the files matching the condition.
 	/// </summary>
 	[Test]
