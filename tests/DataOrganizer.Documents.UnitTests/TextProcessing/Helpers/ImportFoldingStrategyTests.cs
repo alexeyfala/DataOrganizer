@@ -157,12 +157,13 @@ internal partial class ImportFoldingStrategyTests
 
 	/// <summary>
 	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: a statement goes on over the lines while its brackets stay
-	/// open, also those after a quote.
+	/// open, also those after a quote, and a run that such a statement closes ends at its last line.
 	/// </summary>
 	[Test]
-	[TestCase("import {\n  a,\n  b\n} from 'x'\nimport c\ny")]
-	[TestCase("import 'x' (\n  a,\n  b\n)\nimport c\ny")]
-	public void CreateNewFoldings_Follows_A_Statement_Over_Its_Brackets(string content)
+	[TestCase("import {\n  a,\n  b\n} from 'x'\nimport c\ny", 5)]
+	[TestCase("import 'x' (\n  a,\n  b\n)\nimport c\ny", 5)]
+	[TestCase("import a\nimport {\n  b\n} from 'x'\ny", 4)]
+	public void CreateNewFoldings_Follows_A_Statement_Over_Its_Brackets(string content, int lastLine)
 	{
 		// Arrange
 		TextDocument document = new(content);
@@ -177,7 +178,7 @@ internal partial class ImportFoldingStrategyTests
 		// Assert
 		GetLines(document, foldings)
 			.Should()
-			.Equal((1, 5));
+			.Equal((1, lastLine));
 	}
 
 	/// <summary>
