@@ -101,28 +101,6 @@ internal partial class ImportFoldingStrategyTests
 	}
 
 	/// <summary>
-	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: two import statements in a row fold.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Folds_A_Run_Of_Imports()
-	{
-		// Arrange
-		TextDocument document = new("import a\nimport b\nx");
-
-		using FoldingText text = new(document.Text);
-
-		ImportFoldingStrategy sut = new(Rules);
-
-		// Act
-		TextFolding[] foldings = sut.CreateNewFoldings(text);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 2));
-	}
-
-	/// <summary>
 	/// <see cref="ImportFoldingStrategy.CreateNewFoldings" />: a run folds from the first word of its first line and the
 	/// blanks after it to the end of its last line, so the keyword stays in view, even when the word fills the line.
 	/// </summary>

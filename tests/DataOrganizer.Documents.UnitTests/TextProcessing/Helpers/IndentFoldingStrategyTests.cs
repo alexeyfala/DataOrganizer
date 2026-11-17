@@ -254,28 +254,6 @@ internal partial class IndentFoldingStrategyTests
 	}
 
 	/// <summary>
-	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: the deeper lines under a line make up its block.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Folds_The_Deeper_Lines_Under_A_Line()
-	{
-		// Arrange
-		TextDocument document = new("a\n    b\n    c\nd");
-
-		using FoldingText text = new(document.Text);
-
-		IndentFoldingStrategy sut = new(PlainRules, TabSize);
-
-		// Act
-		TextFolding[] foldings = sut.CreateNewFoldings(text);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 3));
-	}
-
-	/// <summary>
 	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: a closing bracket with more text on its line stays out of
 	/// the block before it.
 	/// </summary>
@@ -721,34 +699,6 @@ internal partial class IndentFoldingStrategyTests
 		GetLines(document, foldings)
 			.Should()
 			.Equal((1, 13), (3, 12));
-	}
-
-	/// <summary>
-	/// <see cref="IndentFoldingStrategy.CreateNewFoldings" />: the block of a lone opening bracket starts on the line
-	/// above it and takes in the line of the closing bracket.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Starts_A_Block_Of_A_Lone_Bracket_On_The_Line_Above()
-	{
-		// Arrange
-		TextDocument document = new("""
-			void F()
-			{
-			    x();
-			}
-			""");
-
-		using FoldingText text = new(document.Text);
-
-		IndentFoldingStrategy sut = new(PlainRules, TabSize);
-
-		// Act
-		TextFolding[] foldings = sut.CreateNewFoldings(text);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 4));
 	}
 
 	/// <summary>

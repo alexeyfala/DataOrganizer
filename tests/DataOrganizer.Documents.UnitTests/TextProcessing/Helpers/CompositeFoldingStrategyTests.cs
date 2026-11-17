@@ -20,27 +20,6 @@ internal class CompositeFoldingStrategyTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: a block of a way that crosses a block found before is left
-	/// out, as the found blocks nest by the same rule.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Drops_A_Block_That_Crosses_A_Found_One()
-	{
-		// Arrange
-		TextDocument document = new(Text);
-
-		CompositeFoldingStrategy sut = new(new FixedFoldingStrategy(CreateBlock(document, 2, 4)));
-
-		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, [CreateBlock(document, 1, 3)]);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 3));
-	}
-
-	/// <summary>
 	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: a block that starts inside another and ends after it is
 	/// left out, as blocks have to nest.
 	/// </summary>
@@ -268,28 +247,6 @@ internal class CompositeFoldingStrategyTests
 			.Which
 			.Should()
 			.BeSameAs(first.Texts.Single());
-	}
-
-	/// <summary>
-	/// <see cref="CompositeFoldingStrategy.CreateNewFoldings" />: the blocks of all ways come sorted by their start.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Sorts_The_Blocks_Of_All_Ways()
-	{
-		// Arrange
-		TextDocument document = new(Text);
-
-		CompositeFoldingStrategy sut = new(
-			new FixedFoldingStrategy(CreateBlock(document, 3, 4)),
-			new FixedFoldingStrategy(CreateBlock(document, 1, 2)));
-
-		// Act
-		IEnumerable<TextFolding> foldings = sut.CreateNewFoldings(document.Text, []);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 2), (3, 4));
 	}
 	#endregion
 

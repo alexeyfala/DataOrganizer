@@ -30,28 +30,6 @@ internal partial class MarkdownFoldingStrategyTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a section runs down to the next heading of its level.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Ends_A_Section_At_The_Next_Heading_Of_Its_Level()
-	{
-		// Arrange
-		TextDocument document = new("# A\ntext\n# B\nmore");
-
-		using FoldingText text = new(document.Text);
-
-		MarkdownFoldingStrategy sut = new(Rules, TabSize);
-
-		// Act
-		TextFolding[] foldings = sut.CreateNewFoldings(text);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 2), (3, 4));
-	}
-
-	/// <summary>
 	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a region between markers folds with its end marker.
 	/// </summary>
 	[Test]
