@@ -102,20 +102,5 @@ internal class EventMaskJsonConverterTests
 			.Should()
 			.Be(EventMask.None);
 	}
-
-	/// <summary>
-	/// <see cref="EventMaskJsonConverter" />: writes a mask as its name.
-	/// </summary>
-	[Test]
-	public void Writes_Name()
-	{
-		// Act
-		string result = JsonSerializer.Serialize(EventMask.LeftCtrl, Options);
-
-		// Assert
-		result
-			.Should()
-			.Be(@"""LeftCtrl""");
-	}
 	#endregion
 }

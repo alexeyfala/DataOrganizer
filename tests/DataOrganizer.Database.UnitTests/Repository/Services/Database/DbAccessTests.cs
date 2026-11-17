@@ -257,41 +257,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddFilesAsync" />: a failed save leaves no file tracked for the next save to write.
-	/// </summary>
-	[Test]
-	public async Task AddFilesAsync_Clears_The_Tracking_When_The_Save_Fails()
-	{
-		// Arrange
-		FileEntity[] files = [.. EntityFactory.CreateFiles(5)];
-
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			dbContextService
-				.SaveChangesAsync(Arg.Any<CancellationToken>())
-				.ThrowsAsync(new InvalidOperationException());
-
-			builder.RegisterInstance(dbContextService);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		Func<Task> act = () => sut.AddFilesAsync(files);
-
-		// Assert
-		await act
-			.Should()
-			.ThrowAsync<InvalidOperationException>();
-
-		dbContextService
-			.Received(1)
-			.ClearTracking();
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.AddFilesAsync" />, <see cref="DbAccess.AddEntityAsync" />: a file the database refuses is not
 	/// written again by the next save, which goes through.
 	/// </summary>

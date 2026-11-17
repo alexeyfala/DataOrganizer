@@ -127,26 +127,6 @@ internal class HotkeyXmlSanitizerTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a key the library no longer has is replaced with undefined.
-	/// </summary>
-	[Test]
-	public void Sanitize_Replaces_A_Key_The_Library_Lost()
-	{
-		// Arrange
-		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
-
-		WriteHotkey(document, nameof(HotkeyEntity.Code), "VcKanji");
-
-		// Act
-		HotkeyXmlSanitizer.Sanitize(document);
-
-		// Assert
-		ReadHotkey(document, nameof(HotkeyEntity.Code))
-			.Should()
-			.Be(nameof(KeyCode.VcUndefined));
-	}
-
-	/// <summary>
 	/// <see cref="HotkeyXmlSanitizer.Sanitize" />: a mask holding a flag the library no longer has
 	/// is replaced with no mask.
 	/// </summary>

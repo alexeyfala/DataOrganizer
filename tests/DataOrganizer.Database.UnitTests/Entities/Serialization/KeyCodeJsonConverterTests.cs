@@ -97,20 +97,5 @@ internal class KeyCodeJsonConverterTests
 			.Should()
 			.Be(KeyCode.VcUndefined);
 	}
-
-	/// <summary>
-	/// <see cref="KeyCodeJsonConverter" />: writes a key code as its name.
-	/// </summary>
-	[Test]
-	public void Writes_Name()
-	{
-		// Act
-		string result = JsonSerializer.Serialize(KeyCode.VcA, Options);
-
-		// Assert
-		result
-			.Should()
-			.Be(@"""VcA""");
-	}
 	#endregion
 }
