@@ -16,39 +16,6 @@ internal class NoteReaderTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="NoteReader.ReadNote" />: reports a snackbar when the note cannot be decoded.
-	/// </summary>
-	[Test]
-	public void ReadNote_Reports_Failure_When_Decoding_Fails()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		file.Note = RandomValues.CreateBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			INoteCipher noteCipher = Substitute.For<INoteCipher>();
-
-			noteCipher
-				.Decode(file)
-				.Returns((string?)null);
-
-			builder.RegisterInstance(noteCipher);
-		});
-
-		NoteReader sut = mock.Create<NoteReader>();
-
-		// Act
-		string? result = sut.ReadNote(file);
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: returns the note of an object as plain text.
 	/// </summary>
 	[Test]
@@ -81,6 +48,39 @@ internal class NoteReaderTests
 		result
 			.Should()
 			.Be(text);
+	}
+
+	/// <summary>
+	/// <see cref="NoteReader.ReadNote" />: a note that cannot be decoded gives no text.
+	/// </summary>
+	[Test]
+	public void ReadNote_Returns_Null_When_Decoding_Fails()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		file.Note = RandomValues.CreateBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			INoteCipher noteCipher = Substitute.For<INoteCipher>();
+
+			noteCipher
+				.Decode(file)
+				.Returns((string?)null);
+
+			builder.RegisterInstance(noteCipher);
+		});
+
+		NoteReader sut = mock.Create<NoteReader>();
+
+		// Act
+		string? result = sut.ReadNote(file);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>

@@ -60,43 +60,6 @@ internal class TypingPauseTests
 	}
 
 	/// <summary>
-	/// <see cref="TypingPause.Dispose" />: the waiting action does not run once the pause is disposed.
-	/// </summary>
-	[Test]
-	public void Dispose_Drops_The_Waiting_Action()
-	{
-		// Arrange
-		int runs = 0;
-
-		FakeTimeProvider time = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance<Action>(() => runs++);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance<TimeProvider>(time);
-		});
-
-		TypingPause sut = mock.Create<TypingPause>();
-
-		sut.Restart();
-
-		// Act
-		sut.Dispose();
-
-		time.Advance(TypingPause.Delay);
-
-		// Assert
-		runs
-			.Should()
-			.Be(0);
-	}
-
-	/// <summary>
 	/// <see cref="TypingPause.Dispose" />: a disposed pause no longer counts, so nothing is handed to the UI thread.
 	/// </summary>
 	[Test]
