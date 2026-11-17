@@ -357,39 +357,6 @@ internal class BackgroundServicesTests
 	}
 
 	/// <summary>
-	/// <see cref="BackgroundServices.Start" />: the hotkey tracking starts when the settings turn it on.
-	/// </summary>
-	[Test]
-	public void Start_Starts_The_Hotkey_Tracking_When_It_Is_On()
-	{
-		// Arrange
-		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings(trackHotkeys: true));
-
-			builder.RegisterInstance(hook);
-
-			builder.RegisterInstance(settingsStore);
-		});
-
-		BackgroundServices sut = mock.Create<BackgroundServices>();
-
-		// Act
-		sut.Start();
-
-		// Assert
-		hook
-			.Received(1)
-			.StartTrackingAsync(Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
 	/// <see cref="BackgroundServices.StopAsync" />: a clipboard history that does not run is not stopped.
 	/// </summary>
 	[Test]

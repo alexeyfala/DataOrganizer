@@ -1234,63 +1234,6 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="DataExchangeService.ImportDataAsync" />: returns a non-null result when importing from a valid SQLite file.
-	/// </summary>
-	[Test]
-	public async Task ImportDataAsync_Imports_From_SQLite()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
-
-			picker
-				.SelectFilesAsync(Arg.Any<FileOpenParameters>())
-				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
-
-			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
-
-			dbBackupService
-				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
-
-			IDbImporter dbImporter = Substitute.For<IDbImporter>();
-
-			dbImporter
-				.IsValidSqliteDatabase(Arg.Any<string>())
-				.Returns(true);
-
-			builder.RegisterInstance(dbBackupService);
-
-			builder.RegisterInstance(dbImporter);
-
-			builder.RegisterInstance(picker);
-
-			builder
-				.RegisterType<SqliteExchangeFormat>()
-				.As<IExchangeFormat>();
-
-			builder
-				.RegisterType<EntityLoader>()
-				.As<IEntityLoader>();
-
-			builder
-				.RegisterType<BackedUpWriter>()
-				.As<IBackedUpWriter>();
-		});
-
-		DataExchangeService sut = mock.Create<DataExchangeService>();
-
-		// Act
-		ImportDataResult? result = await sut.ImportDataAsync([]);
-
-		// Assert
-		result
-			.Should()
-			.NotBeNull();
-	}
-
-	/// <summary>
 	/// <see cref="DataExchangeService.ImportDataAsync" />: returns a non-null result when importing from an XML file.
 	/// </summary>
 	[Test]

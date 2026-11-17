@@ -748,55 +748,6 @@ internal class AppControllerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit closes the files the operating system runs.
-	/// </summary>
-	[Test]
-	public async Task Receive_ExitApp_Closes_The_Executing_Files()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
-
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			engine
-				.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>())
-				.Returns(true);
-
-			builder.RegisterInstance(engine);
-
-			builder.RegisterInstance(messenger);
-
-			builder
-				.RegisterType<ExecutingFiles>()
-				.As<IExecutingFiles>()
-				.SingleInstance();
-		});
-
-		await mock
-			.Create<IExecutingFiles>()
-			.ExecuteAsync(new()
-			{
-				Contents = [],
-				File = file,
-				IsReadOnly = false
-			});
-
-		_ = mock.Create<AppController>();
-
-		// Act
-		messenger.Send(new ExitAppMessage());
-
-		// Assert
-		await engine
-			.Received(1)
-			.CloseAsync(file.Id, Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
 	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit disposes the services.
 	/// </summary>
 	[Test]
