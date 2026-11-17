@@ -6,6 +6,7 @@ using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
 using SharpHook.Data;
 using System;
+using System.Linq;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Extensions;
 
@@ -228,12 +229,9 @@ internal class HotkeyExtensionsTests
 			.Should()
 			.HaveCount(4);
 
-		foreach (FileDto file in files)
-		{
-			result
-				.Should()
-				.Contain($@"{Environment.NewLine}""{file.Name}""");
-		}
+		result
+			.Should()
+			.ContainAll(files.Select(static x => $@"{Environment.NewLine}""{x.Name}"""));
 	}
 
 	/// <summary>
@@ -295,20 +293,9 @@ internal class HotkeyExtensionsTests
 		KeyStroke[] result = [.. hotkeys.ToKeyStrokes()];
 
 		// Assert
-		result
+		result.Select(static x => (x.Code, x.Mask))
 			.Should()
-			.HaveCount(3);
-
-		for (int i = 0; i < hotkeys.Length; i++)
-		{
-			result[i].Code
-				.Should()
-				.Be(hotkeys[i].Code);
-
-			result[i].Mask
-				.Should()
-				.Be(hotkeys[i].Mask);
-		}
+			.Equal(hotkeys.Select(static x => (x.Code, x.Mask)));
 	}
 	#endregion
 

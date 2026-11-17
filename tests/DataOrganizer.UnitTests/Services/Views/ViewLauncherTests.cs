@@ -64,7 +64,6 @@ using Material.Styles.Controls;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -1842,7 +1841,12 @@ internal class ViewLauncherTests
 
 		window.Show();
 
-		await WaitUntilAsync(() => window.ViewModel.SelectedNode?.Model == shown);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(
+				() => window.ViewModel.SelectedNode?.Model == shown,
+				millisecondsDelay: 20,
+				maxRepeats: 250);
 
 		window.Close();
 
@@ -5835,21 +5839,6 @@ internal class ViewLauncherTests
 				.Any(y => y.Actions is { } actions
 					&& actions.OfType<CloseWindowAction>().Any()
 					&& actions.OfType<InvokeCommandAction>().Any() == asksFirst));
-	}
-
-	/// <summary>
-	/// Lets the UI thread run until <paramref name="condition" /> holds, a few seconds at most.
-	/// </summary>
-	private static async Task WaitUntilAsync(Func<bool> condition)
-	{
-		Stopwatch stopwatch = Stopwatch.StartNew();
-
-		while (!condition() && stopwatch.Elapsed < TimeSpan.FromSeconds(5.0))
-		{
-			await Task.Delay(20);
-
-			Dispatcher.UIThread.RunJobs();
-		}
 	}
 	#endregion
 }

@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Serialization;
 using SharpHook.Data;
 using System;
+using System.Linq;
 using System.Text.Json;
 
 namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
@@ -26,18 +27,15 @@ internal class KeyCodeJsonConverterTests
 	[Test]
 	public void Reads_Every_Written_Name()
 	{
-		foreach (KeyCode code in Enum.GetValues<KeyCode>())
-		{
-			// Act
-			string json = JsonSerializer.Serialize(code, Options);
+		// Act
+		KeyCode[] misread = [.. Enum
+			.GetValues<KeyCode>()
+			.Where(static x => JsonSerializer.Deserialize<KeyCode>(JsonSerializer.Serialize(x, Options), Options) != x)];
 
-			KeyCode result = JsonSerializer.Deserialize<KeyCode>(json, Options);
-
-			// Assert
-			result
-				.Should()
-				.Be(code);
-		}
+		// Assert
+		misread
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>

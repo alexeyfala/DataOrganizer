@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Database.Repository.Converters;
 using SharpHook.Data;
 using System;
+using System.Linq;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Converters;
 
@@ -18,18 +19,15 @@ internal class KeyCodeNameConverterTests
 		// Arrange
 		KeyCodeNameConverter sut = new();
 
-		foreach (KeyCode code in Enum.GetValues<KeyCode>())
-		{
-			// Act
-			object? name = sut.ConvertToProvider(code);
+		// Act
+		KeyCode[] misread = [.. Enum
+			.GetValues<KeyCode>()
+			.Where(x => !Equals(sut.ConvertFromProvider(sut.ConvertToProvider(x)), x))];
 
-			object? result = sut.ConvertFromProvider(name);
-
-			// Assert
-			result
-				.Should()
-				.Be(code);
-		}
+		// Assert
+		misread
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
