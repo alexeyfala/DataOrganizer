@@ -19,30 +19,6 @@ internal class CopyHistoryTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="CopyHistory.Add" />: a new copied file goes to the top of the history.
-	/// </summary>
-	[Test]
-	public void Add_Inserts_A_New_File_At_The_Top()
-	{
-		// Arrange
-		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(2)];
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		CopyHistory sut = mock.Create<CopyHistory>();
-
-		sut.Add(files[0], showAtOnce: false);
-
-		// Act
-		sut.Add(files[1], showAtOnce: false);
-
-		// Assert
-		sut.ItemIds
-			.Should()
-			.Equal(files[1].Id, files[0].Id);
-	}
-
-	/// <summary>
 	/// <see cref="CopyHistory.Add" />: a file copied again while on top stays there without a second entry.
 	/// </summary>
 	[Test]

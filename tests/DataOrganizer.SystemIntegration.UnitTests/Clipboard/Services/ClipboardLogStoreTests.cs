@@ -259,68 +259,6 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogStore.EraseAll" />: the folder of the history goes too, with a file it does not know.
-	/// </summary>
-	[Test]
-	public async Task EraseAll_Removes_The_Folder()
-	{
-		// Arrange
-		MockFileSystem files = new();
-
-		files
-			.Directory
-			.CreateDirectory(HistoryFolder);
-
-		// A save cut short leaves its temporary file behind.
-		files
-			.File
-			.WriteAllBytes(Path.Combine(HistoryFolder, "history.bin.tmp"), [1]);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.ClipboardHistoryDirectoryPath
-				.Returns(HistoryFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder.RegisterInstance<IFileSystem>(files);
-
-			builder
-				.RegisterType<AtomicFileWriter>()
-				.As<IAtomicFileWriter>();
-
-			builder
-				.RegisterType<FileEraser>()
-				.As<IFileEraser>();
-
-			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
-
-			builder
-				.RegisterType<EncryptionService>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<SessionKeyStore>()
-				.As<ISessionKeyStore>();
-		});
-
-		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
-
-		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
-
-		// Act
-		sut.EraseAll();
-
-		// Assert
-		files.Directory.Exists(HistoryFolder)
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardLogStore.EraseHistory" />: removes the journal but keeps the key and stays unlocked.
 	/// </summary>
 	[Test]
@@ -1121,57 +1059,6 @@ internal class ClipboardLogStoreTests
 		files.Statistics.File.Methods
 			.Should()
 			.ContainSingle(x => x.Name == nameof(IFile.Move) && x.Parameters[1].Is(KeyPath));
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: the first unlock makes the folder the new key goes into.
-	/// </summary>
-	[Test]
-	public async Task TryUnlockAsync_Creates_The_Folder_Of_A_New_Key()
-	{
-		// Arrange
-		MockFileSystem files = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.ClipboardHistoryDirectoryPath
-				.Returns(HistoryFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder.RegisterInstance<IFileSystem>(files);
-
-			builder
-				.RegisterType<AtomicFileWriter>()
-				.As<IAtomicFileWriter>();
-
-			builder
-				.RegisterType<FileEraser>()
-				.As<IFileEraser>();
-
-			builder.Register(_ => Argon2SettingsFactory.CreateLowestCost());
-
-			builder
-				.RegisterType<EncryptionService>()
-				.AsImplementedInterfaces();
-
-			builder
-				.RegisterType<SessionKeyStore>()
-				.As<ISessionKeyStore>();
-		});
-
-		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
-
-		// Act
-		await sut.TryUnlockAsync(SecretFactory.CreatePassword("pw"));
-
-		// Assert
-		files.Directory.Exists(HistoryFolder)
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>

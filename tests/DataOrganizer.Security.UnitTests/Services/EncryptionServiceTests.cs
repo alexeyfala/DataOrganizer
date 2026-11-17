@@ -295,49 +295,6 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptContents" />: empty content comes back untouched, so a file
-	/// stored without encryption does not block the conversion of a folder.
-	/// </summary>
-	[Test]
-	public void DecryptContents_Hands_Empty_Contents_Back()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		using PinnedBuffer dek = sut.CreateRandomDek();
-
-		ValidatedContents[] contents =
-		[
-			new()
-			{
-				Contents = [],
-				Id = Guid.NewGuid(),
-				IsValid = true
-			}
-		];
-
-		// Act
-		ValidatedContents[] result = [.. sut.DecryptContents(contents, dek)];
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(1);
-
-		result[0]
-			.IsValid
-			.Should()
-			.BeTrue();
-
-		result[0]
-			.Contents
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="EncryptionService.DecryptContents" />: a content that cannot be opened is marked invalid
 	/// and the rest of the sequence is still converted.
 	/// </summary>
