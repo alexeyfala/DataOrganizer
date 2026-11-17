@@ -69,22 +69,28 @@ internal partial class NotifyPropertyChangedExtensionsTests
 		// Arrange
 		Source source = new() { Search = "hello" };
 
+		List<Func<INamed, bool>> predicates = [];
+
 		// Act
 		using IDisposable subscription = source
 			.FilterPredicate(
 				x => x.Search,
 				TimeProvider.System)
-			.Subscribe(predicate =>
-			{
-				// Assert
-				predicate(new NameHolder("Hello world"))
-					.Should()
-					.BeTrue();
+			.Subscribe(predicates.Add);
 
-				predicate(new NameHolder("Other"))
-					.Should()
-					.BeFalse();
-			});
+		// Assert
+		Func<INamed, bool> predicate = predicates
+			.Should()
+			.ContainSingle()
+			.Which;
+
+		predicate(new NameHolder("Hello world"))
+			.Should()
+			.BeTrue();
+
+		predicate(new NameHolder("Other"))
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 
