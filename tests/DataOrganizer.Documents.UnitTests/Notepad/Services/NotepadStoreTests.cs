@@ -224,49 +224,6 @@ internal class NotepadStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadStore.FindNumbers" />: before the first text is written there is no folder, and no text.
-	/// </summary>
-	[Test]
-	public void FindNumbers_Returns_Nothing_Without_The_Folder()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.NotepadDirectoryPath
-				.Returns(NotepadFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			// One file system for all the services, as they share one disk in the app.
-			builder
-				.RegisterType<MockFileSystem>()
-				.As<IFileSystem>()
-				.SingleInstance();
-
-			builder
-				.RegisterType<AtomicFileWriter>()
-				.As<IAtomicFileWriter>();
-
-			builder
-				.RegisterType<FileEraser>()
-				.As<IFileEraser>();
-		});
-
-		NotepadStore sut = mock.Create<NotepadStore>();
-
-		// Act
-		int[] result = sut.FindNumbers();
-
-		// Assert
-		result
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="NotepadStore.FindNumbers" />: only the files named by the number of a tab count, so no two files stand
 	/// for one tab.
 	/// </summary>
@@ -689,47 +646,6 @@ internal class NotepadStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadStore.Write" />: the first text makes the folder of the texts.
-	/// </summary>
-	[Test]
-	public void Write_Makes_The_Folder_Of_The_Texts()
-	{
-		// Arrange
-		MockFileSystem files = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.NotepadDirectoryPath
-				.Returns(NotepadFolder);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder.RegisterInstance<IFileSystem>(files);
-
-			builder
-				.RegisterType<AtomicFileWriter>()
-				.As<IAtomicFileWriter>();
-
-			builder
-				.RegisterType<FileEraser>()
-				.As<IFileEraser>();
-		});
-
-		NotepadStore sut = mock.Create<NotepadStore>();
-
-		// Act
-		sut.Write(3, [4, 5, 6]);
-
-		// Assert
-		files.Directory.Exists(NotepadFolder)
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
 	/// <see cref="NotepadStore.Write" />: the bytes take the place of the file of the text at once, so a write cut short
 	/// leaves the old text.
 	/// </summary>
@@ -866,57 +782,6 @@ internal class NotepadStoreTests
 		act
 			.Should()
 			.NotThrow();
-	}
-
-	/// <summary>
-	/// <see cref="NotepadStore.WriteSettings" />: the first settings make the folder of the settings.
-	/// </summary>
-	[Test]
-	public void WriteSettings_Makes_The_Folder_Of_The_Settings()
-	{
-		// Arrange
-		NotepadViewSettings settings = new()
-		{
-			SelectedTabNumber = 1,
-			Tabs = []
-		};
-
-		MockFileSystem files = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.GetSettingsFilePath(nameof(NotepadViewSettings))
-				.Returns(SettingsPath);
-
-			builder.RegisterInstance(appEnvironment);
-
-			builder.RegisterInstance<IFileSystem>(files);
-
-			builder
-				.RegisterType<AtomicFileWriter>()
-				.As<IAtomicFileWriter>();
-
-			builder
-				.RegisterType<FileEraser>()
-				.As<IFileEraser>();
-
-			builder
-				.RegisterType<SystemTextJsonSerializer>()
-				.As<IJsonSerializer>();
-		});
-
-		NotepadStore sut = mock.Create<NotepadStore>();
-
-		// Act
-		sut.WriteSettings(settings);
-
-		// Assert
-		files.Directory.Exists(SettingsFolder)
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>

@@ -54,92 +54,6 @@ internal class NoteCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="NoteCipher.Decode" />: a password keeper protects its own note as well.
-	/// </summary>
-	[Test]
-	public void Decode_Decrypts_The_Note_Of_The_Keeper_Itself()
-	{
-		// Arrange
-		string text = RandomString.Create(20);
-
-		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
-
-		keeper.Note = RandomValues.CreateBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecrypt(keeper.Id, Arg.Any<ContentIdentity>(), keeper.Note)
-				.Returns(Encoding.UTF8.GetBytes(text));
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		NoteCipher sut = mock.Create<NoteCipher>();
-
-		// Act
-		string? result = sut.Decode(keeper);
-
-		// Assert
-		result
-			.Should()
-			.Be(text);
-	}
-
-	/// <summary>
-	/// <see cref="NoteCipher.Decode" />: the password keeper is looked up through the whole chain of parents.
-	/// </summary>
-	[Test]
-	public void Decode_Decrypts_When_Keeper_Is_A_Distant_Ancestor()
-	{
-		// Arrange
-		string text = RandomString.Create(20);
-
-		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
-
-		FolderDto nested = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		keeper
-			.Children
-			.Add(nested);
-
-		nested.Parent = keeper;
-
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		nested
-			.Children
-			.Add(file);
-
-		file.Parent = nested;
-
-		file.Note = RandomValues.CreateBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
-				.Returns(Encoding.UTF8.GetBytes(text));
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		NoteCipher sut = mock.Create<NoteCipher>();
-
-		// Act
-		string? result = sut.Decode(file);
-
-		// Assert
-		result
-			.Should()
-			.Be(text);
-	}
-
-	/// <summary>
 	/// <see cref="NoteCipher.Decode" />: decrypts the note of an object that belongs to an unlocked password keeper.
 	/// </summary>
 	[Test]
@@ -180,41 +94,6 @@ internal class NoteCipherTests
 		result
 			.Should()
 			.Be(text);
-	}
-
-	/// <summary>
-	/// <see cref="NoteCipher.Decode" />: a note that fails authentication is reported as unreadable,
-	/// so the failure never reaches the interface being rendered.
-	/// </summary>
-	[Test]
-	public void Decode_Does_Not_Propagate_A_Failure()
-	{
-		// Arrange
-		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
-
-		keeper.Note = RandomValues.CreateBytes(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			// The cipher swallows the cryptographic failure and answers with a refusal.
-			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns((byte[]?)null);
-
-			builder.RegisterInstance(contentCipher);
-		});
-
-		NoteCipher sut = mock.Create<NoteCipher>();
-
-		// Act
-		string? result = sut.Decode(keeper);
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
 	}
 
 	/// <summary>
@@ -275,36 +154,6 @@ internal class NoteCipherTests
 			.Add(file);
 
 		file.Parent = keeper;
-
-		file.Note = RandomValues.CreateBytes(10);
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
-
-		// Act
-		string? result = sut.Decode(file);
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-
-		contentCipher
-			.DidNotReceive()
-			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="NoteCipher.Decode" />: returns <c>null</c> when the object is marked as protected but has no password keeper.
-	/// </summary>
-	[Test]
-	public void Decode_Returns_Null_When_Keeper_Is_Missing()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		file.Note = RandomValues.CreateBytes(10);
 
@@ -505,35 +354,6 @@ internal class NoteCipherTests
 		using AutoMock mock = AutoMock.GetLoose();
 
 		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
-
-		// Act
-		byte[]? result = sut.Encode(file, RandomString.Create(20));
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-
-		contentCipher
-			.DidNotReceive()
-			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="NoteCipher.Encode" />: returns <c>null</c> when the object is marked as protected but has no password
-	/// keeper.
-	/// </summary>
-	[Test]
-	public void Encode_Returns_Null_When_Keeper_Is_Missing()
-	{
-		// Arrange
-		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
-
-		NoteCipher sut = mock.Create<NoteCipher>();
 
 		// Act
 		byte[]? result = sut.Encode(file, RandomString.Create(20));

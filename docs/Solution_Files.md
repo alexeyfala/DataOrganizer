@@ -1,32 +1,37 @@
 ﻿# Reference for the non-code files of the solution
 
-- 📁 **`build/`** — scripts (PowerShell 5.1) and the inputs of the Linux packages; recipes in [Publish.md](Publish.md).
+- 📁 **`build/`** — scripts (PowerShell 5.1, one POSIX shell) and the inputs of the Linux packages; recipes in [Publish.md](Publishing/Publish.md).
   - ⚙️ [`app.metainfo.xml`](../build/app.metainfo.xml) — AppStream metadata for software centres.
   - ⚙️ [`app.pupnet.conf`](../build/app.pupnet.conf) — PupNet configuration.
   - 💻 [`gen-license-rtf.ps1`](../build/gen-license-rtf.ps1) — `LICENSE` → `src/Setup/LICENSE.rtf`.
   - 💻 [`gen-release-notes.ps1`](../build/gen-release-notes.ps1) — release notes from the template.
   - 💻 [`gen-third-party-notices.ps1`](../build/gen-third-party-notices.ps1) — generates `THIRD-PARTY-NOTICES.txt`.
+  - 💻 [`post-publish.sh`](../build/post-publish.sh) — opens the published files to every user before PupNet packs them.
   - 💻 [`run-stryker.ps1`](../build/run-stryker.ps1) — the mutation run.
+  - 💻 [`update-dotnet-runtime.ps1`](../build/update-dotnet-runtime.ps1) — pins the bundle to the latest .NET runtime patch.
 - 📁 **`docs/`**
-  - 📁 **`Database/`**
-    - 📄 [`Migrations.md`](Database/Migrations.md) — EF Core migration commands.
+  - 📁 **`Design/`**
+    - 📄 [`Architecture.md`](Design/Architecture.md) — the projects, their topics and the references between them.
+    - 📄 [`Encryption_Format.md`](Design/Encryption_Format.md) — the layout of encrypted data.
+  - 📁 **`Development/`**
+    - 📄 [`Database_Migrations.md`](Development/Database_Migrations.md) — EF Core migration commands.
+    - 📄 [`Debugging_Tests.md`](Development/Debugging_Tests.md) — how to run `Debug All Tests` without stops on expected exceptions.
+    - 📄 [`Development_Setup.md`](Development/Development_Setup.md) — setting up Linux and macOS to build from source.
+    - 📄 [`MacOS_Intel_Build.md`](Development/MacOS_Intel_Build.md) — building the macOS app on an Intel Mac with an older Xcode.
+    - 📄 [`Stryker_Mutation_Testing.md`](Development/Stryker_Mutation_Testing.md) — running and reading the mutation tests.
   - 📁 **`Images/`**
     - 🖼️ `*.png` — screenshots for [`README.md`](../README.md).
-  - 📁 **`PupNet_Instructions/`**
-    - 📄 [`1_Setup.md`](PupNet_Instructions/1_Setup.md) — stage 1: the WSL environment.
-    - 📄 [`2_Config.md`](PupNet_Instructions/2_Config.md) — stage 2: [`app.pupnet.conf`](../build/app.pupnet.conf).
-    - 📄 [`3_AppStream.md`](PupNet_Instructions/3_AppStream.md) — stage 3: [`app.metainfo.xml`](../build/app.metainfo.xml).
-    - 📄 [`4_Build.md`](PupNet_Instructions/4_Build.md) — stage 4: building and checking the packages.
-  - 📄 [`Architecture.md`](Architecture.md) — the projects, their topics and the references between them.
-  - 📄 [`Debugging_Tests.md`](Debugging_Tests.md) — how to run `Debug All Tests` without stops on expected exceptions.
-  - 📄 [`Encryption_Format.md`](Encryption_Format.md) — the layout of encrypted data.
-  - 📄 [`GitHub_Release.md`](GitHub_Release.md) — checklist for publishing a release.
-  - 📄 [`Publish.md`](Publish.md) — building the distributables for Windows, Linux and macOS.
-  - 📄 [`release-notes.template.md`](release-notes.template.md) — release description template.
+  - 📁 **`Publishing/`**
+    - 📁 **`PupNet_Instructions/`**
+      - 📄 [`1_Setup.md`](Publishing/PupNet_Instructions/1_Setup.md) — stage 1: the WSL environment.
+      - 📄 [`2_Build.md`](Publishing/PupNet_Instructions/2_Build.md) — stage 2: building the packages.
+    - 📄 [`GitHub_Release.md`](Publishing/GitHub_Release.md) — checklist for publishing a release.
+    - 📄 [`Publish.md`](Publishing/Publish.md) — building the distributables for Windows, Linux and macOS.
+    - 📄 [`release-notes.template.md`](Publishing/release-notes.template.md) — release description template.
   - 📄 [`Solution_Files.md`](Solution_Files.md) — this file; `SolutionFilesReferenceTests` checks it against the solution.
-  - 📄 [`Stryker_Mutation_Testing.md`](Stryker_Mutation_Testing.md) — running and reading the mutation tests.
 - 📁 **`Solution Items/`** — a virtual folder; the files live in the repository root.
   - 📁 **`.config/`**
+    - ⚙️ [`dotnet-ef.json`](../.config/dotnet-ef.json) — default options of `dotnet ef`: the migrations project.
     - ⚙️ [`dotnet-tools.json`](../.config/dotnet-tools.json) — local .NET tools.
   - 📁 **`.github/`**
     - 📁 **`ISSUE_TEMPLATE/`**
@@ -49,6 +54,7 @@
   - ⚙️ [`.gitignore`](../.gitignore) — what stays out of the repository.
   - ⚙️ [`DataOrganizerApp.Tests.slnf`](../DataOrganizerApp.Tests.slnf) — the projects the tests build, without macOS and the installers.
   - ⚙️ [`Directory.Build.props`](../Directory.Build.props) — version, names and assembly metadata of the application, C# settings shared by the projects.
+  - ⚙️ [`Directory.Build.targets`](../Directory.Build.targets) — settings that depend on the target framework of a project.
   - ⚙️ [`Directory.Packages.props`](../Directory.Packages.props) — the version of every NuGet package.
   - ⚙️ [`global.json`](../global.json) — the .NET SDK the repository builds with.
   - ⚖️ [`LICENSE`](../LICENSE) — Apache 2.0.
@@ -81,6 +87,7 @@
 **`DataOrganizer.MacOS`**
 
 - ⚙️ [`Info.plist`](../src/DataOrganizer.MacOS/Info.plist) — `.app` bundle metadata.
+- ⚙️ [`InfoPlist.strings`](../src/DataOrganizer.MacOS/Resources/en.lproj/InfoPlist.strings) — the name Finder, the Dock and Spotlight show.
 - ⚙️ [`Roots.xml`](../src/DataOrganizer.MacOS/Roots.xml) — trimmer roots for publishing.
 - 🖼️ `Logo.icns` — application icon for macOS.
 

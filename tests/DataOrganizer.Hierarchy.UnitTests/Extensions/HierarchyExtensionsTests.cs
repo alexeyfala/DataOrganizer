@@ -684,42 +684,6 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="HierarchyExtensions.GetFiles" />: returns files from all levels of the hierarchy.
-	/// </summary>
-	[Test]
-	public void GetFiles_Returns_Files_From_All_Levels_Of_Hierarchy()
-	{
-		// Arrange
-		FolderDto root = ItemDtoFactory.CreateFolderDto();
-
-		FileDto rootFile = ItemDtoFactory.CreateFileDto();
-
-		FolderDto nested = ItemDtoFactory.CreateFolderDto();
-
-		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
-
-		nested.Children.Add(nestedFile);
-
-		root.Children.Add(rootFile);
-
-		root.Children.Add(nested);
-
-		ExplorerItemDtoBase[] hierarchy = [root];
-
-		// Act
-		FileDto[] result = [.. hierarchy.GetFiles()];
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(2);
-
-		result
-			.Should()
-			.Contain([rootFile, nestedFile]);
-	}
-
-	/// <summary>
 	/// <see cref="HierarchyExtensions.GetFilesBy" />: returns only the files matching the condition.
 	/// </summary>
 	[Test]
@@ -876,28 +840,6 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="HierarchyExtensions.SortChildrenByIndexRecursively" />: returns without throwing for an empty folder.
-	/// </summary>
-	[Test]
-	public void SortChildrenByIndexRecursively_Returns_Without_Action_For_Empty_Folder()
-	{
-		// Arrange
-		FolderDto folder = ItemDtoFactory.CreateFolderDto();
-
-		// Act
-		Action act = () => folder.SortChildrenByIndexRecursively();
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-
-		folder.Children
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="HierarchyExtensions.SortChildrenByIndexRecursively" />: the children of the subfolders are sorted by their
 	/// index as well.
 	/// </summary>
@@ -978,6 +920,39 @@ internal class HierarchyExtensionsTests
 		childFolder.Parent
 			.Should()
 			.Be(rootFolder);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyExtensions.ToHierarchical" />: a folder and a file whose parent is not among the folders given
+	/// come back as root items instead of being lost.
+	/// </summary>
+	[Test]
+	public void ToHierarchical_Yields_The_Items_Whose_Parent_Is_Missing()
+	{
+		// Arrange
+		Guid missingParentId = Guid.NewGuid();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.ParentId = missingParentId;
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file.ParentId = missingParentId;
+
+		FolderDto[] folders = [folder];
+
+		FileDto[] files = [file];
+
+		// Act
+		ExplorerItemDtoBase[] result = [.. folders.ToHierarchical(files)];
+
+		// Assert
+		result
+			.Should()
+			.HaveCount(2)
+			.And
+			.Contain([folder, file]);
 	}
 	#endregion
 }

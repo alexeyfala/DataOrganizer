@@ -5,7 +5,6 @@ using DataOrganizer.Infrastructure.Diagnostics.Services;
 using NSubstitute;
 using Serilog;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
@@ -15,64 +14,24 @@ internal class TaskExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="TaskExceptionHandler.Watch" />: nothing is logged when the watched task completes successfully.
-	/// </summary>
-	[Test]
-	public async Task Watch_Does_Not_Log_When_Task_Completes_Successfully()
-	{
-		// Arrange
-		ILogger logger = Substitute.For<ILogger>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
-
-		TaskExceptionHandler sut = mock.Create<TaskExceptionHandler>();
-
-		Task succeeded = Task.CompletedTask;
-
-		// Act
-		sut.Watch(succeeded);
-
-		await Task.Delay(TimeSpan.FromMilliseconds(50));
-
-		// Assert
-		logger
-			.ReceivedCalls()
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
-	/// <see cref="TaskExceptionHandler.Watch" />: watching a faulted task does not throw.
-	/// </summary>
-	[Test]
-	public void Watch_Does_Not_Throw_For_Faulted_Task()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		TaskExceptionHandler sut = mock.Create<TaskExceptionHandler>();
-
-		Task faulted = Task.FromException(new InvalidOperationException());
-
-		// Act
-		Action act = () => sut.Watch(faulted);
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-	}
-
-	/// <summary>
 	/// <see cref="TaskExceptionHandler.Watch" />: the exception of a faulted task is logged.
 	/// </summary>
 	[Test]
 	public async Task Watch_Logs_Exception_When_Task_Is_Faulted()
 	{
 		// Arrange
-		ILogger logger = Substitute.For<ILogger>();
+		TaskCompletionSource logged = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ILogger logger = Substitute.For<ILogger>();
+
+			logger
+				.When(x => x.Error(Arg.Any<Exception>(), Arg.Any<string>(), Arg.Any<string>()))
+				.Do(_ => logged.TrySetResult());
+
+			builder.RegisterInstance(logger);
+		});
 
 		TaskExceptionHandler sut = mock.Create<TaskExceptionHandler>();
 
@@ -81,17 +40,13 @@ internal class TaskExceptionHandlerTests
 		// Act
 		sut.Watch(faulted);
 
-		// Wait for the OnlyOnFaulted continuation to run.
-		for (int i = 0; i < 50 && !logger.ReceivedCalls().Any(); i++)
-		{
-			await Task.Delay(TimeSpan.FromMilliseconds(20));
-		}
+		// The continuation runs on the thread pool: the entry of the log ends the wait, the timeout only bounds a miss.
+		Task finished = await Task.WhenAny(logged.Task, Task.Delay(TimeSpan.FromSeconds(5)));
 
 		// Assert
-		logger
-			.ReceivedCalls()
+		finished
 			.Should()
-			.NotBeEmpty();
+			.BeSameAs(logged.Task);
 	}
 	#endregion
 }

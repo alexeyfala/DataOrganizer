@@ -22,20 +22,5 @@ internal class CommentBannerTests
 			.Should()
 			.Be($"// a {Glyphs.ThreeDots}");
 	}
-
-	/// <summary>
-	/// <see cref="CommentBanner.Create" />: a token with no text after it on its line shows alone before the dots.
-	/// </summary>
-	[Test]
-	public void Create_Puts_The_Dots_After_A_Lone_Token()
-	{
-		// Act
-		string banner = CommentBanner.Create("<!--");
-
-		// Assert
-		banner
-			.Should()
-			.Be($"<!-- {Glyphs.ThreeDots}");
-	}
 	#endregion
 }

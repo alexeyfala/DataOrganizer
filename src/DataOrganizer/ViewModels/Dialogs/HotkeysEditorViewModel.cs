@@ -133,7 +133,7 @@ public sealed partial class HotkeysEditorViewModel :
 
 		if (mask.IsDefault()
 			|| code.IsModifierOrLock()
-			|| (Buffer.Any() && mask != Buffer.Last().Mask))
+			|| (Buffer.Count != 0 && mask != Buffer.Last().Mask))
 		{
 			return;
 		}

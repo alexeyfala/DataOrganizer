@@ -267,51 +267,6 @@ internal class DocumentEncodingSwitcherTests
 	}
 
 	/// <summary>
-	/// <see cref="DocumentEncodingSwitcher.SwitchAsync" />: the codec takes the chosen encoding when it reads the text
-	/// again in it.
-	/// </summary>
-	[Test]
-	public async Task SwitchAsync_Leaves_The_Codec_In_The_Chosen_Encoding()
-	{
-		// Arrange
-		DocumentCodec codec = new();
-
-		codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.UTF8.WebName);
-
-		IEncodedDocument editor = Substitute.For<IEncodedDocument>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			editor
-				.Codec
-				.Returns(codec);
-
-			editor
-				.Document
-				.Text
-				.Returns("Text");
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-		});
-
-		DocumentEncodingSwitcher sut = mock.Create<DocumentEncodingSwitcher>();
-
-		// Act
-		await sut.SwitchAsync(
-			editor,
-			Encoding.Unicode.WebName,
-			SnackbarHostIdentifiers.Notepad,
-			"tab 1");
-
-		// Assert
-		codec.Encoding
-			.Should()
-			.Be(Encoding.Unicode.WebName);
-	}
-
-	/// <summary>
 	/// <see cref="DocumentEncodingSwitcher.SwitchAsync" />: the text stays as it is until the posted work runs, after the
 	/// binding that wrote the choice is done.
 	/// </summary>

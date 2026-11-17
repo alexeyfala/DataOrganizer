@@ -91,14 +91,14 @@ public sealed class UpdateCheckService : IUpdateCheckService
 
 		if (_buildInfo.IsDebug || !settings.CheckForUpdates)
 		{
-			return UpdateCheckResult.None;
+			return new UpdateNotAvailable();
 		}
 
 		DateTimeOffset now = _timeProvider.GetUtcNow();
 
 		if (settings.LastUpdateCheckAt is { } last && now - last < CheckInterval)
 		{
-			return UpdateCheckResult.None;
+			return new UpdateNotAvailable();
 		}
 
 		GitHubRelease? release;
@@ -111,33 +111,30 @@ public sealed class UpdateCheckService : IUpdateCheckService
 		{
 			_logger.LogException(ex, breakInDebugger: false);
 
-			return UpdateCheckResult.None;
+			return new UpdateNotAvailable();
 		}
 
 		settings.LastUpdateCheckAt = now;
 
-		string? latest = null;
-
-		bool updateAvailable = release?.TagName is { } tag && TryGetNewerVersion(
+		UpdateCheckResult result = release?.TagName is { } tag && TryGetNewerVersion(
 			tag,
 			settings.LastNotifiedVersion,
-			out latest);
+			out string? latest)
+			? new UpdateAvailable
+			{
+				LatestVersion = latest,
+				ReleaseUrl = release.HtmlUrl
+			}
+			: new UpdateNotAvailable();
 
-		if (updateAvailable)
+		if (result is UpdateAvailable update)
 		{
-			settings.LastNotifiedVersion = latest;
+			settings.LastNotifiedVersion = update.LatestVersion;
 		}
 
 		_settingsStore.Save();
 
-		return updateAvailable
-			? new UpdateCheckResult
-			{
-				IsUpdateAvailable = true,
-				LatestVersion = latest,
-				ReleaseUrl = release?.HtmlUrl
-			}
-			: UpdateCheckResult.None;
+		return result;
 	}
 	#endregion
 

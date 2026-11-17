@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Database.Repository.Converters;
 using SharpHook.Data;
 using System;
+using System.Linq;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Converters;
 
@@ -40,18 +41,15 @@ internal class EventMaskNameConverterTests
 		// Arrange
 		EventMaskNameConverter sut = new();
 
-		foreach (EventMask mask in Enum.GetValues<EventMask>())
-		{
-			// Act
-			object? name = sut.ConvertToProvider(mask);
+		// Act
+		EventMask[] misread = [.. Enum
+			.GetValues<EventMask>()
+			.Where(x => !Equals(sut.ConvertFromProvider(sut.ConvertToProvider(x)), x))];
 
-			object? result = sut.ConvertFromProvider(name);
-
-			// Assert
-			result
-				.Should()
-				.Be(mask);
-		}
+		// Assert
+		misread
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -88,24 +86,6 @@ internal class EventMaskNameConverterTests
 		result
 			.Should()
 			.Be(EventMask.None);
-	}
-
-	/// <summary>
-	/// <see cref="EventMaskNameConverter" />: writes a mask as its name.
-	/// </summary>
-	[Test]
-	public void Writes_Name()
-	{
-		// Arrange
-		EventMaskNameConverter sut = new();
-
-		// Act
-		object? result = sut.ConvertToProvider(EventMask.LeftCtrl);
-
-		// Assert
-		result
-			.Should()
-			.Be("LeftCtrl");
 	}
 	#endregion
 }

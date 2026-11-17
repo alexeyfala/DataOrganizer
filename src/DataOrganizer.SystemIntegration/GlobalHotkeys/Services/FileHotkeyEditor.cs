@@ -1,4 +1,3 @@
-using Comparation;
 using DataOrganizer.Database.Entities.Models;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Interfaces.Database;
@@ -62,9 +61,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		IEqualityComparer<HotkeyDto> comparer = Equality.Of<HotkeyDto>()
-			.By(x => x.Code)
-			.AndBy(x => x.Mask);
+		EqualityComparer<HotkeyDto> comparer = EqualityComparer<HotkeyDto>.Create(static x => (x?.Code, x?.Mask));
 
 		HotkeyDto[] newHotkeyDtos = [.. newHotkeys.ToHotkeyDtos()];
 

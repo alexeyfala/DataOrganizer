@@ -453,6 +453,57 @@ internal class FolderContentsConverterTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderContentsConverter.ConvertAsync" />: an empty note is left as it is, as no cipher text can be read
+	/// from it.
+	/// </summary>
+	[Test]
+	public async Task ConvertAsync_Skips_Empty_Notes([Values] bool encrypt)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Note = [];
+
+		IDekCipher encryption = Substitute.For<IDekCipher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(encryption);
+
+			// A substitute gives an empty sequence of contents, where a Moq fake gives null.
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+		});
+
+		FolderContentsConverter sut = mock.Create<FolderContentsConverter>();
+
+		using PinnedBuffer dek = SecretFactory.CreateRandomKey(32);
+
+		FolderConversionParameters parameters = new()
+		{
+			Dek = dek,
+			Encrypt = encrypt,
+			Files = [],
+			Folder = folder
+		};
+
+		// Act
+		FolderConversion? result = await sut.ConvertAsync(parameters);
+
+		// Assert
+		result!.Notes
+			.Should()
+			.BeEmpty();
+
+		encryption
+			.DidNotReceiveWithAnyArgs()
+			.EncryptWithDek(default!, default!, default);
+
+		encryption
+			.DidNotReceiveWithAnyArgs()
+			.DecryptWithDek(default!, default!, default);
+	}
+
+	/// <summary>
 	/// <see cref="FolderContentsConverter.ConvertAsync" />: the contents decrypted so far are erased when a note cannot be
 	/// converted.
 	/// </summary>

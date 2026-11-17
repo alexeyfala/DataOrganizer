@@ -5,7 +5,7 @@ namespace DataOrganizer.SystemIntegration.Clipboard.Models;
 /// <summary>
 /// Base type for one record in the in-memory system clipboard log.
 /// </summary>
-public abstract partial class ClipboardLogEntryBase : ObservableObject
+public closed partial class ClipboardLogEntryBase : ObservableObject
 {
 	#region Properties
 	/// <summary>

@@ -135,6 +135,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			return dto;
 		}
+		// Stryker disable once Block : the block only logs and returns what an empty block returns
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);

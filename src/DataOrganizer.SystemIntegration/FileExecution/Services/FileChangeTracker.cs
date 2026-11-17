@@ -138,6 +138,7 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogException(ex);
 
+			// Stryker disable once String : wording of a message
 			PublishFailure(parameters, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 		}
 	}
@@ -155,6 +156,7 @@ public class FileChangeTracker : IFileChangeTracker
 		bool mayMiss,
 		CancellationToken token)
 	{
+		// Stryker disable once Block : the open below misses the file as well, only with another message
 		if (!_fileSystem
 			.File
 			.Exists(parameters.FilePath))
@@ -302,6 +304,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		if (writing.Status == FileContentsWriteStatus.Closed)
 		{
+			// Stryker disable once String : wording of a message
 			PublishFailure(parameters, $@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
 			return false;

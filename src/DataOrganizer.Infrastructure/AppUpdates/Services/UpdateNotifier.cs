@@ -46,8 +46,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			.CheckAsync(token)
 			.ConfigureAwait(true);
 
-		if (!result.IsUpdateAvailable
-			|| result.ReleaseUrl is not { } url
+		if (result is not UpdateAvailable { ReleaseUrl: { } url } update
 			|| !Uri.TryCreate(url, UriKind.Absolute, out Uri? releaseUri)
 			|| !TransportSecurity.IsSecureOrLoopback(releaseUri))
 		{
@@ -57,7 +56,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 		string text = string.Format(
 			CultureInfo.CurrentCulture,
 			Strings.UpdateAvailablePrompt,
-			result.LatestVersion);
+			update.LatestVersion);
 
 		if (!await _updatePrompt
 			.ConfirmUpdateAsync(text, token)

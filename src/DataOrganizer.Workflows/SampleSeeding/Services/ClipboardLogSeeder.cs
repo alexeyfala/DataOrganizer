@@ -9,6 +9,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Models;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.Workflows.SampleSeeding.Helpers;
 using DataOrganizer.Workflows.SampleSeeding.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Workflows.SampleSeeding.Services;
 
 /// <inheritdoc cref="IClipboardLogSeeder" />
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 {
 	#region Data

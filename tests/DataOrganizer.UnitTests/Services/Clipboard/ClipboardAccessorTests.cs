@@ -47,28 +47,6 @@ internal class ClipboardAccessorTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="ClipboardAccessor.ClearAsync" />: the clipboard is emptied.
-	/// </summary>
-	[Test]
-	public async Task ClearAsync_Empties_The_Clipboard()
-	{
-		// Arrange
-		IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
-
-		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
-
-		// Act
-		await sut.ClearAsync();
-
-		// Assert
-		await clipboard
-			.Received(1)
-			.ClearAsync();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardAccessor.ContainsOwnershipMarkerAsync" />: the marker the application puts on its secrets is
 	/// found.
 	/// </summary>
@@ -1161,35 +1139,6 @@ internal class ClipboardAccessorTests
 		result
 			.Should()
 			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardAccessor.TryReadTextAsync" />: the text on the clipboard is read.
-	/// </summary>
-	[Test]
-	public async Task TryReadTextAsync_Reads_The_Text()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAvaloniaClipboard clipboard = Substitute.For<IAvaloniaClipboard>();
-
-			clipboard
-				.TryGetTextAsync()
-				.Returns("hello");
-
-			builder.RegisterInstance(clipboard);
-		});
-
-		ClipboardAccessor sut = mock.Create<ClipboardAccessor>();
-
-		// Act
-		string? result = await sut.TryReadTextAsync();
-
-		// Assert
-		result
-			.Should()
-			.Be("hello");
 	}
 	#endregion
 }

@@ -12,6 +12,7 @@ using DataOrganizer.SystemIntegration.GlobalHotkeys.Enums;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
 using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
+using DataOrganizer.TestSupport.Common;
 using DataOrganizer.TestSupport.Dto;
 using MapsterMapper;
 using NSubstitute;
@@ -195,6 +196,41 @@ internal class FileHotkeyEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: hotkeys that differ from the file's only in the modifiers are not
+	/// the same, and Rewritten is returned.
+	/// </summary>
+	[Test]
+	public async Task OverwriteAsync_Returns_Rewritten_When_Only_Modifiers_Differ()
+	{
+		// Arrange
+		KeyStroke[] newHotkeys = [.. KeyStrokeFactory.CreateKeyStrokes(1)];
+
+		KeyStroke[] oldHotkeys = [newHotkeys[0] with { Mask = RandomValues.CreateEnumValueExcept(newHotkeys[0].Mask) }];
+
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		dto
+			.Hotkeys
+			.AddRange(oldHotkeys.ToHotkeyDtos());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// A substitute maps the saved hotkeys into an empty list, where a Moq fake gives null.
+			builder.RegisterInstance(Substitute.For<IMapper>());
+		});
+
+		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
+
+		// Act
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(dto, newHotkeys, []);
+
+		// Assert
+		result
+			.Should()
+			.Be(OverwriteHotkeysOutcome.Rewritten);
+	}
+
+	/// <summary>
 	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: passing the file's existing hotkeys returns SameHotkeys.
 	/// </summary>
 	[Test]
@@ -208,6 +244,35 @@ internal class FileHotkeyEditorTests
 		dto
 			.Hotkeys
 			.AddRange(newHotkeys.ToHotkeyDtos());
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
+
+		// Act
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(dto, newHotkeys, []);
+
+		// Assert
+		result
+			.Should()
+			.Be(OverwriteHotkeysOutcome.SameHotkeys);
+	}
+
+	/// <summary>
+	/// <see cref="FileHotkeyEditor.OverwriteAsync" />: the file's stored hotkeys of the same keys are the same whatever
+	/// their ids, and SameHotkeys is returned.
+	/// </summary>
+	[Test]
+	public async Task OverwriteAsync_Returns_SameHotkeys_When_Only_Ids_Differ()
+	{
+		// Arrange
+		KeyStroke[] newHotkeys = [.. KeyStrokeFactory.CreateKeyStrokes(5)];
+
+		FileDto dto = ItemDtoFactory.CreateFileDto();
+
+		dto
+			.Hotkeys
+			.AddRange(newHotkeys.ToHotkeyDtos(id: Guid.NewGuid(), ownerId: dto.Id));
 
 		using AutoMock mock = AutoMock.GetLoose();
 

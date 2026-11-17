@@ -5,7 +5,7 @@ namespace DataOrganizer.Documents.DatasetRecords.Models;
 /// <summary>
 /// Base of the records that hold a value, which can be hidden.
 /// </summary>
-public abstract partial class ValueRecordBase : DatasetRecordBase
+public closed partial class ValueRecordBase : DatasetRecordBase
 {
 	#region Properties
 	/// <summary>

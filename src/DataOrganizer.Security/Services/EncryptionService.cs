@@ -545,6 +545,7 @@ public sealed class EncryptionService :
 		ReadOnlySpan<byte> associatedData,
 		Span<byte> plaintext)
 	{
+		// Stryker disable once Block : every caller has checked the length already
 		if (ciphertext.Length < Algorithm.TagSize)
 		{
 			// Stryker disable once Boolean : every caller has checked the length already
@@ -602,6 +603,7 @@ public sealed class EncryptionService :
 				BuildAssociatedData(purpose, input.AsSpan(0, format.NonceOffset)),
 				plaintext);
 		}
+		// Stryker disable once Equality : a defensive wrap; nothing in the block throws once the sizes are checked
 		catch (Exception ex) when (ex is not CryptographicException)
 		{
 			throw new CryptographicException($"Decryption of the format {format.Version:X2} failed.", ex);

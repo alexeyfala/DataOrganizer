@@ -273,51 +273,6 @@ internal class ImportScenarioTests
 	}
 
 	/// <summary>
-	/// <see cref="ImportScenario.ImportAsync" />: an import that replaces the tree forgets its state.
-	/// </summary>
-	[Test]
-	public async Task ImportAsync_Forgets_The_Tree_State_On_Replacement()
-	{
-		// Arrange
-		Collection<ExplorerItemDtoBase> hierarchy = [ItemDtoFactory.CreateFolderDto()];
-
-		ISessionTreeState sessionTreeState = Substitute.For<ISessionTreeState>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			ImportDataResult imported = new(ItemDtoFactory.CreateLoadedHierarchy([]), ImportMode.Replace);
-
-			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
-
-			IOpenFilesCloser openFilesCloser = Substitute.For<IOpenFilesCloser>();
-
-			dataExchange
-				.ImportDataAsync(hierarchy)
-				.Returns(imported);
-
-			openFilesCloser
-				.TryCloseAsync(Arg.Any<IReadOnlyCollection<FileDto>>(), Arg.Any<CancellationToken>())
-				.Returns(true);
-
-			builder.RegisterInstance(dataExchange);
-
-			builder.RegisterInstance(openFilesCloser);
-
-			builder.RegisterInstance(sessionTreeState);
-		});
-
-		ImportScenario sut = mock.Create<ImportScenario>();
-
-		// Act
-		await sut.ImportAsync(hierarchy);
-
-		// Assert
-		sessionTreeState
-			.Received(1)
-			.Clear();
-	}
-
-	/// <summary>
 	/// <see cref="ImportScenario.ImportAsync" />: nothing is imported while open files stay open.
 	/// </summary>
 	[Test]

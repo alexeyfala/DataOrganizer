@@ -42,8 +42,9 @@ internal partial class AutomationNameMarkupTests
 	/// <summary>
 	/// Kinds of buttons, which a tip or an automation name names when they show no text.
 	/// </summary>
-	private static readonly HashSet<string> ButtonKinds = new(StringComparer.Ordinal)
-	{
+	private static readonly HashSet<string> ButtonKinds =
+	[
+		with(StringComparer.Ordinal),
 		"Button",
 		"CheckBox",
 		"DropDownButton",
@@ -54,51 +55,55 @@ internal partial class AutomationNameMarkupTests
 		"SplitButton",
 		"ToggleButton",
 		"ToggleSwitch"
-	};
+	];
 
 	/// <summary>
 	/// Kinds of items, which only an automation name names when they show no text.
 	/// </summary>
-	private static readonly HashSet<string> ItemKinds = new(StringComparer.Ordinal)
-	{
+	private static readonly HashSet<string> ItemKinds =
+	[
+		with(StringComparer.Ordinal),
 		"ComboBoxItem",
 		"ListBoxItem",
 		"MenuItem",
 		"TabItem",
 		"TreeViewItem"
-	};
+	];
 
 	/// <summary>
 	/// Kinds of text boxes, which a label, a placeholder or an automation name names.
 	/// </summary>
-	private static readonly HashSet<string> TextBoxKinds = new(StringComparer.Ordinal)
-	{
+	private static readonly HashSet<string> TextBoxKinds =
+	[
+		with(StringComparer.Ordinal),
 		"SecretTextBox",
 		"TextBox"
-	};
+	];
 
 	/// <summary>
 	/// Attributes and setters that name a text box: a label, a placeholder or the name itself.
 	/// </summary>
-	private static readonly HashSet<string> TextBoxNamers = new(StringComparer.Ordinal)
-	{
+	private static readonly HashSet<string> TextBoxNamers =
+	[
+		with(StringComparer.Ordinal),
 		AutomationNameProperty,
 		LabeledByProperty,
 		"PlaceholderText",
 		"TextFieldAssist.Label",
 		"Watermark"
-	};
+	];
 
 	/// <summary>
 	/// Kinds of toggles, which show their state to UI Automation.
 	/// </summary>
-	private static readonly HashSet<string> ToggleKinds = new(StringComparer.Ordinal)
-	{
+	private static readonly HashSet<string> ToggleKinds =
+	[
+		with(StringComparer.Ordinal),
 		"CheckBox",
 		"RadioButton",
 		"ToggleButton",
 		"ToggleSwitch"
-	};
+	];
 	#endregion
 
 	#region Methods

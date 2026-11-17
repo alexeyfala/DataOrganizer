@@ -29,6 +29,8 @@ internal class AsyncResultViewModelBaseTests
 
 		TaskCompletionSource hidden = new();
 
+		TaskCompletionSource waiting = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDialogCloser dialogCloser = Substitute.For<IDialogCloser>();
@@ -37,7 +39,12 @@ internal class AsyncResultViewModelBaseTests
 
 			shown
 				.WaitUntilHiddenAsync()
-				.Returns(hidden.Task);
+				.Returns(_ =>
+				{
+					waiting.TrySetResult();
+
+					return hidden.Task;
+				});
 
 			dialogCloser
 				.FindShownDialog(DialogHostIdentifiers.Main)
@@ -53,8 +60,8 @@ internal class AsyncResultViewModelBaseTests
 		// Act
 		dialogClosed.SetResult();
 
-		// Time for the answer to come, were it not waiting for the dialog to fade out.
-		await Task.Delay(100);
+		// The answer is looked at once the view model waits for the dialog to fade out.
+		await waiting.Task.WaitAsync(TimeSpan.FromSeconds(5.0));
 
 		bool isAnsweredWhileShown = answer.IsCompleted;
 

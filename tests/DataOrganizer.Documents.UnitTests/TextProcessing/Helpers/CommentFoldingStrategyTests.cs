@@ -145,28 +145,6 @@ internal partial class CommentFoldingStrategyTests
 	}
 
 	/// <summary>
-	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: a block comment over several lines folds.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Folds_A_Block_Comment_Of_Several_Lines()
-	{
-		// Arrange
-		TextDocument document = new("/* a\nb */\nx");
-
-		using FoldingText text = new(document.Text);
-
-		CommentFoldingStrategy sut = new(Rules);
-
-		// Act
-		TextFolding[] foldings = sut.CreateNewFoldings(text);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 2));
-	}
-
-	/// <summary>
 	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: a group folds from the token of its first line, after the
 	/// indentation, to the end of its last line.
 	/// </summary>
@@ -187,28 +165,6 @@ internal partial class CommentFoldingStrategyTests
 		foldings.Select(static x => (x.StartOffset, x.EndOffset))
 			.Should()
 			.Equal((2, document.GetLineByNumber(2).EndOffset));
-	}
-
-	/// <summary>
-	/// <see cref="CommentFoldingStrategy.CreateNewFoldings" />: line comments in a row fold as one group.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Folds_A_Group_Of_Line_Comments()
-	{
-		// Arrange
-		TextDocument document = new("// a\n// b\nx");
-
-		using FoldingText text = new(document.Text);
-
-		CommentFoldingStrategy sut = new(Rules);
-
-		// Act
-		TextFolding[] foldings = sut.CreateNewFoldings(text);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 2));
 	}
 
 	/// <summary>

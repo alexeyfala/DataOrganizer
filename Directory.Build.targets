@@ -1,0 +1,9 @@
+<Project>
+	<!--
+		Runtime-native async: the runtime runs async methods without compiler state machines. Set here, after the
+		project, because only then is its target framework known: the runtime of .NET Framework lacks the feature.
+	-->
+	<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' AND $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', '$(AppTargetFramework)'))">
+		<Features>$(Features);runtime-async=on</Features>
+	</PropertyGroup>
+</Project>

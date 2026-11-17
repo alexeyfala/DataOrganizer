@@ -10,7 +10,7 @@
 | Linux (x64) | `dataorganizer_{version}-1_amd64.deb` | `DataOrganizer-{version}-1.x86_64.AppImage` |
 | macOS (x64) | `DataOrganizer-{version}-osx-x64.dmg` | `DataOrganizer-{version}-osx-x64-portable.zip` |
 
-The portable builds and the Linux and macOS packages are self-contained — the .NET runtime is bundled, no separate install required. The Windows `.msi` needs the [.NET 10 Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0) installed first.
+The portable builds and the Linux and macOS packages are self-contained — the .NET runtime is bundled, no separate install required. The Windows `.msi` needs the [.NET 11 Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/11.0) installed first.
 (The `-1` in the Linux file names is the package revision; bump it when re-packaging the same version.)
 
 ### Install & run
@@ -24,4 +24,4 @@ The portable builds and the Linux and macOS packages are self-contained — the 
 ### Notes
 
 - x64 only in this release.
-- `*.sha256.txt` files are provided for the Linux packages to verify downloads (`sha256sum -c`).
+- `*.sha256.txt` files are provided for the Linux packages to verify downloads. Each holds the checksum alone: `echo "$(cat dataorganizer_{version}-1_amd64.deb.sha256.txt)  dataorganizer_{version}-1_amd64.deb" | sha256sum -c`.

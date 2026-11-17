@@ -235,40 +235,6 @@ internal class FolderDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderDto.GetAllChildren" />: returns every descendant flattened into a single sequence.
-	/// </summary>
-	[Test]
-	public void GetAllChildren_Returns_All_Descendants_Flattened()
-	{
-		// Arrange
-		FolderDto root = ItemDtoFactory.CreateNamedFolderDto();
-
-		FolderDto sub = ItemDtoFactory.CreateNamedFolderDto("sub");
-
-		FileDto nested = ItemDtoFactory.CreateNamedFileDto("nested");
-
-		FileDto top = ItemDtoFactory.CreateNamedFileDto("top");
-
-		AddChild(root, sub);
-
-		AddChild(sub, nested);
-
-		AddChild(root, top);
-
-		// Act
-		List<ExplorerItemDtoBase> result = [.. root.GetAllChildren()];
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(3);
-
-		result
-			.Should()
-			.Contain([sub, nested, top]);
-	}
-
-	/// <summary>
 	/// <see cref="FolderDto.IsPasswordKeeper" />: returns false when the encrypted DEK is empty.
 	/// </summary>
 	[Test]

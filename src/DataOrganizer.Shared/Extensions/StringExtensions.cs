@@ -9,6 +9,7 @@ public static partial class StringExtensions
 	/// <summary>
 	/// Determines whether a string is a valid Html color format.
 	/// </summary>
+	// Stryker disable once String : no stand-in for null is a color
 	public static bool IsHtmlColorFormat(this string? value) => HtmlColorRegex().IsMatch(value ?? string.Empty);
 
 	/// <summary>

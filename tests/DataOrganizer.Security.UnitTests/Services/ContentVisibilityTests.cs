@@ -609,6 +609,54 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
+	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: a cancelled password prompt leaves the keeper locked and the
+	/// folder encrypted.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContentsAsync_Keeps_The_Keeper_Locked_When_The_Password_Is_Cancelled()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+			// A cancelled prompt gives no key.
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		await sut.ShowFolderContentsAsync(folder);
+
+		// Assert
+		folder.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		sessionKeyStore
+			.DidNotReceiveWithAnyArgs()
+			.Unlock(default, default!);
+	}
+
+	/// <summary>
 	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: unlocks the keeper and marks the folder and all children as decrypted.
 	/// </summary>
 	[Test]

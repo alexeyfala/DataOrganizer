@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Serialization;
 using SharpHook.Data;
 using System;
+using System.Linq;
 using System.Text.Json;
 
 namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
@@ -46,18 +47,15 @@ internal class EventMaskJsonConverterTests
 	[Test]
 	public void Reads_Every_Written_Name()
 	{
-		foreach (EventMask mask in Enum.GetValues<EventMask>())
-		{
-			// Act
-			string json = JsonSerializer.Serialize(mask, Options);
+		// Act
+		EventMask[] misread = [.. Enum
+			.GetValues<EventMask>()
+			.Where(static x => JsonSerializer.Deserialize<EventMask>(JsonSerializer.Serialize(x, Options), Options) != x)];
 
-			EventMask result = JsonSerializer.Deserialize<EventMask>(json, Options);
-
-			// Assert
-			result
-				.Should()
-				.Be(mask);
-		}
+		// Assert
+		misread
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -103,21 +101,6 @@ internal class EventMaskJsonConverterTests
 		result
 			.Should()
 			.Be(EventMask.None);
-	}
-
-	/// <summary>
-	/// <see cref="EventMaskJsonConverter" />: writes a mask as its name.
-	/// </summary>
-	[Test]
-	public void Writes_Name()
-	{
-		// Act
-		string result = JsonSerializer.Serialize(EventMask.LeftCtrl, Options);
-
-		// Assert
-		result
-			.Should()
-			.Be(@"""LeftCtrl""");
 	}
 	#endregion
 }

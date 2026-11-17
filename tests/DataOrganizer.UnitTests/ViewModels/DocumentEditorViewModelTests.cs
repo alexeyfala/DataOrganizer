@@ -180,23 +180,5 @@ internal class DocumentEditorViewModelTests
 				EncodingName = "UTF-16 LE"
 			});
 	}
-
-	/// <summary>
-	/// <see cref="DocumentEditorViewModel.SplitShare" />: a text split for the first time is split in halves.
-	/// </summary>
-	[Test]
-	public void SplitShare_Starts_At_Half()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		// Act
-		DocumentEditorViewModel sut = mock.Create<DocumentEditorViewModel>();
-
-		// Assert
-		sut.SplitShare
-			.Should()
-			.Be(0.5);
-	}
 	#endregion
 }

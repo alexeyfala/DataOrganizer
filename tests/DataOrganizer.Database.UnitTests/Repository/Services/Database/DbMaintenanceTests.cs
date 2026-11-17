@@ -115,12 +115,13 @@ internal class DbMaintenanceTests
 		sut.ErasePendingBackups();
 
 		// Assert
-		foreach (string filePath in leftovers)
-		{
-			fileEraser
-				.Received(1)
-				.EraseAndDeleteFile(filePath);
-		}
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteFile(leftovers[0]);
+
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteFile(leftovers[1]);
 	}
 
 	/// <summary>

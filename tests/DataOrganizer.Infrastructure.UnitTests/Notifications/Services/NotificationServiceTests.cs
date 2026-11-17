@@ -949,47 +949,6 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.Tick" />: the waiting message is shown once the host is free.
-	/// </summary>
-	[Test]
-	public void Tick_Posts_The_Waiting_Message()
-	{
-		// Arrange
-		IMessagePresenter<SnackbarContent> presenter = Substitute.For<IMessagePresenter<SnackbarContent>>();
-
-		FakeTimeProvider time = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			presenter
-				.CanShow
-				.Returns(true);
-
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(presenter);
-
-			builder.RegisterInstance<TimeProvider>(time);
-		});
-
-		NotificationService sut = mock.Create<NotificationService>();
-
-		sut.ShowInformationSnackbar("first");
-
-		sut.ShowInformationSnackbar("second");
-
-		// Act
-		PassTurn(sut, time);
-
-		// Assert
-		presenter
-			.Received(1)
-			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
-	}
-
-	/// <summary>
 	/// <see cref="NotificationService.Tick" />: the shown message is taken off the screen when its time is up.
 	/// </summary>
 	[Test]

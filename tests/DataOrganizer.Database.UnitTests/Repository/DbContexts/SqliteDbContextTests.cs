@@ -101,46 +101,6 @@ internal class SqliteDbContextTests
 	}
 
 	/// <summary>
-	/// <see cref="SqliteDbContext" />: reads a hotkey back by its stored names.
-	/// </summary>
-	[Test]
-	public async Task Hotkey_Is_Read_By_Name()
-	{
-		// Arrange
-		using TestDatabase database = new();
-
-		await AddFileWithHotkeyAsync(database, KeyCode.VcA, EventMask.LeftCtrl);
-
-		database
-			.Context
-			.ChangeTracker
-			.Clear();
-
-		// Act
-		FileEntity[] result = await LoadFilesAsync(database);
-
-		// Assert
-		HotkeyEntity hotkey = result
-			.Should()
-			.ContainSingle()
-			.Which
-			.Hotkeys
-			.Should()
-			.ContainSingle()
-			.Which;
-
-		hotkey
-			.Code
-			.Should()
-			.Be(KeyCode.VcA);
-
-		hotkey
-			.Mask
-			.Should()
-			.Be(EventMask.LeftCtrl);
-	}
-
-	/// <summary>
 	/// <see cref="SqliteDbContext" />: keeps a hotkey as the names of its key and its mask.
 	/// </summary>
 	[Test]

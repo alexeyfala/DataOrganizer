@@ -3,7 +3,7 @@ namespace DataOrganizer.SystemIntegration.Clipboard.Models;
 /// <summary>
 /// Base of the text entries of the clipboard log, optionally carrying HTML / RTF companion formats.
 /// </summary>
-public abstract class ClipboardTextEntryBase : ClipboardLogEntryBase
+public closed class ClipboardTextEntryBase : ClipboardLogEntryBase
 {
 	#region Properties
 	/// <summary>

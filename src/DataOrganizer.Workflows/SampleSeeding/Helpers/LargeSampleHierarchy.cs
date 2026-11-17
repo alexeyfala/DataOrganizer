@@ -6,6 +6,7 @@ using DataOrganizer.Shared.Constants;
 using DataOrganizer.Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -17,6 +18,7 @@ namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 /// Objects of the virtual file system made up for trying the application on large data: deep nesting, thousands of
 /// objects, thousands of files in one folder, and large texts and datasets.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal sealed class LargeSampleHierarchy
 {
 	#region Data

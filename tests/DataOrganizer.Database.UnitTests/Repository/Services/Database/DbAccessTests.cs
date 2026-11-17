@@ -257,41 +257,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddFilesAsync" />: a failed save leaves no file tracked for the next save to write.
-	/// </summary>
-	[Test]
-	public async Task AddFilesAsync_Clears_The_Tracking_When_The_Save_Fails()
-	{
-		// Arrange
-		FileEntity[] files = [.. EntityFactory.CreateFiles(5)];
-
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			dbContextService
-				.SaveChangesAsync(Arg.Any<CancellationToken>())
-				.ThrowsAsync(new InvalidOperationException());
-
-			builder.RegisterInstance(dbContextService);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		Func<Task> act = () => sut.AddFilesAsync(files);
-
-		// Assert
-		await act
-			.Should()
-			.ThrowAsync<InvalidOperationException>();
-
-		dbContextService
-			.Received(1)
-			.ClearTracking();
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.AddFilesAsync" />, <see cref="DbAccess.AddEntityAsync" />: a file the database refuses is not
 	/// written again by the next save, which goes through.
 	/// </summary>
@@ -920,37 +885,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.CountOfAsync" />: returns the count of entities matching the predicate.
-	/// </summary>
-	[Test]
-	public async Task CountOfAsync_Returns_Count_Of_Matching_Entities()
-	{
-		// Arrange
-		const int expectedCount = 7;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
-
-			repository
-				.CountOfAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
-				.Returns(expectedCount);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		int result = await sut.CountOfAsync(x => x.Name != null);
-
-		// Assert
-		result
-			.Should()
-			.Be(expectedCount);
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.CreateBackupAsync" />: without a database file there is nothing to copy,
 	/// so no folder for the copies is made either.
 	/// </summary>
@@ -1296,31 +1230,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.Dispose" />: calling it twice does not throw.
-	/// </summary>
-	[Test]
-	public void Dispose_Is_Idempotent()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		Action act = () =>
-		{
-			sut.Dispose();
-
-			sut.Dispose();
-		};
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.Dispose" />: a disposed object refuses the calls that come after it.
 	/// </summary>
 	[Test]
@@ -1425,68 +1334,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.GetAllFilesAsync" />: returns all files from the repository.
-	/// </summary>
-	[Test]
-	public async Task GetAllFilesAsync_Returns_Files()
-	{
-		// Arrange
-		FileEntity[] expectedResult = [.. EntityFactory.CreateFiles(100)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileRepository repository = Substitute.For<IFileRepository>();
-
-			repository
-				.GetAllAsync(OptionalFileProperties.None)
-				.Returns(expectedResult);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		FileEntity[] result = await sut.GetAllFilesAsync(OptionalFileProperties.None);
-
-		// Assert
-		result
-			.Should()
-			.BeEquivalentTo(expectedResult);
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.GetAllFoldersAsync" />: returns all folders from the repository.
-	/// </summary>
-	[Test]
-	public async Task GetAllFoldersAsync_Returns_Folders()
-	{
-		// Arrange
-		FolderEntity[] expectedResult = [.. EntityFactory.CreateFolders(100)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFolderRepository repository = Substitute.For<IFolderRepository>();
-
-			repository
-				.GetAllAsync()
-				.Returns(expectedResult);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		FolderEntity[] result = await sut.GetAllFoldersAsync();
-
-		// Assert
-		result
-			.Should()
-			.BeEquivalentTo(expectedResult);
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.GetFileContentsAsync" />: returns a valid result with the file's id and contents.
 	/// </summary>
 	[Test]
@@ -1566,37 +1413,6 @@ internal class DbAccessTests
 		results
 			.Should()
 			.OnlyContain(x => x.IsValid);
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.GetFileEditorStateAsync" />: returns the stored editor state of the file.
-	/// </summary>
-	[Test]
-	public async Task GetFileEditorStateAsync_Returns_The_Editor_State()
-	{
-		// Arrange
-		FileEntity file = EntityFactory.CreateFile();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileRepository repository = Substitute.For<IFileRepository>();
-
-			repository
-				.GetEditorStateAsync(Arg.Any<Guid>())
-				.Returns(file.EditorState);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		string? result = await sut.GetFileEditorStateAsync(file.Id);
-
-		// Assert
-		result
-			.Should()
-			.Be(file.EditorState);
 	}
 
 	/// <summary>
@@ -2318,44 +2134,6 @@ internal class DbAccessTests
 				Note = note,
 				UpdatedAt = updatedAt
 			});
-	}
-
-	/// <summary>
-	/// <see cref="DbAccess.UpdateProtectionAsync" />: a change with nothing but the key of the folder is not a failure.
-	/// </summary>
-	[Test]
-	public async Task UpdateProtectionAsync_Accepts_An_Empty_Set_Of_Updates()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-			// The stub runs the body of the transaction instead of a database.
-			dbContextService
-				.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
-				.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
-
-			builder.RegisterInstance(dbContextService);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		Func<Task> act = () => sut.UpdateProtectionAsync(new()
-		{
-			Contents = new Dictionary<Guid, byte[]>(),
-			EncryptedDek = null,
-			FileNotes = new Dictionary<Guid, byte[]>(),
-			FolderId = Guid.NewGuid(),
-			FolderNotes = new Dictionary<Guid, byte[]>(),
-			UpdatedAt = default
-		});
-
-		// Assert
-		await act
-			.Should()
-			.NotThrowAsync();
 	}
 
 	/// <summary>

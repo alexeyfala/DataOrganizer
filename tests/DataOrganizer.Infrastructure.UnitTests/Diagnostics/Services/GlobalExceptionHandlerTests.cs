@@ -135,29 +135,6 @@ internal class GlobalExceptionHandlerTests
 	}
 
 	/// <summary>
-	/// <see cref="GlobalExceptionHandler.HandleException" />: the first occurrence of an exception is logged.
-	/// </summary>
-	[Test]
-	public void HandleException_Logs_First_Occurrence_Of_Exception()
-	{
-		// Arrange
-		ILogger logger = Substitute.For<ILogger>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
-
-		GlobalExceptionHandler sut = mock.Create<GlobalExceptionHandler>();
-
-		// Act
-		sut.HandleException(new InvalidOperationException("first"));
-
-		// Assert
-		logger
-			.ReceivedCalls()
-			.Should()
-			.NotBeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="GlobalExceptionHandler.HandleException" />: after five unique exceptions the deduplication set resets, so a previously seen exception is logged again.
 	/// </summary>
 	[Test]

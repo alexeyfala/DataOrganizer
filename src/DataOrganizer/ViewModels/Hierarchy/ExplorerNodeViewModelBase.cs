@@ -1,6 +1,5 @@
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Interfaces;
-using System;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.ViewModels.Hierarchy;
@@ -67,8 +66,7 @@ public abstract class ExplorerNodeViewModelBase : ObservableDisposableBase
 		return model switch
 		{
 			FolderDto folder => new FolderNodeViewModel(folder, treeState),
-			FileDto file => new FileNodeViewModel(file, treeState),
-			_ => throw new NotSupportedException($"The tree has no row for {model.GetType()}.")
+			FileDto file => new FileNodeViewModel(file, treeState)
 		};
 	}
 	#endregion

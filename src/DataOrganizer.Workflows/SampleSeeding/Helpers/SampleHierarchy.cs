@@ -11,6 +11,7 @@ using DataOrganizer.Workflows.SampleSeeding.Dto;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 /// Objects of the virtual file system made up for trying the application: files of known types sorted into folders and a
 /// branch of nested folders with files of unknown types.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal sealed class SampleHierarchy
 {
 	#region Data

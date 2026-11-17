@@ -42,13 +42,13 @@ internal static class GridSplitterHost
 
 		if (splitter.ResizeDirection == GridResizeDirection.Rows)
 		{
-			grid.RowDefinitions = new("*,Auto,*");
+			grid.RowDefinitions = [with("*,Auto,*")];
 
 			Grid.SetRow(splitter, 1);
 		}
 		else
 		{
-			grid.ColumnDefinitions = new("*,Auto,*");
+			grid.ColumnDefinitions = [with("*,Auto,*")];
 
 			Grid.SetColumn(splitter, 1);
 		}

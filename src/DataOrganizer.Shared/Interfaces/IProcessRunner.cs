@@ -11,7 +11,7 @@ public interface IProcessRunner
 	#region Methods
 	/// <summary>
 	/// Runs <paramref name="fileName" /> without a window, each of <paramref name="arguments" /> as one argument; its exit
-	/// code, or <c>null</c> when it did not end within <paramref name="timeout" /> and was killed with its children.
+	/// code, or <c>null</c> when it did not end within <paramref name="timeout" /> and was killed; its children keep running.
 	/// </summary>
 	int? Run(string fileName, IReadOnlyList<string> arguments, TimeSpan timeout);
 	#endregion

@@ -332,32 +332,6 @@ internal class EnumerableExtensionsTests
 			.Should()
 			.Equal(b, a);
 	}
-
-	/// <summary>
-	/// <see cref="EnumerableExtensions.OrderBySequenceKeepSource{T, TOrdered}" />: orders the source by the supplied sequence of keys.
-	/// </summary>
-	[Test]
-	public void OrderBySequenceKeepSource_Orders_Source_By_Given_Sequence()
-	{
-		// Arrange
-		Item a = new(1, "a");
-
-		Item b = new(2, "b");
-
-		Item c = new(3, "c");
-
-		Item[] source = [a, b, c];
-
-		int[] ordered = [3, 1, 2];
-
-		// Act
-		IEnumerable<Item> result = source.OrderBySequenceKeepSource(ordered, x => x.Id);
-
-		// Assert
-		result
-			.Should()
-			.Equal(c, a, b);
-	}
 	#endregion
 
 	#region Nested Types

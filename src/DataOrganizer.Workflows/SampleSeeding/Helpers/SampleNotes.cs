@@ -3,6 +3,7 @@ using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
@@ -11,6 +12,7 @@ namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 /// Notes of the objects made up for trying the application: fixed ones that explain a few folders and made-up ones of
 /// several shapes.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal static class SampleNotes
 {
 	#region Data

@@ -2,12 +2,14 @@ using Bogus;
 using DataOrganizer.Documents.DatasetRecords.Models;
 using DataOrganizer.Shared.Extensions;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 
 /// <summary>
 /// Records of a dataset made up for trying the application, with values that repeat from run to run.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal sealed class SampleRecords
 {
 	#region Data

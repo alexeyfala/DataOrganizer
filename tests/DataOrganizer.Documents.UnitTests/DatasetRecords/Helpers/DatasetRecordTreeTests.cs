@@ -3,6 +3,7 @@ using DataOrganizer.Documents.DatasetRecords.Enums;
 using DataOrganizer.Documents.DatasetRecords.Helpers;
 using DataOrganizer.Documents.DatasetRecords.Models;
 using DataOrganizer.TestSupport.Common;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -68,6 +69,43 @@ internal class DatasetRecordTreeTests
 		target[^1]
 			.Should()
 			.BeSameAs(added);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.ApplyOrders" />: an order that loses a record leaves every collection as it was, also
+	/// those whose own order comes earlier in the plan and is sound.
+	/// </summary>
+	[Test]
+	public void ApplyOrders_Changes_Nothing_When_An_Order_Loses_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		ValueRecord fourth = new();
+
+		ObservableCollection<DatasetRecordBase> sound = [first, second];
+
+		ObservableCollection<DatasetRecordBase> faulty = [third, fourth];
+
+		// Act
+		bool result = DatasetRecordTree.ApplyOrders([(sound, [second, first]), (faulty, [fourth])]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		sound
+			.Should()
+			.Equal(first, second);
+
+		faulty
+			.Should()
+			.Equal(third, fourth);
 	}
 
 	/// <summary>
@@ -279,6 +317,114 @@ internal class DatasetRecordTreeTests
 		result
 			.Should()
 			.Contain([root, nested, leaf1, leaf2]);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: the same records in another order are accepted.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Accepts_The_Same_Records_In_Another_Order()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second, third], [third, first, second]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order that adds a second copy of a record is refused, though
+	/// it holds no other record.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_That_Adds_A_Copy_Of_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second], [first, second, second]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order that lost a record is refused.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_That_Loses_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second, third], [first, third]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order that repeats a record in place of another is refused,
+	/// though it has as many records.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_That_Repeats_A_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		ValueRecord third = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second, third], [first, first, third]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DatasetRecordTree.HoldsSameRecords" />: an order with a record that is not among the records is refused.
+	/// </summary>
+	[Test]
+	public void HoldsSameRecords_Rejects_An_Order_With_A_Foreign_Record()
+	{
+		// Arrange
+		ValueRecord first = new();
+
+		ValueRecord second = new();
+
+		// Act
+		bool result = DatasetRecordTree.HoldsSameRecords([first, second], [first, new ValueRecord()]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -586,36 +732,6 @@ internal class DatasetRecordTreeTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordTree.Sort" />: records of a kind the sort does not know would be lost, so the records keep
-	/// their order.
-	/// </summary>
-	[Test]
-	public void Sort_Keeps_Records_It_Cannot_Sort()
-	{
-		// Arrange
-		ForeignRecord foreign = new();
-
-		ValueRecord value = new()
-		{
-			Value = RandomString.Create(10)
-		};
-
-		ObservableCollection<DatasetRecordBase> records = [foreign, value];
-
-		// Act
-		bool result = DatasetRecordTree.Sort(records, ListSortDirection.Ascending);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		records
-			.Should()
-			.Equal(foreign, value);
-	}
-
-	/// <summary>
 	/// <see cref="DatasetRecordTree.Sort" />: groups come first, then key and value records, then value records, whatever
 	/// the direction.
 	/// </summary>
@@ -654,27 +770,40 @@ internal class DatasetRecordTreeTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordTree.Sort" />: the records of the groups count too, so a sort that would lose one deep in a
-	/// group is refused.
+	/// <see cref="DatasetRecordTree.Sort" />: the records of a group are rewritten before the collection that holds the
+	/// group, so the list of that collection lays out its groups at their final size.
 	/// </summary>
 	[Test]
-	public void Sort_Refuses_A_Sort_That_Would_Lose_A_Nested_Record()
+	public void Sort_Rewrites_The_Records_Of_Groups_Before_Their_Owner()
 	{
 		// Arrange
-		RecordsGroup group = new()
+		RecordsGroup inner = new()
 		{
-			Children = [new ForeignRecord(), new ValueRecord()]
+			Children = [new ValueRecord { Value = "b" }, new ValueRecord { Value = "a" }]
 		};
 
-		ObservableCollection<DatasetRecordBase> records = [group];
+		RecordsGroup outer = new()
+		{
+			Children = [new ValueRecord { Value = "d" }, inner]
+		};
+
+		ObservableCollection<DatasetRecordBase> records = [new ValueRecord { Value = "c" }, outer];
+
+		List<string> rewritten = [];
+
+		inner.Children.CollectionChanged += (_, _) => rewritten.Add(nameof(inner));
+
+		outer.Children.CollectionChanged += (_, _) => rewritten.Add(nameof(outer));
+
+		records.CollectionChanged += (_, _) => rewritten.Add(nameof(records));
 
 		// Act
-		bool result = DatasetRecordTree.Sort(records, ListSortDirection.Ascending);
+		DatasetRecordTree.Sort(records, ListSortDirection.Ascending);
 
 		// Assert
-		result
+		rewritten.Distinct()
 			.Should()
-			.BeFalse();
+			.Equal(nameof(inner), nameof(outer), nameof(records));
 	}
 
 	/// <summary>
@@ -1127,12 +1256,5 @@ internal class DatasetRecordTreeTests
 			.Should()
 			.Be(1);
 	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Record of a kind that the sort does not know.
-	/// </summary>
-	private sealed class ForeignRecord : DatasetRecordBase;
 	#endregion
 }

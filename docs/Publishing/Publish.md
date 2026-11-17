@@ -31,26 +31,19 @@ The bundle embeds the installer of the .NET Runtime, `dotnet-runtime-<version>-w
 takes the file from `artifacts\` and downloads it from Microsoft when it is not there. Either way the
 file must match the checksum of the project, or the build fails.
 
-For a new 10.0 patch, set two values in `src\Bundle\Bundle.wixproj`:
-
-1\. `DotNetVersion` — the new version.
-
-2\. `DotNetInstallerSha512` — the checksum of the x64 Windows installer of that version.
-
-These lines print both for the latest patch, the version first. Paste them into PowerShell and press
-Enter:
+For a new patch of the .NET the application targets, run this script in PowerShell opened at the
+repository root. It takes the latest patch of that .NET from Microsoft's release metadata and writes its
+version and the checksum of its x64 Windows installer into `src\Bundle\Bundle.wixproj`
+(`DotNetVersion`, `DotNetInstallerSha512`); when the bundle has that patch already, it changes nothing.
+Check the change in the diff and commit it:
 
 ```powershell
-$url = 'https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json'
-$m = Invoke-RestMethod $url
-$latest = $m.releases | Where-Object { $_.runtime.version -eq $m.'latest-runtime' }
-$file = $latest.runtime.files | Where-Object name -eq 'dotnet-runtime-win-x64.exe'
-$m.'latest-runtime', $file.hash
+powershell -ExecutionPolicy Bypass -File build\update-dotnet-runtime.ps1
 ```
 
 The next build of the bundle brings the new installer. The old one in `artifacts\` may be deleted.
-The installer may also be put there by hand: <https://dotnet.microsoft.com/en-us/download/dotnet/10.0>
-has it as the x64 Windows installer of the .NET Runtime.
+The installer may also be put there by hand: the page of that .NET version at
+<https://dotnet.microsoft.com/en-us/download/dotnet> has it as the x64 Windows installer of the .NET Runtime.
 
 ### Portable — Release
 
@@ -121,9 +114,7 @@ chmod +x DataOrganizer-*
 A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
 
 - [Stage 1 — Prepare the Linux build environment (WSL)](PupNet_Instructions/1_Setup.md)
-- [Stage 2 — Generate the PupNet configuration](PupNet_Instructions/2_Config.md)
-- [Stage 3 — AppStream metainfo (`.metainfo.xml`)](PupNet_Instructions/3_AppStream.md)
-- [Stage 4 — Build and verify Linux packages](PupNet_Instructions/4_Build.md)
+- [Stage 2 — Build Linux packages](PupNet_Instructions/2_Build.md)
 
 ---
 
@@ -142,11 +133,12 @@ Open a terminal in macOS. Regenerate notices first:
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Release -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts/dmg-staging
-cp -R "src/DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
+cp -R "src/DataOrganizer.MacOS/bin/Release/$TFM/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
 ln -s /Applications artifacts/dmg-staging/Applications
 hdiutil create -volname "Data Organizer" -srcfolder artifacts/dmg-staging -ov -format UDZO "artifacts/$NAME.dmg"
 rm -rf artifacts/dmg-staging
@@ -160,11 +152,12 @@ Open a terminal in macOS.
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Debug -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts/dmg-staging
-cp -R "src/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
+cp -R "src/DataOrganizer.MacOS/bin/Debug/$TFM/osx-x64/DataOrganizer.app" artifacts/dmg-staging/
 ln -s /Applications artifacts/dmg-staging/Applications
 hdiutil create -volname "Data Organizer" -srcfolder artifacts/dmg-staging -ov -format UDZO "artifacts/$NAME.dmg"
 rm -rf artifacts/dmg-staging
@@ -179,7 +172,7 @@ Open a terminal in macOS. Regenerate notices first:
 ```bash
 cd src/DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
+dotnet publish -c:Release -r:osx-x64 -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
 rm -rf bin
 open -R "../../artifacts/$NAME.pkg"
 ```
@@ -191,7 +184,7 @@ Open a terminal in macOS.
 ```bash
 cd src/DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
+dotnet publish -c:Debug -r:osx-x64 -verbosity:diag -p:PublishDir="../../artifacts" -p:PkgPackagePath="../../artifacts/$NAME.pkg"
 rm -rf bin
 open -R "../../artifacts/$NAME.pkg"
 ```
@@ -202,11 +195,12 @@ Open a terminal in macOS. Regenerate notices first:
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Release -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts
-ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
+ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Release/$TFM/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
 rm -rf src/DataOrganizer.MacOS/bin
 open -R "artifacts/$NAME.zip"
 ```
@@ -217,11 +211,12 @@ Open a terminal in macOS.
 
 ```bash
 cd src/DataOrganizer.MacOS
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+dotnet publish -c:Debug -r:osx-x64 -p:CreatePackage=false -verbosity:diag
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable-debug
+TFM=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:TargetFramework)
 cd ../..
 mkdir -p artifacts
-ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
+ditto -c -k --keepParent "src/DataOrganizer.MacOS/bin/Debug/$TFM/osx-x64/DataOrganizer.app" "artifacts/$NAME.zip"
 rm -rf src/DataOrganizer.MacOS/bin
 open -R "artifacts/$NAME.zip"
 ```

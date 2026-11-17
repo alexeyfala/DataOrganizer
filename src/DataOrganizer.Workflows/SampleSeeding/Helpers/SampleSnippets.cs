@@ -1,11 +1,13 @@
 using Bogus;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 
 /// <summary>
 /// Short texts made up for copying with a hotkey: contact and bank details, and the secrets of a household.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal static class SampleSnippets
 {
 	#region Data

@@ -61,29 +61,6 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: with a null search the initial predicate matches every item.
-	/// </summary>
-	[Test]
-	public void FilterPredicate_Initial_Predicate_Matches_Every_Item_When_Search_Is_Null()
-	{
-		// Arrange
-		Source source = new();
-
-		// Act
-		using IDisposable subscription = source
-			.FilterPredicate(
-				x => x.Search,
-				TimeProvider.System)
-			.Subscribe(predicate =>
-			{
-				// Assert
-				predicate(new NameHolder("anything"))
-					.Should()
-					.BeTrue();
-			});
-	}
-
-	/// <summary>
 	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: the predicate matches items whose name contains the search text and rejects the rest.
 	/// </summary>
 	[Test]
@@ -92,22 +69,28 @@ internal partial class NotifyPropertyChangedExtensionsTests
 		// Arrange
 		Source source = new() { Search = "hello" };
 
+		List<Func<INamed, bool>> predicates = [];
+
 		// Act
 		using IDisposable subscription = source
 			.FilterPredicate(
 				x => x.Search,
 				TimeProvider.System)
-			.Subscribe(predicate =>
-			{
-				// Assert
-				predicate(new NameHolder("Hello world"))
-					.Should()
-					.BeTrue();
+			.Subscribe(predicates.Add);
 
-				predicate(new NameHolder("Other"))
-					.Should()
-					.BeFalse();
-			});
+		// Assert
+		Func<INamed, bool> predicate = predicates
+			.Should()
+			.ContainSingle()
+			.Which;
+
+		predicate(new NameHolder("Hello world"))
+			.Should()
+			.BeTrue();
+
+		predicate(new NameHolder("Other"))
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 

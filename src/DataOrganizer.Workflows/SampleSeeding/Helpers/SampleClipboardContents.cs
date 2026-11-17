@@ -1,6 +1,7 @@
 using Bogus;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -10,6 +11,7 @@ namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 /// Contents of the clipboard made up for trying the clipboard history: texts of every kind it tells apart, links, images
 /// and lists of files.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal static class SampleClipboardContents
 {
 	#region Data

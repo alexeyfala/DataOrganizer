@@ -87,6 +87,7 @@ $licenseOverrides = @{
     'bogus'                          = 'MIT'            # file-based LICENSE (MIT)
     'interop.uiautomationclient'     = 'MIT'            # file-based LICENSE.txt (MIT)
     'proitemsrepeater'               = 'MIT'            # package omits license; author publishes under MIT
+    'sqlite'                         = 'blessing'       # file-based LICENSE.txt (SQLite is public domain)
 }
 
 # --- Embedded full license texts (reused across all matching components) ---------
@@ -198,6 +199,7 @@ $licenseBodies = @{
     'Apache-2.0'   = @{ Title = 'Apache License, Version 2.0 (Apache-2.0)'; Body = $apacheRef }
     'BSD-3-Clause' = @{ Title = 'BSD 3-Clause License (BSD-3-Clause)'; Body = "The above components are licensed under the BSD 3-Clause License:`r`n`r`n$bsd3Text" }
     'ISC'          = @{ Title = 'ISC License (ISC)';           Body = "The above components are licensed under the ISC License:`r`n`r`n$iscText" }
+    'blessing'     = @{ Title = 'SQLite Blessing (blessing)';  Body = "The above components are in the public domain; the SQLite authors disclaim`r`ncopyright to the source code:`r`n`r`n    https://sqlite.org/copyright.html" }
 }
 
 # --- Read the resolved package set from the assets file(s) -----------------------

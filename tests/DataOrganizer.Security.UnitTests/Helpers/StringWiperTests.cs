@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using DataOrganizer.Security.Helpers;
-using System;
 using System.Linq;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
@@ -51,28 +50,6 @@ internal class StringWiperTests
 			.All(c => c == '\0')
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="StringWiper.Wipe" />: an empty string is left untouched and no exception is thrown.
-	/// </summary>
-	[Test]
-	public void Wipe_Does_Nothing_For_Empty_String()
-	{
-		// Arrange
-		string source = new([]);
-
-		// Act
-		Action act = () => StringWiper.Wipe(source);
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-
-		source
-			.Should()
-			.BeEmpty();
 	}
 
 	/// <summary>

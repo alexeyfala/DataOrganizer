@@ -48,6 +48,7 @@ using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
 using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Hierarchy;
@@ -66,7 +67,6 @@ using NSubstitute.ExceptionExtensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
@@ -5539,7 +5539,12 @@ internal class EditorViewModelTests
 		// Act
 		sut.ShowObject(shown.Id);
 
-		await WaitUntilAsync(() => sut.SelectedNode?.Model == shown);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(
+				() => sut.SelectedNode?.Model == shown,
+				millisecondsDelay: 20,
+				maxRepeats: 250);
 
 		window.Close();
 
@@ -5713,23 +5718,6 @@ internal class EditorViewModelTests
 		settingsStore
 			.Received(1)
 			.Save();
-	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Lets the UI thread run until <paramref name="condition" /> holds, a few seconds at most.
-	/// </summary>
-	private static async Task WaitUntilAsync(Func<bool> condition)
-	{
-		Stopwatch stopwatch = Stopwatch.StartNew();
-
-		while (!condition() && stopwatch.Elapsed < TimeSpan.FromSeconds(5.0))
-		{
-			await Task.Delay(20);
-
-			Dispatcher.UIThread.RunJobs();
-		}
 	}
 	#endregion
 }

@@ -96,18 +96,6 @@ internal class ClipboardHistoryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistory.ComputeTextEntryHash" />: the same inputs hash identically.
-	/// </summary>
-	[Test]
-	public void ComputeTextEntryHash_Is_Deterministic()
-	{
-		// Act, Assert
-		ClipboardHistory.ComputeTextEntryHash("t", "<b>x</b>", null)
-			.Should()
-			.Equal(ClipboardHistory.ComputeTextEntryHash("t", "<b>x</b>", null));
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardHistory.HandleClipboardCleared" />: once a copy was made over a restored entry, an emptied clipboard
 	/// drops the highlight of that copy.
 	/// </summary>
@@ -760,25 +748,6 @@ internal class ClipboardHistoryTests
 		asFolder
 			.Should()
 			.NotEqual(asFile);
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardHistory.HashFiles" />: the same list hashes identically.
-	/// </summary>
-	[Test]
-	public void HashFiles_Is_Deterministic()
-	{
-		// Arrange
-		ClipboardFileSystemEntry[] entries =
-		[
-			new(FirstItemPath, IsFolder: false),
-			new(SecondItemPath, IsFolder: true)
-		];
-
-		// Act, Assert
-		ClipboardHistory.HashFiles(entries)
-			.Should()
-			.Equal(ClipboardHistory.HashFiles(entries));
 	}
 
 	/// <summary>

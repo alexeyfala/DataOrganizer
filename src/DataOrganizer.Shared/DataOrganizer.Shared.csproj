@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+	<PropertyGroup>
+		<!-- Language of the neutral resources in Strings.resx; English lookups then skip the satellite search. -->
+		<NeutralLanguage>en</NeutralLanguage>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<AssemblyMetadata Include="AppName" Value="$(AppName)" />
 		<AssemblyMetadata Include="AppDisplayName" Value="$(AppDisplayName)" />

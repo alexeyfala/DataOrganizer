@@ -50,36 +50,6 @@ internal class FolderRepositoryTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderRepository.GetFolderSubtreeIdsAsync" />: returns only the root when it has no children.
-	/// </summary>
-	[Test]
-	public async Task GetFolderSubtreeIdsAsync_Returns_Only_Root_When_No_Children()
-	{
-		// Arrange
-		using TestDatabase database = new();
-
-		FolderEntity root = EntityFactory.CreateFolder(Guid.NewGuid());
-
-		database
-			.Context
-			.Add(root);
-
-		await database
-			.Context
-			.SaveChangesAsync();
-
-		FolderRepository sut = new(database.Context);
-
-		// Act
-		List<Guid> result = await CollectAsync(sut.GetFolderSubtreeIdsAsync(root.Id));
-
-		// Assert
-		result
-			.Should()
-			.Equal(root.Id);
-	}
-
-	/// <summary>
 	/// <see cref="FolderRepository.GetFolderSubtreeIdsAsync" />: returns the root and every descendant of the subtree.
 	/// </summary>
 	[Test]

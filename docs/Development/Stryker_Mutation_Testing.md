@@ -49,8 +49,7 @@ to solution mode and takes every test project that depends on the project, whate
 Stryker runs as many test sessions as half of the logical processors. `-Concurrency N` changes that;
 more sessions than processors do not make the run faster (see *Timeout* below).
 
-A run of every project takes about 24 minutes on 32 logical processors and changes nothing in the
-repository.
+A run changes nothing in the repository.
 
 At the end the script prints a table, one line per project:
 
@@ -85,9 +84,11 @@ of that method and says so:
 
 These mutants count as CompileError and stay out of the score, so the percentage does not show that the
 method went unchecked. The script lists such methods after the table. Which methods fall out depends on
-the whole set of mutants, so take the list from the latest run.
+the whole set of mutants, so take the list from the latest run. A method under `[ExcludeFromCodeCoverage]`
+can show up there too: Stryker checks the build before it leaves such a method out, and the method needs
+no check by hand.
 
-A dropped method is checked by hand. It costs about half an hour and needs no tooling:
+A dropped method is checked by hand and needs no tooling:
 
     copy the file aside, change one line, run the tests, put the file back, compare it with the copy
 
@@ -186,8 +187,7 @@ prints the time per assembly — the cheapest check that nothing has slowed down
 
     dotnet test DataOrganizerApp.slnx --no-build --nologo
 
-Today `DataOrganizer.UnitTests` takes about 48 s, and as the assemblies run in parallel, that is the
-time of the whole suite; every other test project takes 2 s or less. For per-test times run with the trx logger and open the file in Visual Studio,
-where Test Explorer sorts by duration:
+For per-test times run with the trx logger and open the file in Visual Studio, where Test Explorer sorts
+by duration:
 
     dotnet test DataOrganizerApp.slnx --no-build --logger trx

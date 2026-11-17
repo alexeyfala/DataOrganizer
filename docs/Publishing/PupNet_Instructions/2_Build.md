@@ -1,6 +1,6 @@
-﻿# Stage 4 — Build and verify Linux packages
+﻿# Stage 2 — Build Linux packages
 
-> **Prerequisite:** `app.pupnet.conf` is filled in and the icons exist in `IconFiles`. Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
+> **Prerequisite:** Stage 1. Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
 
 ---
 
@@ -43,27 +43,7 @@ rm -rf artifacts/Artifacts.Deb.amd64 && \
 ls -la artifacts/*.deb
 ```
 
-> **WSL1 with Ubuntu 26.04.** `dpkg-deb` fails with `tar: ./opt/…: Cannot stat: Function not implemented`: the `tar` of Ubuntu 26.04 calls `openat2`, which the WSL1 kernel lacks. The same `tar` 1.35 built for Ubuntu 24.04 does not, so put it first on `PATH` for the build.
->
-> **One-time setup (copy once):**
->
-> ```bash
-> mkdir -p ~/.local/tar-noble/bin && \
-> curl -fsSL -o /tmp/tar-noble.deb \
->   https://archive.ubuntu.com/ubuntu/pool/main/t/tar/tar_1.35+dfsg-3build1_amd64.deb && \
-> dpkg-deb --fsys-tarfile /tmp/tar-noble.deb | tar -xO ./usr/bin/tar > ~/.local/tar-noble/bin/tar && \
-> chmod +x ~/.local/tar-noble/bin/tar && \
-> rm /tmp/tar-noble.deb
-> ```
->
-> **Build (copy once):**
->
-> ```bash
-> cd "$DATAORG_REPO" && \
-> PATH="$HOME/.local/tar-noble/bin:$PATH" pupnet build/app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
-> rm -rf artifacts/Artifacts.Deb.amd64 && \
-> ls -la artifacts/*.deb
-> ```
+> **WSL1 with Ubuntu 26.04.** `dpkg-deb` needs the `tar` of Ubuntu 24.04 that Stage 1 step 6 put on `PATH`; without it, it fails with `tar: ./opt/…: Cannot stat: Function not implemented`.
 
 ### RPM (.rpm)
 
@@ -99,11 +79,13 @@ ls -la artifacts/*.AppImage
 
 ### Flatpak (.flatpak)
 
-**One-time setup (copy once).** Install the toolchain, then add the `flathub` remote. In WSL `flatpak remote-add` hangs fetching `flathub.org` directly (HTTP 301 redirect times out), so download the small repo file with `curl` first and add it from disk; the actual runtime download from `dl.flathub.org` works fine. Runtimes are installed `--user`:
+> **WSL2 or a Linux machine only.** Under WSL1 the build fails and cannot be worked around: `flatpak-builder` mounts with `rofiles-fuse`, but WSL1 has no `/dev/fuse`; its sandbox `bwrap` needs kernel namespaces WSL1 lacks; and the build commands inside the sandbox call `statx`, which WSL1 does not implement.
+
+**One-time setup (copy once).** Install the toolchain, then add the `flathub` remote. In WSL `flathub.org` may hang or refuse the connection, so download the small repo file with `curl` from `dl.flathub.org`, where `flathub.org` redirects it and where the runtimes come from too, and add it from disk. Runtimes are installed `--user`:
 
 ```bash
 sudo apt install -y flatpak flatpak-builder && \
-curl -L -o /tmp/flathub.flatpakrepo https://flathub.org/repo/flathub.flatpakrepo && \
+curl -L -o /tmp/flathub.flatpakrepo https://dl.flathub.org/repo/flathub.flatpakrepo && \
 flatpak remote-add --if-not-exists --user flathub /tmp/flathub.flatpakrepo && \
 flatpak install -y --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 ```
@@ -128,41 +110,16 @@ ls -la artifacts/*.zip
 
 ---
 
-## Output
+## AppStream metainfo
 
-Each build drops two shipping files in `artifacts/` (this is what you distribute) plus one intermediate folder (removed by the `rm -rf Artifacts.*` line in each recipe):
-
-- **`artifacts/<name>`** — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside. Names: `dataorganizer_<version>-<rev>_amd64.deb` (Debian convention — lowercase, `amd64`), `DataOrganizer-<version>-<rev>.x86_64.{rpm,AppImage,flatpak}`, `DataOrganizer-<version>.zip`.
-- **`artifacts/<name>.sha256.txt`** — the SHA-256 checksum, so users can verify the download (`sha256sum -c`). Handy for GitHub Releases; shipping it is optional.
-- **`artifacts/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml` validated in Stage 3). Kept for inspection, not for distribution.
-
----
-
-## Verify — Debian example
-
-**Install** (`apt` resolves dependencies; do **not** use `dpkg -i`, which does not):
+`build/app.metainfo.xml` describes the app for software centres (GNOME Software, KDE Discover) and Flathub; `app.pupnet.conf` links it by the line `MetaFile = app.metainfo.xml`. PupNet expands its `${...}` macros at build time, so validate the expanded file of a build, not the source. After a change to it, this block builds the Debian package, keeps the intermediate folder for the check, validates the file and then removes the folder:
 
 ```bash
-sudo apt install ./artifacts/DataOrganizer*.deb
+cd "$DATAORG_REPO" && \
+sudo apt install -y appstream && \
+pupnet build/app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
+appstreamcli validate artifacts/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.metainfo.xml && \
+rm -rf artifacts/Artifacts.Deb.amd64
 ```
 
-**Confirm it landed** and that the desktop entry exists:
-
-```bash
-which dataorganizer
-ls /usr/share/applications/ | grep -i dataorganizer
-```
-
-**Launch** — from the application menu (look for *"Data Organizer"* with the icon), or from a terminal:
-
-```bash
-dataorganizer
-```
-
-**Uninstall**:
-
-```bash
-sudo apt remove dataorganizer
-```
-
-> Other formats run differently: an `.AppImage` just needs `chmod +x` then `./DataOrganizer*.AppImage`; a `.flatpak` installs with `flatpak install --user ./artifacts/DataOrganizer*.flatpak`; a `.zip` is unpacked and run in place.
+After a PupNet update, `pupnet --new conf` and `pupnet --new meta` run in an empty folder show its current templates, to compare with the files of `build`.

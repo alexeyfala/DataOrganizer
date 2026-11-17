@@ -26,6 +26,7 @@ public sealed record SelectorChoice
 	/// <summary>
 	/// <c>True</c> when the item can be chosen.
 	/// </summary>
+	// Stryker disable once Boolean : a default value; a test of it would copy the literal
 	public bool IsAvailable { get; init; } = true;
 
 	/// <summary>

@@ -3613,63 +3613,6 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetEditorViewModel.SortAsync" />: records of a kind the sort does not know would be lost, so the
-	/// records keep their order and nothing is saved.
-	/// </summary>
-	[Test]
-	public async Task SortAsync_Keeps_Records_It_Cannot_Sort()
-	{
-		// Arrange
-		ForeignRecord foreign = new();
-
-		ValueRecord value = new()
-		{
-			Value = RandomString.Create(10)
-		};
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			builder.RegisterInstance(serializer);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsWriter>()
-				.As<IFileContentsWriter>();
-
-			builder
-				.RegisterType<FakeTimeProvider>()
-				.As<TimeProvider>();
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		sut
-			.Records
-			.AddRange([foreign, value]);
-
-		// Act
-		await sut.SortAsync(null, ListSortDirection.Ascending);
-
-		// Assert
-		sut.Records
-			.Should()
-			.Equal(foreign, value);
-
-		await dbAccess
-			.DidNotReceiveWithAnyArgs()
-			.UpdateFileContentsAsync(default, default!, default, default);
-	}
-
-	/// <summary>
 	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorted records are an edit, which reports the date of change it is
 	/// written with.
 	/// </summary>
@@ -4282,12 +4225,5 @@ internal class DatasetEditorViewModelTests
 			return new TestCaseData(command).SetArgDisplayNames(name);
 		}
 	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Record of a kind that the sort does not know.
-	/// </summary>
-	private sealed class ForeignRecord : DatasetRecordBase;
 	#endregion
 }

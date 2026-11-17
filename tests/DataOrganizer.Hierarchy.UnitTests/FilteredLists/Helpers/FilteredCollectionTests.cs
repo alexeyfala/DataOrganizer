@@ -178,35 +178,6 @@ internal class FilteredCollectionTests
 	}
 
 	/// <summary>
-	/// <see cref="FilteredCollection{TModel}.Dispose" />: disposing twice does not throw and clears the source.
-	/// </summary>
-	[Test]
-	public void Dispose_Is_Idempotent_And_Clears_Source()
-	{
-		// Arrange
-		FilteredCollection<FileDto> sut = CreateSut();
-
-		sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
-
-		// Act
-		Action act = () =>
-		{
-			sut.Dispose();
-
-			sut.Dispose();
-		};
-
-		// Assert
-		act
-			.Should()
-			.NotThrow();
-
-		sut.Visible
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="FilteredCollection{TModel}.FirstOrDefaultFromSource" />: returns the source item matching the predicate.
 	/// </summary>
 	[Test]

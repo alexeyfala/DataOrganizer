@@ -469,7 +469,7 @@ public sealed class DbAccess :
 		IEnumerable<Guid> ids,
 		[EnumeratorCancellation] CancellationToken token = default)
 	{
-		await foreach (Guid id in ids.ToAsyncEnumerable())
+		foreach (Guid id in ids)
 		{
 			yield return await GetFileContentsAsync(id, token).ConfigureAwait(false);
 		}

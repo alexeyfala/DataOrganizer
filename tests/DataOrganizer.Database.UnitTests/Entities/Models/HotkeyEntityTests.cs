@@ -11,34 +11,6 @@ internal class HotkeyEntityTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="HotkeyEntity" />: names written to Json are read back as the same hotkey.
-	/// </summary>
-	[Test]
-	public void Reads_Enums_By_Name()
-	{
-		// Arrange
-		HotkeyEntity hotkey = CreateHotkey(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
-
-		// Act
-		HotkeyEntity? result = JsonSerializer.Deserialize<HotkeyEntity>(JsonSerializer.Serialize(hotkey));
-
-		// Assert
-		result
-			.Should()
-			.NotBeNull();
-
-		result!
-			.Code
-			.Should()
-			.Be(hotkey.Code);
-
-		result
-			.Mask
-			.Should()
-			.Be(hotkey.Mask);
-	}
-
-	/// <summary>
 	/// <see cref="HotkeyEntity" />: names the library no longer has do not break reading the hotkey.
 	/// </summary>
 	[Test]

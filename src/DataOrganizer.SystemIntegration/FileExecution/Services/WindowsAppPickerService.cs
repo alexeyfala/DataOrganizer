@@ -373,7 +373,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	{
 		List<AssociatedAppInfo> result = [];
 
-		HashSet<string> seenPaths = new(StringComparer.OrdinalIgnoreCase);
+		HashSet<string> seenPaths = [with(StringComparer.OrdinalIgnoreCase)];
 
 		AddHkcrApplicationsTo(result, seenPaths);
 

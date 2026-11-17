@@ -149,9 +149,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 				throw;
 			}
 
-			// Replaces, never drops the session secret: the new key is already wrapped with it.
-			Remove(keeperId);
-
+			// Replaces the key of the keeper and keeps the session secret: the new key is already wrapped with it.
 			_wrappedDeks[keeperId] = wrappedDek;
 
 			return true;

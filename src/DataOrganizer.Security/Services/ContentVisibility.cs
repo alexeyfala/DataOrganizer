@@ -167,6 +167,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
+			// Stryker disable once Boolean,Block,Statement : the result only decides whether an error is shown
 			if (ShowFolderContents(folder, root.Id, dek))
 			{
 				return;
