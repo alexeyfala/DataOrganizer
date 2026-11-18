@@ -31,6 +31,7 @@
 			x:Name="CategorySearchInput"
 			Grid.Row="0"
 			Grid.Column="0"
+			Margin="4.0,0.0,0.0,0.0"
 			Classes="clearButton SearchTextBoxStyle"
 			Text="{Binding CategorySearch, Mode=TwoWay}" />
 
@@ -84,6 +85,7 @@
 			x:Name="FavoriteSearchInput"
 			Grid.Row="0"
 			Grid.Column="2"
+			Margin="4.0,0.0"
 			Classes="clearButton SearchTextBoxStyle"
 			Text="{Binding FavoriteSearch, Mode=TwoWay}" />
 

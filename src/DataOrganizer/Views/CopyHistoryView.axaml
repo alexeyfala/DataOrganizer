@@ -12,6 +12,7 @@
 	<Grid RowDefinitions="Auto,*">
 		<TextBox
 			Grid.Row="0"
+			Margin="4.0,0.0"
 			Classes="clearButton SearchTextBoxStyle"
 			Text="{Binding HistorySearch, Mode=TwoWay}" />
 
