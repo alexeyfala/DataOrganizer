@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.Shared.Interfaces;
+using DataOrganizer.Shared.Threading.Extensions;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Enums;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -197,7 +198,8 @@ public sealed partial class ClipboardLogViewModel :
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger,
-		IProcessLauncher processLauncher)
+		IProcessLauncher processLauncher,
+		TimeProvider timeProvider)
 	{
 		_clipboardLog = clipboardLog;
 
@@ -217,7 +219,7 @@ public sealed partial class ClipboardLogViewModel :
 			.Entries
 			.ToObservableChangeSet()
 			.Select(static _ => Unit.Default)
-			.Merge(BuildSearchTrigger())
+			.Merge(BuildSearchTrigger(timeProvider))
 			.Merge(BuildFilterTrigger());
 
 		if (SynchronizationContext.Current is { } context)
@@ -285,17 +287,13 @@ public sealed partial class ClipboardLogViewModel :
 	}
 
 	/// <summary>
-	/// Emits when the search query should be re-applied: immediately for the first value, debounced thereafter.
+	/// Emits when the search query should be re-applied, a changed one after its pause.
 	/// </summary>
-	private IObservable<Unit> BuildSearchTrigger()
+	private IObservable<Unit> BuildSearchTrigger(TimeProvider timeProvider)
 	{
 		return this
 			.WhenValueChanged(x => x.SearchText)
-			.Publish(stream => stream
-				.Take(1)
-				.Merge(stream
-					.Skip(1)
-					.Throttle(TimeSpan.FromMilliseconds(500L))))
+			.WithSearchPause(timeProvider)
 			.Select(static _ => Unit.Default);
 	}
 

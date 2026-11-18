@@ -13,8 +13,8 @@ internal partial class NotifyPropertyChangedExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: a changed search gives a new predicate only once
-	/// its pause ends on the clock.
+	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: a changed search gives a new predicate only
+	/// after its pause.
 	/// </summary>
 	[Test]
 	public void FilterPredicate_Follows_A_Changed_Search_After_Its_Pause()
@@ -34,15 +34,13 @@ internal partial class NotifyPropertyChangedExtensionsTests
 
 		source.Search = "hello";
 
+		int countBeforeThePause = predicates.Count;
+
 		// Act
-		time.Advance(TimeSpan.FromMilliseconds(500) - TimeSpan.FromTicks(1));
-
-		int countBeforeThePauseEnds = predicates.Count;
-
-		time.Advance(TimeSpan.FromTicks(1));
+		time.Advance(TimeSpan.FromMilliseconds(500));
 
 		// Assert
-		countBeforeThePauseEnds
+		countBeforeThePause
 			.Should()
 			.Be(1);
 

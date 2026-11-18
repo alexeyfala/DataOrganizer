@@ -7,6 +7,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
 using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
 using DataOrganizer.ViewModels.Windows;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Collections.ObjectModel;
@@ -37,6 +38,11 @@ internal class ClipboardLogViewModelTests
 				.Returns([ClipboardEntryFactory.CreateTextEntry("apple", [1]), ClipboardEntryFactory.CreateUrlEntry("https://apple.com", [2]), ClipboardEntryFactory.CreateImageEntry(hash: [3])]);
 
 			builder.RegisterInstance(clipboardLog);
+
+			// The search typed here waits for its pause, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -459,6 +465,53 @@ internal class ClipboardLogViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogViewModel.SearchText" />: a changed query narrows <c>VisibleEntries</c> only after its pause.
+	/// </summary>
+	[Test]
+	public void SearchText_Narrows_VisibleEntries_After_Its_Pause()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		ClipboardTextEntry apple = ClipboardEntryFactory.CreateTextEntry("apple", [1]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
+
+			clipboardLog
+				.Entries
+				.Returns([apple, ClipboardEntryFactory.CreateTextEntry("banana", [2])]);
+
+			builder.RegisterInstance(clipboardLog);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
+
+		sut.SearchText = "apple";
+
+		int countBeforeThePause = sut
+			.VisibleEntries
+			.Count;
+
+		// Act
+		time.Advance(TimeSpan.FromMilliseconds(500));
+
+		// Assert
+		countBeforeThePause
+			.Should()
+			.Be(2);
+
+		sut.VisibleEntries
+			.Should()
+			.Equal(apple);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogViewModel" />: switching to a non-searchable filter stashes and empties the query
 	/// (so a leftover search does not leave the list empty), then restores it on return to a searchable filter.
 	/// </summary>
@@ -477,6 +530,11 @@ internal class ClipboardLogViewModelTests
 				.Returns([]);
 
 			builder.RegisterInstance(clipboardLog);
+
+			// The search typed here waits for its pause, which does not come here.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();

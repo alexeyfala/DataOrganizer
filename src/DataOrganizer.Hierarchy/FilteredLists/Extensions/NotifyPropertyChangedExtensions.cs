@@ -1,5 +1,5 @@
 using DataOrganizer.Hierarchy.Interfaces;
-using DataOrganizer.Shared.Threading.Helpers;
+using DataOrganizer.Shared.Threading.Extensions;
 using DynamicData.Binding;
 using System;
 using System.ComponentModel;
@@ -22,14 +22,8 @@ public static class NotifyPropertyChangedExtensions
 	{
 		return target
 			.WhenValueChanged(whenValueChanged)
-			.Publish(stream =>
-			{
-				return stream
-					.Take(1)
-					.Merge(stream.Skip(1).Throttle(
-						TimeSpan.FromMilliseconds(500L),
-						new TimeProviderScheduler(timeProvider)));
-			}).Select(Predicate);
+			.WithSearchPause(timeProvider)
+			.Select(Predicate);
 
 		static Func<INamed, bool> Predicate(string? value) =>
 			string.IsNullOrWhiteSpace(value)
