@@ -6,6 +6,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
@@ -247,6 +248,7 @@
 		<Setter Property="Padding" Value="0.0" />
 		<Setter Property="Theme" Value="{StaticResource SoloTextBox}" />
 		<Setter Property="PlaceholderText" Value="{x:Static prop:Strings.Search}" />
+		<Setter Property="input:ClearOnEscapeAssist.IsEnabled" Value="True" />
 	</Style>
 
 	<Style Selector="Rectangle.ColorSampleStyle">
