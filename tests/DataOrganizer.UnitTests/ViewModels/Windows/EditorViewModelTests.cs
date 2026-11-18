@@ -1,9 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
+using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Behaviors;
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Interfaces.Database;
@@ -62,6 +66,7 @@ using DataOrganizer.Workflows.HierarchyExchange.Services;
 using DataOrganizer.Workflows.HierarchyScenarios.Interfaces;
 using DataOrganizer.Workflows.HierarchyScenarios.Services;
 using DynamicData.Binding;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
@@ -5528,6 +5533,13 @@ internal class EditorViewModelTests
 		sut.Hierarchy.Add(shown);
 
 		EditorWindow window = new(sut);
+
+		// The wait for the window to load follows a clock that stands still, so only the load can end it.
+		Interaction
+			.GetBehaviors(window.GetLogicalDescendants().OfType<TreeView>().Single())
+			.OfType<ExplorerItemSignalsBehavior>()
+			.Single()
+			.TimeProvider = new FakeTimeProvider();
 
 		using IDisposable selections = sut
 			.WhenPropertyChanged(x => x.SelectedNode, notifyOnInitialValue: false)

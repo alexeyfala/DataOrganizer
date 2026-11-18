@@ -62,6 +62,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
@@ -80,7 +83,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		INotificationService notification,
 		IProcessLauncher processLauncher,
 		IExecutionSandbox sandbox,
-		ITaskExceptionHandler exceptionHandler)
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider)
 	{
 		_appResolver = appResolver;
 
@@ -103,6 +107,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_processLauncher = processLauncher;
 
 		_sandbox = sandbox;
+
+		_timeProvider = timeProvider;
 	}
 	#endregion
 
@@ -588,7 +594,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			try
 			{
 				await trackerTask
-					.WaitAsync(TimeSpan.FromSeconds(5), token)
+					.WaitAsync(TimeSpan.FromSeconds(5), _timeProvider, token)
 					.ConfigureAwait(false);
 			}
 			catch (TimeoutException)

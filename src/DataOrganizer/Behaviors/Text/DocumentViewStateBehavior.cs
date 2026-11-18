@@ -27,6 +27,11 @@ internal sealed class DocumentViewStateBehavior :
 {
 	#region Properties
 	/// <summary>
+	/// Clock of the pause after a move of the caret or a change of the view.
+	/// </summary>
+	public TimeProvider TimeProvider { get; set; } = TimeProvider.System;
+
+	/// <summary>
 	/// Caret, selection, scroll position, bookmarks and folded blocks of the document.
 	/// A value set from outside is restored once the document has been laid out.
 	/// </summary>
@@ -196,7 +201,9 @@ internal sealed class DocumentViewStateBehavior :
 				.GetObservable(SplitDocumentEditor.ActiveEditorProperty)
 				.Select(BuildChangeTrigger)
 				.Switch()
-				.SetDelay(TimeSpan.FromSeconds(0.5))
+				.SetDelay(
+					TimeSpan.FromSeconds(0.5),
+					TimeProvider)
 				.Subscribe(_ => CaptureViewState()),
 			editor
 				.GetObservable(SplitDocumentEditor.ActiveEditorProperty)

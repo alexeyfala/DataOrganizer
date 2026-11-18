@@ -10,6 +10,7 @@ using DataOrganizer.SystemIntegration.FileExecution.Dto;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
 using DataOrganizer.SystemIntegration.FileExecution.Services;
 using DataOrganizer.TestSupport.Common;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
@@ -20,6 +21,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Testably.Abstractions.Testing;
+using TimeProvider = System.TimeProvider;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
@@ -740,6 +742,11 @@ internal class ExecutionEngineTests
 
 			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
 			builder.RegisterInstance(Substitute.For<IFileSystem>());
+
+			// The clock never moves, so only the tracker can end the wait.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();

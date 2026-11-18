@@ -24,28 +24,6 @@ namespace DataOrganizer.Behaviors;
 /// </summary>
 internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsControl>
 {
-	#region Data
-	/// <summary>
-	/// Pause between the selection of a shown object and its highlight.
-	/// </summary>
-	private const int ShowDelay = 200;
-
-	/// <summary>
-	/// Time the wait for the window to load lasts at most.
-	/// </summary>
-	private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(2);
-
-	/// <summary>
-	/// Stops the waits of the shows once the behavior is detached.
-	/// </summary>
-	private readonly CancellationTokenSource _cancellation = new();
-
-	/// <summary>
-	/// Subscriptions to the signals.
-	/// </summary>
-	private readonly CompositeDisposable _subscriptions = [];
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Objects to highlight.
@@ -76,7 +54,7 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	}
 
 	/// <summary>
-	/// Clock of the wait for the window to load.
+	/// Clock of the wait for the window to load and of the pause before the highlight.
 	/// </summary>
 	public TimeProvider TimeProvider { get; set; } = TimeProvider.System;
 	#endregion
@@ -93,6 +71,28 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	/// <inheritdoc cref="ShowSignal" />
 	public static readonly StyledProperty<IObservable<IReadOnlyList<object>>?> ShowSignalProperty = AvaloniaProperty
 		.Register<ExplorerItemSignalsBehavior, IObservable<IReadOnlyList<object>>?>(nameof(ShowSignal));
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Time the wait for the window to load lasts at most.
+	/// </summary>
+	private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(2);
+
+	/// <summary>
+	/// Pause between the selection of a shown object and its highlight.
+	/// </summary>
+	private static readonly TimeSpan ShowDelay = TimeSpan.FromMilliseconds(200);
+
+	/// <summary>
+	/// Stops the waits of the shows once the behavior is detached.
+	/// </summary>
+	private readonly CancellationTokenSource _cancellation = new();
+
+	/// <summary>
+	/// Subscriptions to the signals.
+	/// </summary>
+	private readonly CompositeDisposable _subscriptions = [];
 	#endregion
 
 	#region Methods
@@ -225,7 +225,10 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		}
 
 		await Task
-			.Delay(ShowDelay, token)
+			.Delay(
+				ShowDelay,
+				TimeProvider,
+				token)
 			.ConfigureAwait(true);
 
 		await BrushAnimations.ApplyHighlightAnimationAsync(

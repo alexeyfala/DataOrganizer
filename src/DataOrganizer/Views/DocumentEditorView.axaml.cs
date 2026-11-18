@@ -231,6 +231,12 @@ internal sealed partial class DocumentEditorView :
 		get => GetValue(WordWrapProperty);
 		set => SetValue(WordWrapProperty, value);
 	}
+
+	/// <summary>
+	/// Runs an action once after a delay, <see cref="DispatcherTimer.RunOnce" /> by default; disposing the result cancels it.
+	/// </summary>
+	internal Func<Action, TimeSpan, IDisposable> RunOnce { get; init; } =
+		static (action, delay) => DispatcherTimer.RunOnce(action, delay);
 	#endregion
 
 	#region Commands
@@ -406,7 +412,9 @@ internal sealed partial class DocumentEditorView :
 
 		_hasBeenLoaded = true;
 
-		DispatcherTimer.RunOnce(() => Editor.ActiveEditor.Focus(), TimeSpan.FromMilliseconds(100));
+		_ = RunOnce(
+			() => Editor.ActiveEditor.Focus(),
+			TimeSpan.FromMilliseconds(100));
 	}
 	#endregion
 

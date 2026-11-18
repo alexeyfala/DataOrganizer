@@ -11,7 +11,9 @@ using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
+using DataOrganizer.Behaviors;
 using DataOrganizer.Controls;
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Database.Entities.Models;
@@ -44,6 +46,7 @@ using DataOrganizer.Workflows.AppLifecycle.Services;
 using DataOrganizer.Workflows.HierarchyScenarios.Interfaces;
 using MapsterMapper;
 using Material.Styles.Controls;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Collections.ObjectModel;
@@ -56,6 +59,13 @@ namespace DataOrganizer.UnitTests.Windows;
 [TestFixture(Description = $@"Tests of ""{nameof(EditorWindow)}"" type")]
 internal class EditorWindowTests
 {
+	#region Data
+	/// <summary>
+	/// Time longer than the pause between the selection of a shown object and its highlight.
+	/// </summary>
+	private static readonly TimeSpan PastThePause = TimeSpan.FromSeconds(1.0);
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="EditorViewModel.AddAsync" />: the folder an object is added to is shown expanded and saved so.
@@ -2325,9 +2335,11 @@ internal class EditorWindowTests
 	/// tree, brings it into view, selects it and highlights it.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowObject_Brings_An_Object_Inside_Collapsed_Folders_Far_Down_Into_View()
+	public void ShowObject_Brings_An_Object_Inside_Collapsed_Folders_Far_Down_Into_View()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		FolderDto outer = ItemDtoFactory.CreateFolderDto();
 
 		FolderDto inner = ItemDtoFactory.CreateFolderDto();
@@ -2361,6 +2373,13 @@ internal class EditorWindowTests
 
 		EditorWindow sut = new(viewModel);
 
+		// The pause before the highlight follows the clock of the test.
+		Interaction
+			.GetBehaviors(sut.GetLogicalDescendants().OfType<TreeView>().Single())
+			.OfType<ExplorerItemSignalsBehavior>()
+			.Single()
+			.TimeProvider = time;
+
 		sut.Show();
 
 		Dispatcher.UIThread.RunJobs();
@@ -2368,7 +2387,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+		time.RunJobsFor(PastThePause);
 
 		bool[] states =
 		[
@@ -2509,9 +2528,11 @@ internal class EditorWindowTests
 	/// of the tree.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowObject_Highlights_An_Object_Inside_Nested_Folders()
+	public void ShowObject_Highlights_An_Object_Inside_Nested_Folders()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		FolderDto outer = ItemDtoFactory.CreateFolderDto();
 
 		FolderDto inner = ItemDtoFactory.CreateFolderDto();
@@ -2546,6 +2567,13 @@ internal class EditorWindowTests
 
 		EditorWindow sut = new(viewModel);
 
+		// The pause before the highlight follows the clock of the test.
+		Interaction
+			.GetBehaviors(sut.GetLogicalDescendants().OfType<TreeView>().Single())
+			.OfType<ExplorerItemSignalsBehavior>()
+			.Single()
+			.TimeProvider = time;
+
 		sut.Show();
 
 		Dispatcher.UIThread.RunJobs();
@@ -2557,7 +2585,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		time.RunJobsFor(PastThePause);
 
 		IBrush? highlight = item.Background;
 
@@ -2573,9 +2601,11 @@ internal class EditorWindowTests
 	/// <see cref="EditorViewModel.ShowObject" />: the shown object is highlighted in the tree.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowObject_Highlights_The_Object_In_The_Tree()
+	public void ShowObject_Highlights_The_Object_In_The_Tree()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
@@ -2589,6 +2619,13 @@ internal class EditorWindowTests
 
 		EditorWindow sut = new(viewModel);
 
+		// The pause before the highlight follows the clock of the test.
+		Interaction
+			.GetBehaviors(sut.GetLogicalDescendants().OfType<TreeView>().Single())
+			.OfType<ExplorerItemSignalsBehavior>()
+			.Single()
+			.TimeProvider = time;
+
 		sut.Show();
 
 		Dispatcher.UIThread.RunJobs();
@@ -2600,7 +2637,7 @@ internal class EditorWindowTests
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		time.RunJobsFor(PastThePause);
 
 		IBrush? highlight = item.Background;
 
@@ -2617,9 +2654,11 @@ internal class EditorWindowTests
 	/// before the selection.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowObject_Selects_A_File_Inside_Collapsed_Folders()
+	public void ShowObject_Selects_A_File_Inside_Collapsed_Folders()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		FolderDto outer = ItemDtoFactory.CreateFolderDto();
 
 		FolderDto inner = ItemDtoFactory.CreateFolderDto();
@@ -2645,6 +2684,13 @@ internal class EditorWindowTests
 
 		EditorWindow sut = new(viewModel);
 
+		// The pause before the highlight follows the clock of the test.
+		Interaction
+			.GetBehaviors(sut.GetLogicalDescendants().OfType<TreeView>().Single())
+			.OfType<ExplorerItemSignalsBehavior>()
+			.Single()
+			.TimeProvider = time;
+
 		sut.Show();
 
 		Dispatcher.UIThread.RunJobs();
@@ -2653,7 +2699,7 @@ internal class EditorWindowTests
 		viewModel.ShowObject(file.Id);
 
 		// The highlight comes after the selection, so a selection the tree drops is gone by then.
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => IsHighlighted(sut, file, inner));
+		time.RunJobsFor(PastThePause);
 
 		bool[] states =
 		[

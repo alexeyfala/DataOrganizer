@@ -28,9 +28,10 @@ using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.Views;
+using Microsoft.Extensions.Time.Testing;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Input;
 
 namespace DataOrganizer.UnitTests.Views;
@@ -108,6 +109,12 @@ internal class DocumentEditorViewTests
 	/// Name of the panel with the buttons of the control in the toolbar in the markup.
 	/// </summary>
 	private const string ToolBarName = "ToolBar";
+
+	/// <summary>
+	/// Time longer than the pause before the first focus of the text and than the one after which a change of the view
+	/// is reported.
+	/// </summary>
+	private static readonly TimeSpan PastThePause = TimeSpan.FromSeconds(1.0);
 	#endregion
 
 	#region Methods	
@@ -342,16 +349,30 @@ internal class DocumentEditorViewTests
 	/// marker, reaches the view state after a pause, as the engine tells no fold and neither the caret nor the view moves.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task CaptureViewState_Follows_A_Fold_Of_The_Engine_After_A_Pause()
+	public void CaptureViewState_Follows_A_Fold_Of_The_Engine_After_A_Pause()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		using DocumentEditorView sut = new()
 		{
 			Document = CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
+		DocumentViewStateBehavior behavior = GetViewStateBehavior(sut);
+
+		// The markup attached the behavior on the clock of the system, so it attaches again on the clock of the test.
+		behavior.Detach();
+
+		behavior.TimeProvider = time;
+
+		behavior.Attach(sut.GetControl<SplitDocumentEditor>(EditorName));
+
 		HeadlessWindow.Show(sut);
+
+		// The state of the first layout is reported before the fold, so that only the fold can report it again.
+		time.RunJobsFor(PastThePause);
 
 		FoldingSection block = GetFoldingMargin(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
 			.FoldingManager
@@ -361,15 +382,15 @@ internal class DocumentEditorViewTests
 		// Act
 		block.IsFolded = true;
 
-		// Assert
-		// The pause ends on a timer, which posts the capture to the UI thread.
-		bool result = await Dispatcher.UIThread.RunJobsUntilAsync(
-			() => sut.ViewState?.FoldedBlocks is [int start] && start == block.StartOffset,
-			maxRepeats: 1000);
+		time.RunJobsFor(PastThePause);
 
-		result
+		// Assert
+		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
+		int[]? foldedBlocks = sut.ViewState?.FoldedBlocks;
+
+		foldedBlocks
 			.Should()
-			.BeTrue();
+			.Equal(block.StartOffset);
 	}
 
 	/// <summary>
@@ -1385,12 +1406,15 @@ internal class DocumentEditorViewTests
 	/// that had it.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task OnLoaded_Gives_The_Focus_Back_To_The_Active_Half()
+	public void OnLoaded_Gives_The_Focus_Back_To_The_Active_Half()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		DocumentEditorView sut = new()
 		{
-			IsSplit = true
+			IsSplit = true,
+			RunOnce = (action, delay) => time.CreateTimer(_ => action(), null, delay, Timeout.InfiniteTimeSpan)
 		};
 
 		TabControl tabs = new()
@@ -1407,7 +1431,8 @@ internal class DocumentEditorViewTests
 
 		HeadlessWindow.Show(tabs);
 
-		await WaitForFirstFocus(sut);
+		// The first focus comes after a pause, which runs out here, so that it cannot come later.
+		time.RunJobsFor(PastThePause);
 
 		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
 
@@ -1435,10 +1460,15 @@ internal class DocumentEditorViewTests
 	/// from the tree, the control leaves the focus there.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task OnLoaded_Leaves_The_Focus_Outside_Its_Tabs()
+	public void OnLoaded_Leaves_The_Focus_Outside_Its_Tabs()
 	{
 		// Arrange
-		DocumentEditorView sut = new();
+		FakeTimeProvider time = new();
+
+		DocumentEditorView sut = new()
+		{
+			RunOnce = (action, delay) => time.CreateTimer(_ => action(), null, delay, Timeout.InfiniteTimeSpan)
+		};
 
 		TextBox outside = new();
 
@@ -1463,7 +1493,8 @@ internal class DocumentEditorViewTests
 			}
 		});
 
-		await WaitForFirstFocus(sut);
+		// The first focus comes after a pause, which runs out here, so that it cannot come later.
+		time.RunJobsFor(PastThePause);
 
 		tabs.SelectedIndex = 1;
 
@@ -1487,10 +1518,15 @@ internal class DocumentEditorViewTests
 	/// to their header after the control is loaded.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task OnLoaded_Takes_The_Focus_After_The_Tabs_Move_It_To_The_Header()
+	public void OnLoaded_Takes_The_Focus_After_The_Tabs_Move_It_To_The_Header()
 	{
 		// Arrange
-		DocumentEditorView sut = new();
+		FakeTimeProvider time = new();
+
+		DocumentEditorView sut = new()
+		{
+			RunOnce = (action, delay) => time.CreateTimer(_ => action(), null, delay, Timeout.InfiniteTimeSpan)
+		};
 
 		TabItem tab = new()
 		{
@@ -1508,7 +1544,8 @@ internal class DocumentEditorViewTests
 
 		HeadlessWindow.Show(tabs);
 
-		await WaitForFirstFocus(sut);
+		// The first focus comes after a pause, which runs out here, so that it cannot come later.
+		time.RunJobsFor(PastThePause);
 
 		tabs.SelectedIndex = 1;
 
@@ -1533,10 +1570,15 @@ internal class DocumentEditorViewTests
 	/// the control takes the focus into its text.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task OnLoaded_Takes_The_Focus_From_The_Header_Of_Its_Tab()
+	public void OnLoaded_Takes_The_Focus_From_The_Header_Of_Its_Tab()
 	{
 		// Arrange
-		DocumentEditorView sut = new();
+		FakeTimeProvider time = new();
+
+		DocumentEditorView sut = new()
+		{
+			RunOnce = (action, delay) => time.CreateTimer(_ => action(), null, delay, Timeout.InfiniteTimeSpan)
+		};
 
 		TabItem tab = new()
 		{
@@ -1554,7 +1596,8 @@ internal class DocumentEditorViewTests
 
 		HeadlessWindow.Show(tabs);
 
-		await WaitForFirstFocus(sut);
+		// The first focus comes after a pause, which runs out here, so that it cannot come later.
+		time.RunJobsFor(PastThePause);
 
 		tabs.SelectedIndex = 1;
 
@@ -1586,9 +1629,18 @@ internal class DocumentEditorViewTests
 			Document = CreateDocument(lineCount: 100)
 		};
 
+		DocumentViewStateBehavior behavior = GetViewStateBehavior(sut);
+
+		// The markup attached the behavior on the clock of the system, so it attaches again on a clock that stands still,
+		// and the pause after the layout of the view never runs out.
+		behavior.Detach();
+
+		behavior.TimeProvider = new FakeTimeProvider();
+
+		behavior.Attach(sut.GetControl<SplitDocumentEditor>(EditorName));
+
 		HeadlessWindow.Show(sut);
 
-		// An editor out of any window, so that the pause after the layout of the view cannot run out before the check.
 		DocumentTextEditor other = new()
 		{
 			Document = CreateDocument(lineCount: 100)
@@ -1617,9 +1669,18 @@ internal class DocumentEditorViewTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
+		DocumentViewStateBehavior behavior = GetViewStateBehavior(sut);
+
+		// The markup attached the behavior on the clock of the system, so it attaches again on a clock that stands still,
+		// and the pause after the layout of the view never runs out.
+		behavior.Detach();
+
+		behavior.TimeProvider = new FakeTimeProvider();
+
+		behavior.Attach(sut.GetControl<SplitDocumentEditor>(EditorName));
+
 		HeadlessWindow.Show(sut);
 
-		// An editor out of any window, so that the pause after the layout of the view cannot run out before the check.
 		using DocumentTextEditor other = new()
 		{
 			Document = CreateBlockDocument(blockCount: 10),
@@ -1649,6 +1710,16 @@ internal class DocumentEditorViewTests
 			IsSplit = true,
 			SyntaxLanguage = PowerShellLanguage
 		};
+
+		DocumentViewStateBehavior behavior = GetViewStateBehavior(sut);
+
+		// The markup attached the behavior on the clock of the system, so it attaches again on a clock that stands still,
+		// and the pause after the layout of the view never runs out.
+		behavior.Detach();
+
+		behavior.TimeProvider = new FakeTimeProvider();
+
+		behavior.Attach(sut.GetControl<SplitDocumentEditor>(EditorName));
 
 		HeadlessWindow.Show(sut);
 
@@ -3242,21 +3313,6 @@ internal class DocumentEditorViewTests
 			.LineTransformers
 			.OfType<TextMateColoringTransformer>()
 			.Any();
-	}
-
-	/// <summary>
-	/// Waits for the focus the editor gives its text a moment after it is first loaded, so that it cannot come later.
-	/// </summary>
-	private static ValueTask<bool> WaitForFirstFocus(DocumentEditorView editor)
-	{
-		// The focus comes on a timer, which posts it to the UI thread.
-		return Dispatcher.UIThread.RunJobsUntilAsync(
-			() => editor
-				.GetControl<SplitDocumentEditor>(EditorName)
-				.PrimaryEditor
-				.TextArea
-				.IsFocused,
-			maxRepeats: 1000);
 	}
 	#endregion
 }
