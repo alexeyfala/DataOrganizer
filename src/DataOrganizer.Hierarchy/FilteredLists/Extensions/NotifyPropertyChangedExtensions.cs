@@ -1,3 +1,4 @@
+using DataOrganizer.Hierarchy.FilteredLists.Helpers;
 using DataOrganizer.Hierarchy.Interfaces;
 using DataOrganizer.Shared.Threading.Extensions;
 using DynamicData.Binding;
@@ -23,12 +24,7 @@ public static class NotifyPropertyChangedExtensions
 		return target
 			.WhenValueChanged(whenValueChanged)
 			.WithSearchPause(timeProvider)
-			.Select(Predicate);
-
-		static Func<INamed, bool> Predicate(string? value) =>
-			string.IsNullOrWhiteSpace(value)
-				? _ => true
-				: x => x.Name.Contains(value, StringComparison.OrdinalIgnoreCase);
+			.Select(NameFilter.Create);
 	}
 	#endregion
 }

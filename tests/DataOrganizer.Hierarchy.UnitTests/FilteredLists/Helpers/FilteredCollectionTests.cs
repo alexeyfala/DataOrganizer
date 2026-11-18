@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.FilteredLists.Helpers;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.FilteredLists.Fakes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -556,27 +557,6 @@ internal class FilteredCollectionTests
 		IObservable<Func<FileDto, bool>> filter = Observable.Return<Func<FileDto, bool>>(_ => true);
 
 		return new FilteredCollection<FileDto>(filter);
-	}
-
-	/// <summary>
-	/// Synchronization context that keeps the posted callbacks until the test runs them.
-	/// </summary>
-	private sealed class QueueingSynchronizationContext : SynchronizationContext
-	{
-		private readonly Queue<(SendOrPostCallback Callback, object? State)> _posted = new();
-
-		public override void Post(SendOrPostCallback d, object? state) => _posted.Enqueue((d, state));
-
-		/// <summary>
-		/// Runs the callbacks posted so far, in their order.
-		/// </summary>
-		public void RunPosted()
-		{
-			while (_posted.TryDequeue(out (SendOrPostCallback Callback, object? State) posted))
-			{
-				posted.Callback(posted.State);
-			}
-		}
 	}
 	#endregion
 }
