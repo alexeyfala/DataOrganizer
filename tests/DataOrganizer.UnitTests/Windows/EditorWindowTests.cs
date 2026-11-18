@@ -2739,11 +2739,11 @@ internal class EditorWindowTests
 	/// </summary>
 	private static ColumnDefinition FindNavigationColumn(EditorWindow window)
 	{
-		return ((Grid)window
+		return window
 			.GetVisualDescendants()
 			.OfType<TreeView>()
 			.First()
-			.Parent!)
+			.FindAncestorOfType<Grid>()!
 			.ColumnDefinitions[0];
 	}
 

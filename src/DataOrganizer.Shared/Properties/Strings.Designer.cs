@@ -1546,6 +1546,15 @@ namespace DataOrganizer.Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nothing found.
+        /// </summary>
+        public static string NothingFound {
+            get {
+                return ResourceManager.GetString("NothingFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         public static string OK {

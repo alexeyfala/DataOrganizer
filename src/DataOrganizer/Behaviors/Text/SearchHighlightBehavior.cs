@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -8,8 +7,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.Documents.TextProcessing.Dto;
-using DataOrganizer.Documents.TextProcessing.Helpers;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -115,29 +112,6 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 
 	#region Helpers
 	/// <summary>
-	/// Builds the inlines for <paramref name="text" />, wrapping each match of <paramref name="query" />
-	/// in a highlighted <see cref="Run" />.
-	/// </summary>
-	private static InlineCollection BuildInlines(string text, string? query)
-	{
-		InlineCollection inlines = [];
-
-		foreach (SearchHighlightSegment segment in SearchHighlight.SplitSegments(text, query))
-		{
-			Run run = new(segment.Text);
-
-			if (segment.IsMatch)
-			{
-				run.Background = TextHighlight.Brush;
-			}
-
-			inlines.Add(run);
-		}
-
-		return inlines;
-	}
-
-	/// <summary>
 	/// Resets the vertical scroll offset to the top.
 	/// </summary>
 	private static void ResetScroll(ScrollViewer? scroll) => scroll?.Offset = scroll.Offset.WithY(0.0);
@@ -185,7 +159,7 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 		{
 			SetRestingLayout(target, scroll);
 
-			target.Inlines = BuildInlines(text, query: null);
+			target.Inlines = TextHighlight.CreateInlines(text, query: null);
 
 			ResetScroll(scroll);
 
@@ -195,7 +169,7 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 		// Search: full text, every match highlighted, the first one scrolled into view.
 		SetSearchLayout(target, scroll);
 
-		target.Inlines = BuildInlines(text, Query);
+		target.Inlines = TextHighlight.CreateInlines(text, Query);
 
 		ScrollToFirstMatch(target, scroll, text, Query!);
 	}

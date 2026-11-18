@@ -1,6 +1,9 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using DataOrganizer.Documents.TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 
 namespace DataOrganizer.Controls.Text;
 
@@ -36,6 +39,28 @@ internal static class TextHighlight
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Builds the runs of <paramref name="text" />, each match of <paramref name="query" /> on the highlight brush.
+	/// </summary>
+	public static InlineCollection CreateInlines(string text, string? query)
+	{
+		InlineCollection inlines = [];
+
+		foreach (SearchHighlightSegment segment in SearchHighlight.SplitSegments(text, query))
+		{
+			Run run = new(segment.Text);
+
+			if (segment.IsMatch)
+			{
+				run.Background = Brush;
+			}
+
+			inlines.Add(run);
+		}
+
+		return inlines;
+	}
+
 	/// <summary>
 	/// Returns the brush of the bookmarks, a color of its own outside the theme.
 	/// </summary>

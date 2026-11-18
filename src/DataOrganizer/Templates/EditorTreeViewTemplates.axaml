@@ -39,6 +39,8 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
+					<text:MatchHighlightBehavior />
+
 					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
@@ -87,7 +89,7 @@
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
 		x:DataType="nodes:FolderNodeViewModel"
-		ItemsSource="{Binding Children, DataType={x:Type nodes:ExplorerNodeViewModelBase}, Mode=OneTime}">
+		ItemsSource="{Binding ShownChildren, DataType={x:Type nodes:ExplorerNodeViewModelBase}, Mode=OneTime}">
 		<!--  The row shows the folder itself, so its menu works with the folder.  -->
 		<ContentControl
 			Content="{Binding Model, Mode=OneWay}"

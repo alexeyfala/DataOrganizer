@@ -22,6 +22,7 @@
 	xmlns:notificationConstants="using:DataOrganizer.Infrastructure.Notifications.Constants"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
@@ -408,41 +409,60 @@
 								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
 
-							<TreeView
+							<DockPanel
 								Grid.Row="0"
-								Grid.Column="0"
-								AutoScrollToSelectedItem="True"
-								Classes="VirtualizedTreeViewStyle"
-								ItemsSource="{Binding Nodes, Mode=OneTime}"
-								ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-								SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
+								Grid.Column="0">
+								<TextBox
+									x:Name="ObjectSearchInput"
+									Classes="clearButton SearchTextBoxStyle"
+									DockPanel.Dock="Top"
+									Text="{Binding Search.Text, Mode=TwoWay}" />
 
-								<TreeView.Styles>
-									<Style
-										x:DataType="nodes:ExplorerNodeViewModelBase"
-										Selector="TreeViewItem">
-										<Setter Property="AutomationProperties.Name" Value="{Binding Model.Name, Mode=OneWay}" />
-										<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-										<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-									</Style>
-								</TreeView.Styles>
+								<Panel>
+									<TreeView
+										text:MatchHighlightBehavior.Query="{Binding Search.Query, Mode=OneWay}"
+										AutoScrollToSelectedItem="True"
+										Classes="VirtualizedTreeViewStyle"
+										ItemsSource="{Binding ShownNodes, Mode=OneTime}"
+										ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+										SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
 
-								<Interaction.Behaviors>
-									<input:DisableRightClickSelectionBehavior />
+										<TreeView.Styles>
+											<Style
+												x:DataType="nodes:ExplorerNodeViewModelBase"
+												Selector="TreeViewItem">
+												<Setter Property="AutomationProperties.Name" Value="{Binding Model.Name, Mode=OneWay}" />
+												<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+												<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+											</Style>
+										</TreeView.Styles>
 
-									<behaviors:ExplorerItemSignalsBehavior
-										HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
-										ScrollSignal="{Binding ScrollSignal, Mode=OneWay}"
-										SelectCommand="{Binding SelectObjectCommand, Mode=OneWay}"
-										ShowSignal="{Binding ShowSignal, Mode=OneWay}" />
-								</Interaction.Behaviors>
+										<Interaction.Behaviors>
+											<input:DisableRightClickSelectionBehavior />
 
-								<TreeView.DataTemplates>
-									<StaticResource ResourceKey="FolderInTreeViewTemplate" />
+											<behaviors:ExplorerItemSignalsBehavior
+												HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
+												ScrollSignal="{Binding ScrollSignal, Mode=OneWay}"
+												SelectCommand="{Binding SelectObjectCommand, Mode=OneWay}"
+												ShowSignal="{Binding ShowSignal, Mode=OneWay}" />
+										</Interaction.Behaviors>
 
-									<StaticResource ResourceKey="FileInTreeViewTemplate" />
-								</TreeView.DataTemplates>
-							</TreeView>
+										<TreeView.DataTemplates>
+											<StaticResource ResourceKey="FolderInTreeViewTemplate" />
+
+											<StaticResource ResourceKey="FileInTreeViewTemplate" />
+										</TreeView.DataTemplates>
+									</TreeView>
+
+									<TextBlock
+										Margin="0.0,8.0"
+										HorizontalAlignment="Center"
+										VerticalAlignment="Top"
+										Foreground="{StaticResource MaterialBodyLightBrush}"
+										IsVisible="{Binding Search.IsNothingFound, Mode=OneWay}"
+										Text="{x:Static prop:Strings.NothingFound}" />
+								</Panel>
+							</DockPanel>
 
 							<GridSplitter
 								Grid.Row="0"

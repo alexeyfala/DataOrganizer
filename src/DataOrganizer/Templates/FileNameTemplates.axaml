@@ -18,6 +18,8 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
+					<text:MatchHighlightBehavior />
+
 					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
