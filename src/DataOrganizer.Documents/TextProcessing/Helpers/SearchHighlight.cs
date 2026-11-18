@@ -1,8 +1,8 @@
-using DataOrganizer.SystemIntegration.Clipboard.Dto;
+using DataOrganizer.Documents.TextProcessing.Dto;
 using System;
 using System.Collections.Generic;
 
-namespace DataOrganizer.SystemIntegration.Clipboard.Helpers;
+namespace DataOrganizer.Documents.TextProcessing.Helpers;
 
 /// <summary>
 /// Splits text into ordered plain / matched segments around a search query.

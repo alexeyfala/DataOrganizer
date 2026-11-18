@@ -1,9 +1,9 @@
 using AwesomeAssertions;
-using DataOrganizer.SystemIntegration.Clipboard.Dto;
-using DataOrganizer.SystemIntegration.Clipboard.Helpers;
+using DataOrganizer.Documents.TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 using System.Collections.Generic;
 
-namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Helpers;
+namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SearchHighlight)}"" type")]
 internal class SearchHighlightTests
