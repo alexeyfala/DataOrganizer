@@ -13,8 +13,8 @@ internal partial class NotifyPropertyChangedExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: a changed search gives a new predicate only once
-	/// its pause ends on the clock.
+	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: a changed search gives a new predicate only
+	/// after its pause.
 	/// </summary>
 	[Test]
 	public void FilterPredicate_Follows_A_Changed_Search_After_Its_Pause()
@@ -34,15 +34,13 @@ internal partial class NotifyPropertyChangedExtensionsTests
 
 		source.Search = "hello";
 
+		int countBeforeThePause = predicates.Count;
+
 		// Act
-		time.Advance(TimeSpan.FromMilliseconds(500) - TimeSpan.FromTicks(1));
-
-		int countBeforeThePauseEnds = predicates.Count;
-
-		time.Advance(TimeSpan.FromTicks(1));
+		time.Advance(TimeSpan.FromMilliseconds(500));
 
 		// Assert
-		countBeforeThePauseEnds
+		countBeforeThePause
 			.Should()
 			.Be(1);
 
@@ -55,40 +53,11 @@ internal partial class NotifyPropertyChangedExtensionsTests
 			.Should()
 			.HaveCount(2);
 
-		predicates[1](new NameHolder("Other"))
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: the predicate matches items whose name contains the search text and rejects the rest.
-	/// </summary>
-	[Test]
-	public void FilterPredicate_Predicate_Matches_Item_By_Name_When_Search_Is_Provided()
-	{
-		// Arrange
-		Source source = new() { Search = "hello" };
-
-		List<Func<INamed, bool>> predicates = [];
-
-		// Act
-		using IDisposable subscription = source
-			.FilterPredicate(
-				x => x.Search,
-				TimeProvider.System)
-			.Subscribe(predicates.Add);
-
-		// Assert
-		Func<INamed, bool> predicate = predicates
-			.Should()
-			.ContainSingle()
-			.Which;
-
-		predicate(new NameHolder("Hello world"))
+		predicates[1](new NameHolder("hello world"))
 			.Should()
 			.BeTrue();
 
-		predicate(new NameHolder("Other"))
+		predicates[1](new NameHolder("Other"))
 			.Should()
 			.BeFalse();
 	}

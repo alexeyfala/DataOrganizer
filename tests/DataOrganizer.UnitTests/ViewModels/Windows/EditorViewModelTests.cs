@@ -1,9 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
+using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Behaviors;
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Interfaces.Database;
@@ -62,6 +66,7 @@ using DataOrganizer.Workflows.HierarchyExchange.Services;
 using DataOrganizer.Workflows.HierarchyScenarios.Interfaces;
 using DataOrganizer.Workflows.HierarchyScenarios.Services;
 using DynamicData.Binding;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
@@ -77,7 +82,67 @@ namespace DataOrganizer.UnitTests.ViewModels.Windows;
 [TestFixture(Description = $@"Tests of ""{nameof(EditorViewModel)}"" type")]
 internal class EditorViewModelTests
 {
+	#region Data
+	/// <summary>
+	/// Time longer than the pause after which a changed search is applied.
+	/// </summary>
+	private static readonly TimeSpan PastThePause = TimeSpan.FromSeconds(1.0);
+	#endregion
+
 	#region Methods
+	/// <summary>
+	/// <see cref="EditorViewModel.AddAsync" />: the search is cleared once an object is added, and kept when nothing is
+	/// added.
+	/// </summary>
+	[Test]
+	public async Task AddAsync_Clears_The_Search_Once_The_Object_Is_Added([Values] bool isAdded)
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.AddAsync(
+					Arg.Any<string>(),
+					Arg.Any<EntityKind>(),
+					Arg.Any<FolderDto>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(isAdded ? ItemDtoFactory.CreateFileDto() : null);
+
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Search.Text = "needle";
+
+		time.Advance(PastThePause);
+
+		// Act
+		_ = await sut.AddAsync(
+			"name",
+			EntityKind.File,
+			parent: null);
+
+		// Assert
+		sut.Search.Query
+			.Should()
+			.Be(isAdded ? null : "needle");
+	}
+
 	/// <summary>
 	/// <see cref="EditorViewModel.AddAsync" />: delegates to the hierarchy editor and, on success, refreshes the object count.
 	/// </summary>
@@ -2489,6 +2554,43 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync" />: the search is cleared, so all folders are those it
+	/// hid too.
+	/// </summary>
+	[Test]
+	public async Task ExpandCollapseAllFoldersAsync_Clears_The_Search()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Search.Text = "needle";
+
+		time.Advance(PastThePause);
+
+		// Act
+		await sut.ExpandCollapseAllFoldersAsync(isExpanded: true);
+
+		// Assert
+		sut.Search.Query
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.HideAllFileContents" />: all open files are closed and their contents re-encrypted.
 	/// </summary>
 	[Test]
@@ -2936,6 +3038,55 @@ internal class EditorViewModelTests
 		sut.Hierarchy
 			.Should()
 			.Equal(imported);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: the search is cleared once objects are imported, and kept when the import
+	/// ends without them.
+	/// </summary>
+	[Test]
+	public async Task Import_Clears_The_Search_Once_Imported([Values] bool isImported)
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IImportScenario import = Substitute.For<IImportScenario>();
+
+			import
+				.ImportAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
+				.Returns(isImported
+					? new ImportDataResult(
+						ItemDtoFactory.CreateLoadedHierarchy([]),
+						ImportMode.Append)
+					: null);
+
+			builder.RegisterInstance(import);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Search.Text = "needle";
+
+		time.Advance(PastThePause);
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		sut.Search.Query
+			.Should()
+			.Be(isImported ? null : "needle");
 	}
 
 	/// <summary>
@@ -4664,6 +4815,158 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Search" />: a search that shows the selected object asks the tree to bring its row into
+	/// view.
+	/// </summary>
+	[Test]
+	public void Search_Brings_The_Selected_Row_Into_View()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		FolderDto folder = ItemDtoFactory.CreateNamedFolderDto("folder");
+
+		FileDto file = ItemDtoFactory.CreateNamedFileDto("needle");
+
+		file.Parent = folder;
+
+		folder.Children.Add(file);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(folder);
+
+		ExplorerNodeViewModelBase folderRow = sut.Nodes.Single();
+
+		ExplorerNodeViewModelBase fileRow = folderRow.Children.Single();
+
+		sut.SelectedNode = fileRow;
+
+		List<IReadOnlyList<ExplorerNodeViewModelBase>> scrolls = [];
+
+		using IDisposable subscription = sut.ScrollSignal.Subscribe(scrolls.Add);
+
+		sut.Search.Text = "needle";
+
+		// Act
+		time.Advance(PastThePause);
+
+		// Assert
+		scrolls
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Equal(folderRow, fileRow);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Search" />: a search that hides the selected object leaves it.
+	/// </summary>
+	[Test]
+	public void Search_Leaves_A_Selected_Object_It_Hides()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(ItemDtoFactory.CreateNamedFileDto("other"));
+
+		sut.SelectedNode = sut.Nodes.Single();
+
+		sut.Search.Text = "needle";
+
+		// Act
+		time.Advance(PastThePause);
+
+		// Assert
+		sut.SelectedNode
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Search" />: a search opens the folders on the way to the objects it matches.
+	/// </summary>
+	[Test]
+	public void Search_Opens_The_Folders_On_The_Way_To_The_Matches()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		FolderDto outer = ItemDtoFactory.CreateNamedFolderDto("outer");
+
+		FolderDto inner = ItemDtoFactory.CreateNamedFolderDto("inner");
+
+		FileDto file = ItemDtoFactory.CreateNamedFileDto("needle");
+
+		file.Parent = inner;
+
+		inner.Parent = outer;
+
+		inner.Children.Add(file);
+
+		outer.Children.Add(inner);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(outer);
+
+		ExplorerNodeViewModelBase outerRow = sut.Nodes.Single();
+
+		ExplorerNodeViewModelBase innerRow = outerRow.Children.Single();
+
+		sut.Search.Text = "needle";
+
+		// Act
+		time.Advance(PastThePause);
+
+		// Assert
+		bool[] states = [outerRow.IsExpanded, innerRow.IsExpanded];
+
+		states
+			.Should()
+			.Equal(true, true);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.SelectedNode" />: the row left is cleared and its object saved as not selected, also when
 	/// the tree never showed the row and so did not clear it.
 	/// </summary>
@@ -5507,6 +5810,86 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ShownNodes" />: only the rows of the objects the search shows are shown.
+	/// </summary>
+	[Test]
+	public void ShownNodes_Show_Only_The_Rows_The_Search_Shows()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		FileDto shown = ItemDtoFactory.CreateNamedFileDto("needle");
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(ItemDtoFactory.CreateNamedFileDto("other"));
+
+		sut.Hierarchy.Add(shown);
+
+		sut.Search.Text = "needle";
+
+		// Act
+		time.Advance(PastThePause);
+
+		// Assert
+		sut.ShownNodes.Select(static x => x.Model)
+			.Should()
+			.Equal(shown);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ShowObject" />: the search is cleared, so it cannot hide the object.
+	/// </summary>
+	[Test]
+	public void ShowObject_Clears_The_Search()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		FileDto file = ItemDtoFactory.CreateNamedFileDto("other");
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Hierarchy.Add(file);
+
+		sut.Search.Text = "needle";
+
+		time.Advance(PastThePause);
+
+		// Act
+		sut.ShowObject(file.Id);
+
+		// Assert
+		sut.Search.Query
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ShowObject" />: the object is selected only once the window has loaded, as
 	/// a selection made before would not be saved.
 	/// </summary>
@@ -5528,6 +5911,13 @@ internal class EditorViewModelTests
 		sut.Hierarchy.Add(shown);
 
 		EditorWindow window = new(sut);
+
+		// The wait for the window to load follows a clock that stands still, so only the load can end it.
+		Interaction
+			.GetBehaviors(window.GetLogicalDescendants().OfType<TreeView>().Single())
+			.OfType<ExplorerItemSignalsBehavior>()
+			.Single()
+			.TimeProvider = new FakeTimeProvider();
 
 		using IDisposable selections = sut
 			.WhenPropertyChanged(x => x.SelectedNode, notifyOnInitialValue: false)

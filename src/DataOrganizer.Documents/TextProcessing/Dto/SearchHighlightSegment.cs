@@ -1,4 +1,4 @@
-namespace DataOrganizer.SystemIntegration.Clipboard.Dto;
+namespace DataOrganizer.Documents.TextProcessing.Dto;
 
 /// <summary>
 /// A contiguous run of text flagged as a query match or as plain text.

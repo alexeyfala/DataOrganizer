@@ -880,4 +880,7 @@
   <data name="HiddenText" xml:space="preserve">
     <value>Hidden text</value>
   </data>
+  <data name="NothingFound" xml:space="preserve">
+    <value>Nothing found</value>
+  </data>
 </root>

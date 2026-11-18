@@ -24,28 +24,6 @@ namespace DataOrganizer.Behaviors;
 /// </summary>
 internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsControl>
 {
-	#region Data
-	/// <summary>
-	/// Pause between the selection of a shown object and its highlight.
-	/// </summary>
-	private const int ShowDelay = 200;
-
-	/// <summary>
-	/// Time the wait for the window to load lasts at most.
-	/// </summary>
-	private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(2);
-
-	/// <summary>
-	/// Stops the waits of the shows once the behavior is detached.
-	/// </summary>
-	private readonly CancellationTokenSource _cancellation = new();
-
-	/// <summary>
-	/// Subscriptions to the signals.
-	/// </summary>
-	private readonly CompositeDisposable _subscriptions = [];
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Objects to highlight.
@@ -54,6 +32,15 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	{
 		get => GetValue(HighlightSignalProperty);
 		set => SetValue(HighlightSignalProperty, value);
+	}
+
+	/// <summary>
+	/// Paths from the top of the hierarchy to the objects to bring into view; the last item of a path is the object.
+	/// </summary>
+	public IObservable<IReadOnlyList<object>>? ScrollSignal
+	{
+		get => GetValue(ScrollSignalProperty);
+		set => SetValue(ScrollSignalProperty, value);
 	}
 
 	/// <summary>
@@ -76,7 +63,7 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	}
 
 	/// <summary>
-	/// Clock of the wait for the window to load.
+	/// Clock of the wait for the window to load and of the pause before the highlight.
 	/// </summary>
 	public TimeProvider TimeProvider { get; set; } = TimeProvider.System;
 	#endregion
@@ -86,6 +73,10 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	public static readonly StyledProperty<IObservable<object>?> HighlightSignalProperty = AvaloniaProperty
 		.Register<ExplorerItemSignalsBehavior, IObservable<object>?>(nameof(HighlightSignal));
 
+	/// <inheritdoc cref="ScrollSignal" />
+	public static readonly StyledProperty<IObservable<IReadOnlyList<object>>?> ScrollSignalProperty = AvaloniaProperty
+		.Register<ExplorerItemSignalsBehavior, IObservable<IReadOnlyList<object>>?>(nameof(ScrollSignal));
+
 	/// <inheritdoc cref="SelectCommand" />
 	public static readonly StyledProperty<ICommand?> SelectCommandProperty = AvaloniaProperty
 		.Register<ExplorerItemSignalsBehavior, ICommand?>(nameof(SelectCommand));
@@ -93,6 +84,28 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	/// <inheritdoc cref="ShowSignal" />
 	public static readonly StyledProperty<IObservable<IReadOnlyList<object>>?> ShowSignalProperty = AvaloniaProperty
 		.Register<ExplorerItemSignalsBehavior, IObservable<IReadOnlyList<object>>?>(nameof(ShowSignal));
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Time the wait for the window to load lasts at most.
+	/// </summary>
+	private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(2);
+
+	/// <summary>
+	/// Pause between the selection of a shown object and its highlight.
+	/// </summary>
+	private static readonly TimeSpan ShowDelay = TimeSpan.FromMilliseconds(200);
+
+	/// <summary>
+	/// Stops the waits of the shows once the behavior is detached.
+	/// </summary>
+	private readonly CancellationTokenSource _cancellation = new();
+
+	/// <summary>
+	/// Subscriptions to the signals.
+	/// </summary>
+	private readonly CompositeDisposable _subscriptions = [];
 	#endregion
 
 	#region Methods
@@ -106,6 +119,13 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 			.Select(static x => x ?? Observable.Never<object>())
 			.Switch()
 			.Subscribe(Highlight)
+			.DisposeWith(_subscriptions);
+
+		this
+			.GetObservable(ScrollSignalProperty)
+			.Select(static x => x ?? Observable.Never<IReadOnlyList<object>>())
+			.Switch()
+			.Subscribe(Scroll)
 			.DisposeWith(_subscriptions);
 
 		this
@@ -192,6 +212,19 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	}
 
 	/// <summary>
+	/// Brings the object at the end of a path into view.
+	/// </summary>
+	private void Scroll(IReadOnlyList<object> path)
+	{
+		if (AssociatedObject is not { } items || path is [])
+		{
+			return;
+		}
+
+		_ = BringPathIntoView(items, path);
+	}
+
+	/// <summary>
 	/// Brings the object at the end of a path into view, selects it and highlights it once the window has loaded.
 	/// </summary>
 	private async Task ShowAsync(IReadOnlyList<object> path, CancellationToken token)
@@ -225,7 +258,10 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		}
 
 		await Task
-			.Delay(ShowDelay, token)
+			.Delay(
+				ShowDelay,
+				TimeProvider,
+				token)
 			.ConfigureAwait(true);
 
 		await BrushAnimations.ApplyHighlightAnimationAsync(

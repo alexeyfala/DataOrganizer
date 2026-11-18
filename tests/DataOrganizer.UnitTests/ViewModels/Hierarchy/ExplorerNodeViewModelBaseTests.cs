@@ -2,16 +2,26 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.Workflows.AppLifecycle.Services;
+using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.UnitTests.ViewModels.Hierarchy;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerNodeViewModelBase)}"" type")]
 internal class ExplorerNodeViewModelBaseTests
 {
+	#region Data
+	/// <summary>
+	/// Name filter that never changes, for rows whose shown objects the tests do not read.
+	/// </summary>
+	private static readonly IObservable<HierarchyFilter> UnusedFilter = Observable.Never<HierarchyFilter>();
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ExplorerNodeViewModelBase.Create" />: a folder gets the row of a folder and a file the row of a file,
@@ -24,7 +34,10 @@ internal class ExplorerNodeViewModelBaseTests
 		ExplorerItemDtoBase model = isFolder ? ItemDtoFactory.CreateFolderDto() : ItemDtoFactory.CreateFileDto();
 
 		// Act
-		using ExplorerNodeViewModelBase row = ExplorerNodeViewModelBase.Create(model, new WorkSession());
+		using ExplorerNodeViewModelBase row = ExplorerNodeViewModelBase.Create(
+			model,
+			UnusedFilter,
+			new WorkSession());
 
 		// Assert
 		row
@@ -54,6 +67,8 @@ internal class ExplorerNodeViewModelBaseTests
 		{
 			builder.RegisterInstance(folder);
 
+			builder.RegisterInstance(UnusedFilter);
+
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
@@ -69,7 +84,10 @@ internal class ExplorerNodeViewModelBaseTests
 			.Should()
 			.Be(isExpanded);
 
-		using FolderNodeViewModel next = new(folder, session);
+		using FolderNodeViewModel next = new(
+			folder,
+			UnusedFilter,
+			session);
 
 		next.IsExpanded
 			.Should()
@@ -88,6 +106,8 @@ internal class ExplorerNodeViewModelBaseTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder.RegisterInstance(ItemDtoFactory.CreateFolderDto());
+
+			builder.RegisterInstance(UnusedFilter);
 
 			builder
 				.RegisterType<WorkSession>()

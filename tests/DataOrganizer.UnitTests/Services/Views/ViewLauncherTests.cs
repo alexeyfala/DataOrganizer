@@ -13,6 +13,7 @@ using Avalonia.Xaml.Interactions.Custom;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Behaviors;
 using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Documents.Editor.Messages;
 using DataOrganizer.Documents.Editor.Services;
@@ -61,6 +62,7 @@ using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using Material.Styles.Controls;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -1820,6 +1822,13 @@ internal class ViewLauncherTests
 			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
 
 			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			// The wait for the window to load follows a clock that stands still, so only the load can end it.
+			Interaction
+				.GetBehaviors(editorWindow.GetLogicalDescendants().OfType<TreeView>().Single())
+				.OfType<ExplorerItemSignalsBehavior>()
+				.Single()
+				.TimeProvider = new FakeTimeProvider();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 

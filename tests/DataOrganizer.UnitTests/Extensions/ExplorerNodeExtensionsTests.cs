@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.Workflows.AppLifecycle.Services;
@@ -8,12 +9,20 @@ using DynamicData.Binding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 
 namespace DataOrganizer.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerNodeExtensions)}"" type")]
 internal class ExplorerNodeExtensionsTests
 {
+	#region Data
+	/// <summary>
+	/// Name filter that never changes, for rows whose shown objects the tests do not read.
+	/// </summary>
+	private static readonly IObservable<HierarchyFilter> UnusedFilter = Observable.Never<HierarchyFilter>();
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ExplorerNodeExtensions.FindNode" />: an object the rows do not show has no row.
@@ -28,7 +37,10 @@ internal class ExplorerNodeExtensionsTests
 
 		file.Parent = folder;
 
-		using FolderNodeViewModel row = new(folder, new WorkSession());
+		using FolderNodeViewModel row = new(
+			folder,
+			UnusedFilter,
+			new WorkSession());
 
 		// Act
 		ExplorerNodeViewModelBase? found = ((ExplorerNodeViewModelBase[])[row]).FindNode(file);
@@ -60,7 +72,10 @@ internal class ExplorerNodeExtensionsTests
 
 		inner.Children.Add(file);
 
-		using FolderNodeViewModel row = new(outer, new WorkSession());
+		using FolderNodeViewModel row = new(
+			outer,
+			UnusedFilter,
+			new WorkSession());
 
 		// Act
 		ExplorerNodeViewModelBase? found = ((ExplorerNodeViewModelBase[])[row]).FindNode(file);
@@ -95,7 +110,10 @@ internal class ExplorerNodeExtensionsTests
 
 		inner.Children.Add(file);
 
-		using FolderNodeViewModel row = new(outer, new WorkSession());
+		using FolderNodeViewModel row = new(
+			outer,
+			UnusedFilter,
+			new WorkSession());
 
 		// Act
 		ExplorerNodeViewModelBase[] path = ((ExplorerNodeViewModelBase[])[row]).FindPath(file);
@@ -123,7 +141,10 @@ internal class ExplorerNodeExtensionsTests
 
 		root.Children.Add(folder);
 
-		using FolderNodeViewModel row = new(root, new WorkSession());
+		using FolderNodeViewModel row = new(
+			root,
+			UnusedFilter,
+			new WorkSession());
 
 		using IDisposable subscription = row
 			.Children
@@ -160,7 +181,10 @@ internal class ExplorerNodeExtensionsTests
 
 		root.Children.Add(folder);
 
-		using FolderNodeViewModel row = new(root, new WorkSession());
+		using FolderNodeViewModel row = new(
+			root,
+			UnusedFilter,
+			new WorkSession());
 
 		using IDisposable subscription = row
 			.Children
@@ -206,7 +230,10 @@ internal class ExplorerNodeExtensionsTests
 
 		root.Children.Add(file);
 
-		using FolderNodeViewModel row = new(root, new WorkSession());
+		using FolderNodeViewModel row = new(
+			root,
+			UnusedFilter,
+			new WorkSession());
 
 		using IDisposable subscription = row
 			.Children

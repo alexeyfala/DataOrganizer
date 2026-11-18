@@ -1,4 +1,5 @@
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.Interfaces;
 using DynamicData;
 using DynamicData.Binding;
@@ -13,27 +14,44 @@ namespace DataOrganizer.ViewModels.Hierarchy;
 /// </summary>
 public sealed class FolderNodeViewModel : ExplorerNodeViewModelBase
 {
-	#region Data
-	/// <inheritdoc cref="Children" />
-	private readonly ReadOnlyObservableCollection<ExplorerNodeViewModelBase> _children;
-	#endregion
-
-	#region Constructors
-	public FolderNodeViewModel(FolderDto model, ISessionTreeState treeState) : base(model, treeState)
-	{
-		model
-			.Children
-			.ToObservableChangeSet()
-			.Transform(x => Create(x, treeState))
-			.DisposeMany()
-			.Bind(out _children)
-			.Subscribe()
-			.DisposeWith(_disposables);
-	}
-	#endregion
-
 	#region Properties
 	/// <inheritdoc />
 	public override ReadOnlyObservableCollection<ExplorerNodeViewModelBase> Children => _children;
+
+	/// <inheritdoc />
+	public override ReadOnlyObservableCollection<ExplorerNodeViewModelBase> ShownChildren => _shownChildren;
+	#endregion
+
+	#region Data
+	/// <inheritdoc cref="Children" />
+	private readonly ReadOnlyObservableCollection<ExplorerNodeViewModelBase> _children;
+
+	/// <inheritdoc cref="ShownChildren" />
+	private readonly ReadOnlyObservableCollection<ExplorerNodeViewModelBase> _shownChildren;
+	#endregion
+
+	#region Constructors
+	public FolderNodeViewModel(
+		FolderDto model,
+		IObservable<HierarchyFilter> filter,
+		ISessionTreeState treeState) : base(model, treeState)
+	{
+		// The filter comes after the disposal, so a row it hides stays alive until its object leaves the folder.
+		model
+			.Children
+			.ToObservableChangeSet()
+			.Transform(x => Create(
+				x,
+				filter,
+				treeState))
+			.DisposeMany()
+			.Bind(out _children)
+			.Filter(
+				filter,
+				static (state, row) => state.Shows(row.Model.Id))
+			.Bind(out _shownChildren)
+			.Subscribe()
+			.DisposeWith(_disposables);
+	}
 	#endregion
 }
