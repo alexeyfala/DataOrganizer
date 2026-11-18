@@ -13,6 +13,7 @@ using DataOrganizer.Helpers.Views;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Extensions;
+using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.Interfaces;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
@@ -48,6 +49,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,12 +152,25 @@ public sealed partial class EditorViewModel :
 	public partial RightSideSheetContentKind RightSideSheetContent { get; set; }
 
 	/// <summary>
+	/// Paths of the rows for the tree to bring into view, from the top of the tree to the row.
+	/// </summary>
+	public IObservable<IReadOnlyList<ExplorerNodeViewModelBase>> ScrollSignal => _scrollSignal;
+
+	/// <inheritdoc cref="HierarchySearchViewModel" />
+	public HierarchySearchViewModel Search { get; }
+
+	/// <summary>
 	/// The row selected in <see cref="Nodes" />.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
 	public partial ExplorerNodeViewModelBase? SelectedNode { get; set; }
+
+	/// <summary>
+	/// Rows of <see cref="Nodes" /> that the name filter of the tree shows.
+	/// </summary>
+	public ReadOnlyObservableCollection<ExplorerNodeViewModelBase> ShownNodes => _shownNodes;
 
 	/// <summary>
 	/// Paths of the rows for the tree to bring into view, select and highlight, from the top of the tree to the row.
@@ -400,6 +415,9 @@ public sealed partial class EditorViewModel :
 		{
 			return;
 		}
+
+		// The search could hide what was imported.
+		Search.Clear();
 
 		if (result.Variant == ImportMode.Replace)
 		{
@@ -911,6 +929,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IProtectionScenarios" />
 	private readonly IProtectionScenarios _protectionScenarios;
 
+	/// <inheritdoc cref="ScrollSignal" />
+	private readonly Subject<IReadOnlyList<ExplorerNodeViewModelBase>> _scrollSignal = new();
+
 	/// <inheritdoc cref="ISeedingScenarios" />
 	private readonly ISeedingScenarios _seeding;
 
@@ -926,8 +947,12 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="ISettingsCommit" />
 	private readonly ISettingsCommit _settingsCommit;
 
+	/// <inheritdoc cref="ShownNodes" />
+	private readonly ReadOnlyObservableCollection<ExplorerNodeViewModelBase> _shownNodes;
+
 	/// <inheritdoc cref="ShowSignal" />
 	private readonly Subject<IReadOnlyList<ExplorerNodeViewModelBase>> _showSignal = new();
+
 	/// <inheritdoc cref="ITextInputPrompt" />
 	private readonly ITextInputPrompt _textInputPrompt;
 
@@ -975,7 +1000,8 @@ public sealed partial class EditorViewModel :
 		ISettingsCommit settingsCommit,
 		ITaskExceptionHandler exceptionHandler,
 		ITextInputPrompt textInputPrompt,
-		IViewModelFactory viewModelFactory) : base(
+		IViewModelFactory viewModelFactory,
+		TimeProvider timeProvider) : base(
 			settingsStore,
 			copyHistory,
 			executingFiles,
@@ -987,6 +1013,9 @@ public sealed partial class EditorViewModel :
 			viewModelFactory)
 	{
 		EditingFiles = editingFiles;
+
+		// The search lives and ends with the window; the container would keep a disposable transient to the end of the app.
+		Search = new HierarchySearchViewModel(sessionHierarchy, timeProvider);
 
 		_autoLock = autoLock;
 
@@ -1042,12 +1071,27 @@ public sealed partial class EditorViewModel :
 
 		_textInputPrompt = textInputPrompt;
 
+		// The filter comes after the disposal, so a row it hides stays alive until its object leaves the tree.
 		Hierarchy
 			.ToObservableChangeSet()
-			.Transform(x => ExplorerNodeViewModelBase.Create(x, sessionTreeState))
+			.Transform(x => ExplorerNodeViewModelBase.Create(
+				x,
+				Search.Changes,
+				sessionTreeState))
 			.DisposeMany()
 			.Bind(out _nodes)
+			.Filter(
+				Search.Changes,
+				static (filter, row) => filter.Shows(row.Model.Id))
+			.Bind(out _shownNodes)
 			.Subscribe()
+			.DisposeWith(_disposables);
+
+		// The first filter shows every object as the tree already does.
+		Search
+			.Changes
+			.Skip(1)
+			.Subscribe(ApplyFilter)
 			.DisposeWith(_disposables);
 
 		// The expanded folders and the selected object of the tree are kept for the next start.
@@ -1060,6 +1104,9 @@ public sealed partial class EditorViewModel :
 			.MergeManyInTree(x => x.WhenPropertyChanged(y => y.IsSelected, notifyOnInitialValue: false))
 			.Subscribe(x => SaveIsSelected(x.Sender.Model, x.Value))
 			.DisposeWith(_disposables);
+
+		// The search goes last, after the rows that follow its filter.
+		Search.DisposeWith(_disposables);
 
 		UpdateHierarchySummary();
 	}
@@ -1136,6 +1183,9 @@ public sealed partial class EditorViewModel :
 
 		if (dto is not null)
 		{
+			// The search could hide what was added.
+			Search.Clear();
+
 			// The folder opens to show what was added to it.
 			if (parent is not null && Nodes.FindNode(parent) is { } folder)
 			{
@@ -1172,6 +1222,9 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	internal Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
+		// All folders means those the search hides too.
+		Search.Clear();
+
 		if (!isExpanded)
 		{
 			ResetSelectedObject();
@@ -1223,6 +1276,9 @@ public sealed partial class EditorViewModel :
 		{
 			return;
 		}
+
+		// The search could hide the object.
+		Search.Clear();
 
 		foreach (ExplorerNodeViewModelBase folder in folders)
 		{
@@ -1286,6 +1342,36 @@ public sealed partial class EditorViewModel :
 		Hierarchy.AddRange(hierarchy);
 
 		UpdateHierarchySummary();
+	}
+
+	/// <summary>
+	/// Opens the folders on the way to the matches of a new filter, leaves the selected object when the filter hides it,
+	/// and otherwise asks the tree to bring its row into view.
+	/// </summary>
+	private void ApplyFilter(HierarchyFilter filter)
+	{
+		foreach (ExplorerNodeViewModelBase folder in Hierarchy
+			.GetFolders()
+			.Where(x => filter.ExpandedIds.Contains(x.Id))
+			.Select(x => Nodes.FindNode(x))
+			.OfType<ExplorerNodeViewModelBase>())
+		{
+			folder.IsExpanded = true;
+		}
+
+		if (SelectedNode is not { } selected)
+		{
+			return;
+		}
+
+		if (!filter.Shows(selected.Model.Id))
+		{
+			ResetSelectedObject();
+
+			return;
+		}
+
+		_scrollSignal.OnNext(Nodes.FindPath(selected.Model));
 	}
 
 	/// <summary>
@@ -1499,6 +1585,9 @@ public sealed partial class EditorViewModel :
 	private async Task SeedAsync(Func<Collection<ExplorerItemDtoBase>, Task> seed)
 	{
 		IsLeftDrawerOpened = false;
+
+		// The search could hide the samples.
+		Search.Clear();
 
 		await seed(Hierarchy).ConfigureAwait(true);
 

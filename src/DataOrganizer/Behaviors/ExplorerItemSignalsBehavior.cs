@@ -35,6 +35,15 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	}
 
 	/// <summary>
+	/// Paths from the top of the hierarchy to the objects to bring into view; the last item of a path is the object.
+	/// </summary>
+	public IObservable<IReadOnlyList<object>>? ScrollSignal
+	{
+		get => GetValue(ScrollSignalProperty);
+		set => SetValue(ScrollSignalProperty, value);
+	}
+
+	/// <summary>
 	/// Command that selects a shown object; its parameter is the object.
 	/// </summary>
 	public ICommand? SelectCommand
@@ -63,6 +72,10 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 	/// <inheritdoc cref="HighlightSignal" />
 	public static readonly StyledProperty<IObservable<object>?> HighlightSignalProperty = AvaloniaProperty
 		.Register<ExplorerItemSignalsBehavior, IObservable<object>?>(nameof(HighlightSignal));
+
+	/// <inheritdoc cref="ScrollSignal" />
+	public static readonly StyledProperty<IObservable<IReadOnlyList<object>>?> ScrollSignalProperty = AvaloniaProperty
+		.Register<ExplorerItemSignalsBehavior, IObservable<IReadOnlyList<object>>?>(nameof(ScrollSignal));
 
 	/// <inheritdoc cref="SelectCommand" />
 	public static readonly StyledProperty<ICommand?> SelectCommandProperty = AvaloniaProperty
@@ -106,6 +119,13 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 			.Select(static x => x ?? Observable.Never<object>())
 			.Switch()
 			.Subscribe(Highlight)
+			.DisposeWith(_subscriptions);
+
+		this
+			.GetObservable(ScrollSignalProperty)
+			.Select(static x => x ?? Observable.Never<IReadOnlyList<object>>())
+			.Switch()
+			.Subscribe(Scroll)
 			.DisposeWith(_subscriptions);
 
 		this
@@ -189,6 +209,19 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 		}
 
 		_ = BrushAnimations.ApplyHighlightAnimationAsync(() => container.Background as Brush);
+	}
+
+	/// <summary>
+	/// Brings the object at the end of a path into view.
+	/// </summary>
+	private void Scroll(IReadOnlyList<object> path)
+	{
+		if (AssociatedObject is not { } items || path is [])
+		{
+			return;
+		}
+
+		_ = BringPathIntoView(items, path);
 	}
 
 	/// <summary>

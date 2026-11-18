@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
+using AwesomeAssertions;
 using DataOrganizer.Behaviors;
 using DataOrganizer.UnitTests.Factories;
 using Microsoft.Extensions.Time.Testing;
@@ -31,6 +32,69 @@ internal class ExplorerItemSignalsBehaviorTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="ExplorerItemSignalsBehavior.ScrollSignal" />: an object far down the list is brought into view and left
+	/// unselected.
+	/// </summary>
+	[AvaloniaTest]
+	public void ScrollSignal_Brings_The_Object_Into_View_Without_Selecting_It()
+	{
+		// Arrange
+		string[] items = [.. Enumerable.Range(0, 100).Select(static x => $"Item {x}")];
+
+		ICommand selectCommand = Substitute.For<ICommand>();
+
+		Subject<IReadOnlyList<object>> scrollSignal = new();
+
+		ListBox list = new()
+		{
+			ItemsSource = items
+		};
+
+		ExplorerItemSignalsBehavior sut = new()
+		{
+			ScrollSignal = scrollSignal,
+			SelectCommand = selectCommand
+		};
+
+		Interaction
+			.GetBehaviors(list)
+			.Add(sut);
+
+		Window window = new()
+		{
+			Content = list,
+			Height = 200.0,
+			Width = 300.0
+		};
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Control? rowBefore = list.ContainerFromItem(items[^1]);
+
+		// Act
+		scrollSignal.OnNext([items[^1]]);
+
+		Control? rowAfter = list.ContainerFromItem(items[^1]);
+
+		window.Close();
+
+		// Assert
+		rowBefore
+			.Should()
+			.BeNull();
+
+		rowAfter
+			.Should()
+			.NotBeNull();
+
+		selectCommand
+			.DidNotReceiveWithAnyArgs()
+			.Execute(default);
+	}
+
 	/// <summary>
 	/// <see cref="ExplorerItemSignalsBehavior.ShowSignal" />: an object asked for in a window that loads only after the
 	/// limit of the wait is left unselected.

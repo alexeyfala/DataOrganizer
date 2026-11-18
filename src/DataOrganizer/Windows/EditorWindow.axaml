@@ -432,6 +432,7 @@
 
 									<behaviors:ExplorerItemSignalsBehavior
 										HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
+										ScrollSignal="{Binding ScrollSignal, Mode=OneWay}"
 										SelectCommand="{Binding SelectObjectCommand, Mode=OneWay}"
 										ShowSignal="{Binding ShowSignal, Mode=OneWay}" />
 								</Interaction.Behaviors>
