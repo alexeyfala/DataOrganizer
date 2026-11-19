@@ -8,7 +8,7 @@ namespace DataOrganizer.UnitTests.Guards;
 
 [Guard]
 [TestFixture(Description = "Guards the code against reading the time past the time provider")]
-internal class SystemClockTests
+internal partial class SystemClockTests
 {
 	#region Data
 	/// <summary>
@@ -26,10 +26,10 @@ internal class SystemClockTests
 	/// </summary>
 	private static readonly Dictionary<string, Regex> Forms = new()
 	{
-		["DateTime.Now"] = new(@"\bDateTime(?:Offset)?\s*\.\s*(?:Now|UtcNow|Today)\b"),
-		["Stopwatch"] = new(@"\bStopwatch\b"),
-		["Task.Delay"] = new(@"\bTask\s*\.\s*Delay\s*\((?![^;]*?(?i:timeprovider))"),
-		["Thread.Sleep"] = new(@"\bThread\s*\.\s*Sleep\b")
+		["DateTime.Now"] = DateTimeNowRegex(),
+		["Stopwatch"] = StopwatchRegex(),
+		["Task.Delay"] = TaskDelayRegex(),
+		["Thread.Sleep"] = ThreadSleepRegex()
 	};
 	#endregion
 
@@ -69,6 +69,12 @@ internal class SystemClockTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Matches a read of the current date or time.
+	/// </summary>
+	[GeneratedRegex(@"\bDateTime(?:Offset)?\s*\.\s*(?:Now|UtcNow|Today)\b")]
+	private static partial Regex DateTimeNowRegex();
+
 	/// <summary>
 	/// Enumerates the C# files of a folder, the build output left out.
 	/// </summary>
@@ -113,5 +119,23 @@ internal class SystemClockTests
 			.Split(Path.DirectorySeparatorChar)
 			.Any(static x => x is "bin" or "obj");
 	}
+
+	/// <summary>
+	/// Matches a use of a stopwatch.
+	/// </summary>
+	[GeneratedRegex(@"\bStopwatch\b")]
+	private static partial Regex StopwatchRegex();
+
+	/// <summary>
+	/// Matches a delay whose statement names no time provider.
+	/// </summary>
+	[GeneratedRegex(@"\bTask\s*\.\s*Delay\s*\((?![^;]*?(?i:timeprovider))")]
+	private static partial Regex TaskDelayRegex();
+
+	/// <summary>
+	/// Matches a sleep of the current thread.
+	/// </summary>
+	[GeneratedRegex(@"\bThread\s*\.\s*Sleep\b")]
+	private static partial Regex ThreadSleepRegex();
 	#endregion
 }
