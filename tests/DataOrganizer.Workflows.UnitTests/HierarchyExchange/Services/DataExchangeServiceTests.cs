@@ -272,11 +272,6 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(picker);
 
-			builder
-				.RegisterType<MockFileSystem>()
-				.As<IFileSystem>()
-				.SingleInstance();
-
 			// The file picker lists the formats in the order they are registered.
 			builder
 				.RegisterType<JsonExchangeFormat>()
@@ -426,11 +421,6 @@ internal class DataExchangeServiceTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(picker);
-
-			builder
-				.RegisterType<MockFileSystem>()
-				.As<IFileSystem>()
-				.SingleInstance();
 
 			builder
 				.RegisterType<JsonExchangeFormat>()
@@ -1767,11 +1757,6 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(picker);
 
-			builder
-				.RegisterType<MockFileSystem>()
-				.As<IFileSystem>()
-				.SingleInstance();
-
 			// The file picker lists the formats in the order they are registered.
 			builder
 				.RegisterType<JsonExchangeFormat>()
@@ -2189,11 +2174,6 @@ internal class DataExchangeServiceTests
 			builder.RegisterInstance(dbBackupService);
 
 			builder.RegisterInstance(picker);
-
-			builder
-				.RegisterType<MockFileSystem>()
-				.As<IFileSystem>()
-				.SingleInstance();
 
 			builder
 				.RegisterType<JsonExchangeFormat>()

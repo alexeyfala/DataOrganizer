@@ -1,7 +1,7 @@
 ﻿# Data Organizer
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-11-512BD4?logo=dotnet&logoColor=white)
 ![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
 **A cross-platform desktop application for organizing and securely storing structured data in a virtual file system.**
