@@ -889,4 +889,7 @@
   <data name="CheckAll" xml:space="preserve">
     <value>Check All</value>
   </data>
+  <data name="HaveBeenDeleted" xml:space="preserve">
+    <value>have been deleted</value>
+  </data>
 </root>

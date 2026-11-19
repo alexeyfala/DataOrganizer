@@ -3,6 +3,7 @@ using DataOrganizer.Database.Entities.Models;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Extensions;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
@@ -11,6 +12,7 @@ using DataOrganizer.Shared.Properties;
 using MapsterMapper;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,43 +152,51 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		// Stryker disable once String : wording of a message
-		string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
-
-		bool result;
-
-		try
+		if (!await DeleteEntityAsync(
+			dto,
+			hierarchy,
+			token).ConfigureAwait(false))
 		{
-			result = await _dbAccess
-				.DeleteAsync(dto.Kind, dto.Id, token)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_dbFailureReporter.Report(ex, errorText);
-
 			return false;
 		}
 
-		if (!result)
-		{
-			_notification.ShowErrorSnackbar(errorText);
-
-			_logger.LogError(errorText);
-
-			return false;
-		}
-
-		GetCollectionToDelete(dto, hierarchy).Remove(dto);
-
 		// Stryker disable once String : wording of a message
-		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
-
-		_notification.ShowInformationSnackbar(text);
-
-		_logger.LogInformation(text);
+		ShowDeleted($@"""{dto.Name}"" {Strings.HasBeenDeleted}");
 
 		return true;
+	}
+
+	/// <inheritdoc />
+	public async Task<IReadOnlyList<ExplorerItemDtoBase>> DeleteManyAsync(
+		IReadOnlyList<ExplorerItemDtoBase> items,
+		Collection<ExplorerItemDtoBase> hierarchy,
+		CancellationToken token = default)
+	{
+		List<ExplorerItemDtoBase> deleted = [];
+
+		foreach (ExplorerItemDtoBase item in items)
+		{
+			// The first failure is reported and ends the deletion, as the database is likely out of reach.
+			if (!await DeleteEntityAsync(
+				item,
+				hierarchy,
+				token).ConfigureAwait(false))
+			{
+				break;
+			}
+
+			deleted.Add(item);
+		}
+
+		if (deleted.Count == 0)
+		{
+			return deleted;
+		}
+
+		// Stryker disable once String : wording of a message
+		ShowDeleted($@"""{deleted.GetCount().AsString()}"" {Strings.HaveBeenDeleted}");
+
+		return deleted;
 	}
 
 	/// <inheritdoc />
@@ -275,5 +285,55 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			not null => target.Parent.Children,
 			null => collection
 		};
+
+	/// <summary>
+	/// Deletes an object from the database and from the hierarchy; a failure is reported and gives <c>false</c>.
+	/// </summary>
+	private async Task<bool> DeleteEntityAsync(
+		ExplorerItemDtoBase dto,
+		Collection<ExplorerItemDtoBase> hierarchy,
+		CancellationToken token)
+	{
+		// Stryker disable once String : wording of a message
+		string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
+
+		bool result;
+
+		try
+		{
+			result = await _dbAccess
+				.DeleteAsync(dto.Kind, dto.Id, token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_dbFailureReporter.Report(ex, errorText);
+
+			return false;
+		}
+
+		if (!result)
+		{
+			_notification.ShowErrorSnackbar(errorText);
+
+			_logger.LogError(errorText);
+
+			return false;
+		}
+
+		GetCollectionToDelete(dto, hierarchy).Remove(dto);
+
+		return true;
+	}
+
+	/// <summary>
+	/// Tells about a finished deletion.
+	/// </summary>
+	private void ShowDeleted(string text)
+	{
+		_notification.ShowInformationSnackbar(text);
+
+		_logger.LogInformation(text);
+	}
 	#endregion
 }

@@ -131,6 +131,8 @@ public sealed partial class EditorViewModel :
 				return;
 			}
 
+			DeleteCommand.NotifyCanExecuteChanged();
+
 			SetCheckAllCommand.NotifyCanExecuteChanged();
 		}
 	}
@@ -677,6 +679,14 @@ public sealed partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanDelete))]
 	private async Task Delete(ExplorerItemDtoBase? dto)
 	{
+		// In the multiple selection mode the toolbar deletes the checked objects; the menu of a row deletes its row.
+		if (dto is null && IsMultipleSelection)
+		{
+			await DeleteCheckedAsync().ConfigureAwait(false);
+
+			return;
+		}
+
 		ExplorerItemDtoBase? toBeDeleted = dto ?? SelectedNode?.Model;
 
 		if (toBeDeleted is null)
@@ -1236,6 +1246,8 @@ public sealed partial class EditorViewModel :
 		{
 			node.NotifyIsCheckedChanged();
 		}
+
+		DeleteCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <inheritdoc />
@@ -1456,6 +1468,18 @@ public sealed partial class EditorViewModel :
 		yield return new(Strings.Updated, dto.UpdatedAt.ToString(format));
 	}
 
+	/// <summary>
+	/// <c>True</c> when an object is an open file or a folder that holds one.
+	/// </summary>
+	private static bool HoldsOpenedFile(ExplorerItemDtoBase dto)
+	{
+		return dto switch
+		{
+			FileDto file => file.IsOpened(),
+			FolderDto folder => folder.Children.ContainsFileBy(IsOpened)
+		};
+	}
+
 	/// <inheritdoc cref="FileDto.IsOpened" />
 	private static bool IsOpened(FileDto dto) => dto.IsOpened();
 
@@ -1552,9 +1576,17 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	private bool CanDelete(ExplorerItemDtoBase? dto)
 	{
-		return !IsReadOnly
-			&& !IsActionInProgress
-			&& (dto is not null || SelectedNode is not null);
+		if (IsReadOnly || IsActionInProgress)
+		{
+			return false;
+		}
+
+		if (dto is not null)
+		{
+			return true;
+		}
+
+		return IsMultipleSelection ? _checkMarks.GetTopmostChecked(Hierarchy).Count > 0 : SelectedNode is not null;
 	}
 
 	/// <summary>
@@ -1665,6 +1697,46 @@ public sealed partial class EditorViewModel :
 	/// Validates <see cref="ShowHotkeysEditorCommand" />.
 	/// </summary>
 	private bool CanShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
+
+	/// <summary>
+	/// Deletes the checked objects that lie in no checked folder after one question, and brings their folders in line
+	/// with what is left.
+	/// </summary>
+	private async Task DeleteCheckedAsync()
+	{
+		IReadOnlyList<ExplorerItemDtoBase> items = _checkMarks.GetTopmostChecked(Hierarchy);
+
+		if (items.Count == 0)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Deleting the checked objects using a dialog");
+
+		string action = items.Any(HoldsOpenedFile) ? Strings.CloseTheFilesAndDelete : Strings.Delete;
+
+		if (!await _confirmationPrompt
+			.RequestYesNoAsync($@"{action} ""{items.GetCount().AsString()}""?")
+			.ConfigureAwait(true))
+		{
+			return;
+		}
+
+		// The open files are closed next.
+		IReadOnlyList<ExplorerItemDtoBase> deleted = await _deletion
+			.DeleteManyAsync(items, Hierarchy)
+			.ConfigureAwait(false);
+
+		foreach (FolderDto parent in deleted
+			.Select(static x => x.Parent)
+			.OfType<FolderDto>()
+			.Distinct())
+		{
+			_checkMarks.Refresh(parent);
+		}
+
+		UpdateHierarchySummary();
+	}
 
 	/// <summary>
 	/// Asks the view to highlight the row of an object where it shows it.

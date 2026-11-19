@@ -492,10 +492,18 @@ internal class EditorWindowTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The delete button reads the checks once the mode is on.
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 

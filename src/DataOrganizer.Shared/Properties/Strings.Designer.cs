@@ -1123,6 +1123,15 @@ namespace DataOrganizer.Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to have been deleted.
+        /// </summary>
+        public static string HaveBeenDeleted {
+            get {
+                return ResourceManager.GetString("HaveBeenDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hidden text.
         /// </summary>
         public static string HiddenText {

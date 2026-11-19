@@ -1349,6 +1349,246 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: in the multiple selection mode the toolbar deletes the checked objects
+	/// that lie in no checked folder, after one question that is answered yes.
+	/// </summary>
+	[Test]
+	public async Task DeleteCommand_In_The_Multiple_Selection_Deletes_The_Checked_Objects_Once_Confirmed(
+		[Values] bool isConfirmed)
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.AddRange([first, second]);
+
+			ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			checkMarks
+				.GetTopmostChecked(session.Hierarchy)
+				.Returns([first, second]);
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(isConfirmed);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.DeleteCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		await deletion.Received(isConfirmed ? 1 : 0).DeleteManyAsync(
+			Arg.Is<IReadOnlyList<ExplorerItemDtoBase>>(x => x.SequenceEqual(new ExplorerItemDtoBase[] { first, second })),
+			sut.Hierarchy,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: in the multiple selection mode the toolbar deletes only while an object
+	/// is checked, whatever row is selected.
+	/// </summary>
+	[Test]
+	public void DeleteCommand_In_The_Multiple_Selection_Needs_A_Checked_Object([Values] bool hasChecked)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+			checkMarks
+				.GetTopmostChecked(session.Hierarchy)
+				.Returns(hasChecked ? [file] : []);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.SelectedNode = sut
+			.Nodes
+			.Single();
+
+		// Act
+		bool canExecute = sut
+			.DeleteCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasChecked);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: in the multiple selection mode the folders of the deleted objects are
+	/// brought in line with what is left in them.
+	/// </summary>
+	[Test]
+	public async Task DeleteCommand_In_The_Multiple_Selection_Refreshes_The_Folders_Of_The_Deleted_Objects()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [file]);
+
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(folder);
+
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			checkMarks
+				.GetTopmostChecked(session.Hierarchy)
+				.Returns([file]);
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			deletion
+				.DeleteManyAsync(
+					Arg.Any<IReadOnlyList<ExplorerItemDtoBase>>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.DeleteCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		checkMarks
+			.Received(1)
+			.Refresh(folder);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: in the multiple selection mode the menu of a row deletes only its
+	/// object, not the checked ones.
+	/// </summary>
+	[Test]
+	public async Task DeleteCommand_With_An_Object_In_The_Multiple_Selection_Deletes_Only_It()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.DeleteCommand
+			.ExecuteAsync(file);
+
+		// Assert
+		await deletion
+			.Received(1)
+			.DeleteAsync(file, sut.Hierarchy, Arg.Any<CancellationToken>());
+
+		await deletion
+			.DidNotReceive()
+			.DeleteManyAsync(
+				Arg.Any<IReadOnlyList<ExplorerItemDtoBase>>(),
+				Arg.Any<Collection<ExplorerItemDtoBase>>(),
+				Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DeleteCommand" />: without an object the command runs only while a row of the tree is
 	/// selected.
 	/// </summary>
@@ -4311,6 +4551,33 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Receive(CheckMarksChangedMessage)" />: a change of the checks refreshes the delete command.
+	/// </summary>
+	[Test]
+	public void Receive_CheckMarksChanged_Refreshes_The_Delete_Command()
+	{
+		// Arrange
+		int refreshCount = 0;
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.DeleteCommand.CanExecuteChanged += (_, _) => refreshCount++;
+
+		// Act
+		sut.Receive(new CheckMarksChangedMessage(new HashSet<Guid> { Guid.NewGuid() }));
+
+		// Assert
+		refreshCount
+			.Should()
+			.Be(1);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Receive(CheckMarksChangedMessage)" />: the rows of the objects whose check changed, nested
 	/// ones too, show the new check, and the other rows stay as they are.
 	/// </summary>
@@ -5857,6 +6124,44 @@ internal class EditorViewModelTests
 		canExecute
 			.Should()
 			.Be(hasObjects && !isActionInProgress);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetMultipleSelectionCommand" />: a change of the mode refreshes the delete command, as
+	/// the command then deletes another set of objects.
+	/// </summary>
+	[Test]
+	public void SetMultipleSelectionCommand_Refreshes_The_Delete_Command()
+	{
+		// Arrange
+		int refreshCount = 0;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new();
+
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateFileDto());
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.DeleteCommand.CanExecuteChanged += (_, _) => refreshCount++;
+
+		// Act
+		sut
+			.SetMultipleSelectionCommand
+			.Execute(true);
+
+		// Assert
+		refreshCount
+			.Should()
+			.Be(1);
 	}
 
 	/// <summary>

@@ -22,6 +22,7 @@ using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -428,6 +429,114 @@ internal class HierarchyEditorTests
 		hierarchy
 			.Should()
 			.Contain(entity);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteManyAsync" />: every object leaves the database and the place in the hierarchy where
+	/// it lies, and all of them are returned.
+	/// </summary>
+	[Test]
+	public async Task DeleteManyAsync_Deletes_Each_Object_In_Database_And_In_Treeview()
+	{
+		// Arrange
+		FileDto nested = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [nested]);
+
+		FileDto root = ItemDtoFactory.CreateFileDto();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [folder, root];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.DeleteAsync(
+					Arg.Any<EntityKind>(),
+					Arg.Any<Guid>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		IReadOnlyList<ExplorerItemDtoBase> result = await sut.DeleteManyAsync([nested, root], hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.Equal(nested, root);
+
+		hierarchy
+			.Should()
+			.Equal(folder);
+
+		folder.Children
+			.Should()
+			.BeEmpty();
+
+		await dbAccess
+			.Received(1)
+			.DeleteAsync(nested.Kind, nested.Id, Arg.Any<CancellationToken>());
+
+		await dbAccess
+			.Received(1)
+			.DeleteAsync(root.Kind, root.Id, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteManyAsync" />: the first object the database fails to delete ends the deletion, so
+	/// the objects after it stay, and only the objects before it are returned.
+	/// </summary>
+	[Test]
+	public async Task DeleteManyAsync_Stops_At_The_First_Object_It_Fails_To_Delete()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto failed = ItemDtoFactory.CreateFileDto();
+
+		FileDto last = ItemDtoFactory.CreateFileDto();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [first, failed, last];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.DeleteAsync(first.Kind, first.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			// The database has no such object.
+			dbAccess
+				.DeleteAsync(failed.Kind, failed.Id, Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		IReadOnlyList<ExplorerItemDtoBase> result = await sut.DeleteManyAsync([first, failed, last], hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.Equal(first);
+
+		hierarchy
+			.Should()
+			.Equal(failed, last);
+
+		await dbAccess
+			.DidNotReceive()
+			.DeleteAsync(last.Kind, last.Id, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

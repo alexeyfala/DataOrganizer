@@ -909,4 +909,7 @@
   <data name="CheckAll" xml:space="preserve">
     <value>Отметить все</value>
   </data>
+  <data name="HaveBeenDeleted" xml:space="preserve">
+    <value>удалены</value>
+  </data>
 </root>
