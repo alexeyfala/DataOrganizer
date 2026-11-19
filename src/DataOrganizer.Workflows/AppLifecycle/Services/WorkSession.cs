@@ -2,6 +2,7 @@ using DataOrganizer.Documents.Editor.Dto;
 using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using System;
 using System.Collections.Concurrent;
@@ -13,9 +14,19 @@ namespace DataOrganizer.Workflows.AppLifecycle.Services;
 /// <summary>
 /// State of the work that outlives the switch between the main windows and is never written to the settings files.
 /// </summary>
-public sealed class WorkSession : ISessionEditorTabs, ISessionHierarchy, ISessionReadOnlyMode, ISessionTreeState
+public sealed class WorkSession :
+	ISessionEditorTabs,
+	ISessionHierarchy,
+	ISessionMultipleSelection,
+	ISessionReadOnlyMode,
+	ISessionTreeState
 {
 	#region Data
+	/// <summary>
+	/// States of the objects checked in the tree, whole or in part; an unchecked object has no entry.
+	/// </summary>
+	private readonly ConcurrentDictionary<Guid, bool?> _checkStates = new();
+
 	/// <summary>
 	/// Identifiers of the objects the tree shows expanded; a set that folders expanded all at once may change in parallel.
 	/// </summary>
@@ -35,6 +46,12 @@ public sealed class WorkSession : ISessionEditorTabs, ISessionHierarchy, ISessio
 	public ObservableCollection<ExplorerItemDtoBase> Hierarchy { get; } = [];
 
 	/// <inheritdoc />
+	public bool IsCheckAll { get; set; }
+
+	/// <inheritdoc />
+	public bool IsMultipleSelection { get; set; }
+
+	/// <inheritdoc />
 	public bool IsReadOnly { get; set; }
 	#endregion
 
@@ -42,10 +59,15 @@ public sealed class WorkSession : ISessionEditorTabs, ISessionHierarchy, ISessio
 	/// <inheritdoc />
 	public void Clear()
 	{
+		_checkStates.Clear();
+
 		_expandedIds.Clear();
 
 		_selectedIds.Clear();
 	}
+
+	/// <inheritdoc />
+	public bool? IsChecked(Guid id) => _checkStates.TryGetValue(id, out bool? state) ? state : false;
 
 	/// <inheritdoc />
 	public bool IsExpanded(Guid id) => _expandedIds.ContainsKey(id);
@@ -59,6 +81,19 @@ public sealed class WorkSession : ISessionEditorTabs, ISessionHierarchy, ISessio
 		Mark(_expandedIds, loaded.ExpandedIds);
 
 		Mark(_selectedIds, loaded.SelectedIds);
+	}
+
+	/// <inheritdoc />
+	public void SetChecked(Guid id, bool? isChecked)
+	{
+		if (isChecked == false)
+		{
+			_checkStates.TryRemove(id, out _);
+
+			return;
+		}
+
+		_checkStates[id] = isChecked;
 	}
 
 	/// <inheritdoc />

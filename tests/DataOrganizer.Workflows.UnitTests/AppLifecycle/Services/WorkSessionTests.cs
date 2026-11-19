@@ -12,10 +12,10 @@ internal class WorkSessionTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="WorkSession.Clear" />: no object stays expanded or selected.
+	/// <see cref="WorkSession.Clear" />: no object stays expanded, selected or checked.
 	/// </summary>
 	[Test]
-	public void Clear_Forgets_Every_Expanded_And_Selected_Object()
+	public void Clear_Forgets_Every_Expanded_Selected_And_Checked_Object()
 	{
 		// Arrange
 		Guid id = Guid.NewGuid();
@@ -26,11 +26,18 @@ internal class WorkSessionTests
 
 		sut.SetSelected(id, true);
 
+		sut.SetChecked(id, true);
+
 		// Act
 		sut.Clear();
 
 		// Assert
-		bool[] states = [sut.IsExpanded(id), sut.IsSelected(id)];
+		bool[] states =
+		[
+			sut.IsExpanded(id),
+			sut.IsSelected(id),
+			sut.IsChecked(id) != false
+		];
 
 		states
 			.Should()
@@ -74,6 +81,33 @@ internal class WorkSessionTests
 		states
 			.Should()
 			.Equal(true, true, true, false, false);
+	}
+
+	/// <summary>
+	/// <see cref="WorkSession.SetChecked" />: an object checked whole or in part keeps its state until it is unchecked.
+	/// </summary>
+	[TestCase(true)]
+	[TestCase(null)]
+	public void SetChecked_Marks_And_Clears_An_Object(bool? isChecked)
+	{
+		// Arrange
+		Guid id = Guid.NewGuid();
+
+		WorkSession sut = new();
+
+		// Act
+		sut.SetChecked(id, isChecked);
+
+		bool? marked = sut.IsChecked(id);
+
+		sut.SetChecked(id, false);
+
+		// Assert
+		bool?[] states = [marked, sut.IsChecked(id)];
+
+		states
+			.Should()
+			.Equal(isChecked, false);
 	}
 
 	/// <summary>
