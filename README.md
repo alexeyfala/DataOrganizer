@@ -11,6 +11,7 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 11, following the MVV
 ## Features
 
 - **Virtual file system** — folders, files, and datasets arranged in a tree, saved to a local SQLite database. A search by name narrows the tree to the matches and the folders that hold them, with the matched part of each name highlighted.
+- **Multiple selection** — a toolbar switch shows check boxes in the tree, so several objects can be deleted or exported at once. A checked folder covers everything inside it; an export of the checked objects keeps the folders that hold them and goes to JSON or XML.
 - **Global hotkeys** — bind a file to a Ctrl/Alt/Shift shortcut; pressing it from any application copies the file's contents to the clipboard.
 - **Favorites** — mark files for quick access; a dedicated searchable window groups them by parent folder.
 - **Encryption** — password-protect folders. Contents are encrypted with XChaCha20-Poly1305 using a per-folder Data Encryption Key (DEK); the DEK is wrapped with a key derived from the password (Argon2id), and no password verifier is stored. The cost of the derivation is recorded with the wrapped key, so it can be raised later without making earlier data unreadable. A new password is rated as it is typed, and the rating is shown next to the input.
