@@ -358,6 +358,140 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DataExchangeService.ExportPartAsync" />: the identifiers go to the format of the chosen file, which writes
+	/// their objects into it.
+	/// </summary>
+	[Test]
+	public async Task ExportPartAsync_Hands_The_Ids_To_The_Format_Of_The_Chosen_File()
+	{
+		// Arrange
+		string filePath = RandomValues.CreateFileName(10, KnownFileExtensions.Json);
+
+		HashSet<Guid> ids = [Guid.NewGuid()];
+
+		IPartialExportFormat format = Substitute.For<IPartialExportFormat>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			format
+				.Extension
+				.Returns(KnownFileExtensions.Json);
+
+			picker
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
+				.Returns(filePath);
+
+			builder.RegisterInstance<IExchangeFormat>(format);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportPartAsync(ids);
+
+		// Assert
+		await format
+			.Received(1)
+			.ExportPartAsync(filePath, ids, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ExportPartAsync" />: the file picker offers only the formats that write a part of the
+	/// objects, not the copy of the whole database.
+	/// </summary>
+	[Test]
+	public async Task ExportPartAsync_Offers_Only_The_Formats_That_Write_A_Part()
+	{
+		// Arrange
+		HashSet<Guid> ids = [Guid.NewGuid()];
+
+		FileSaveParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			// The picker is closed, so the export stops at the choice.
+			picker
+				.SaveFileAsync(Arg.Do<FileSaveParameters>(x => parameters = x))
+				.Returns((string?)null);
+
+			builder.RegisterInstance(picker);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<JsonExchangeFormat>()
+				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<XmlExchangeFormat>()
+				.As<IExchangeFormat>();
+
+			builder
+				.RegisterType<SqliteExchangeFormat>()
+				.As<IExchangeFormat>();
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportPartAsync(ids);
+
+		// Assert
+		parameters!.FileTypes.Select(static x => x.Name)
+			.Should()
+			.Equal("JSON File", "XML File");
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ExportPartAsync" />: a part is never written into a SQLite file, which is a copy of
+	/// the whole database.
+	/// </summary>
+	[Test]
+	public async Task ExportPartAsync_Writes_Nothing_To_A_Sqlite_File()
+	{
+		// Arrange
+		HashSet<Guid> ids = [Guid.NewGuid()];
+
+		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SaveFileAsync(Arg.Any<FileSaveParameters>())
+				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite));
+
+			builder.RegisterInstance(dbBackupService);
+
+			builder.RegisterInstance(picker);
+
+			builder
+				.RegisterType<SqliteExchangeFormat>()
+				.As<IExchangeFormat>();
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportPartAsync(ids);
+
+		// Assert
+		await dbBackupService
+			.DidNotReceive()
+			.CopyToAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DataExchangeService.ImportDataAsync" />: the folders and files of an XML file are added to the database,
 	/// dated with the time of the import, since the file keeps no dates.
 	/// </summary>

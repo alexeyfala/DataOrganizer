@@ -11,6 +11,8 @@ using DataOrganizer.TestSupport.Common;
 using DataOrganizer.TestSupport.Models;
 using DataOrganizer.Workflows.HierarchyExchange.Services;
 using NSubstitute;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -86,6 +88,60 @@ internal class JsonExchangeFormatTests
 		await serializer.Received(1).SerializeAsync(
 			Arg.Is<Stream>(x => ((FileSystemStream)x).Name == FilePath),
 			Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(entities)),
+			JsonDefaults.Options,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="SerializedExchangeFormatBase.ExportPartAsync" />: only the folders and files of the identifiers, with
+	/// contents and editor state, are serialized into the file.
+	/// </summary>
+	[Test]
+	public async Task ExportPartAsync_Writes_Only_The_Objects_Of_The_Ids()
+	{
+		// Arrange
+		FolderEntity[] folders = [.. EntityFactory.CreateFolders(2)];
+
+		FileEntity[] files = [.. EntityFactory.CreateFiles(2)];
+
+		HashSet<Guid> ids = [folders[1].Id, files[0].Id];
+
+		IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetAllFoldersAsync(Arg.Any<CancellationToken>())
+				.Returns(folders);
+
+			dbAccess
+				.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, Arg.Any<CancellationToken>())
+				.Returns(files);
+
+			MockFileSystem fileSystem = new();
+
+			fileSystem
+				.Directory
+				.CreateDirectory(Folder);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IFileSystem>(fileSystem);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		JsonExchangeFormat sut = mock.Create<JsonExchangeFormat>();
+
+		// Act
+		await sut.ExportPartAsync(FilePath, ids);
+
+		// Assert
+		await serializer.Received(1).SerializeAsync(
+			Arg.Is<Stream>(x => ((FileSystemStream)x).Name == FilePath),
+			Arg.Is<ExplorerItemBase[]>(x => x.SequenceEqual(new ExplorerItemBase[] { folders[1], files[0] })),
 			JsonDefaults.Options,
 			Arg.Any<CancellationToken>());
 	}

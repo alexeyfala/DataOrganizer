@@ -6,6 +6,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors;
 using DataOrganizer.Database.Entities.Enums;
@@ -76,6 +77,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -2929,6 +2931,60 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.ExportCommand" />: the checked objects with the folders on the way are exported when an
+	/// object is checked, else every object.
+	/// </summary>
+	[Test]
+	public async Task ExportCommand_Exports_The_Checked_Objects_If_Any([Values] bool hasChecked)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		HashSet<Guid> ids = hasChecked ? [file.Id] : [];
+
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new();
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+			checkMarks
+				.GetCheckedWithParents(session.Hierarchy)
+				.Returns(ids);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance(dataExchange);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.ExportCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		await dataExchange
+			.Received(hasChecked ? 1 : 0)
+			.ExportPartAsync(ids, Arg.Any<CancellationToken>());
+
+		await dataExchange
+			.Received(hasChecked ? 0 : 1)
+			.ExportDataAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.HideAllFileContents" />: all open files are closed and their contents re-encrypted.
 	/// </summary>
 	[Test]
@@ -4035,25 +4091,36 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.IsActionInProgress" />: the start of an action refreshes the commands of the multiple
-	/// selection.
+	/// <see cref="EditorViewModel.IsActionInProgress" />: a change refreshes, once each, the commands that stay off while
+	/// an action runs, and no other.
 	/// </summary>
 	[Test]
-	public void IsActionInProgress_Refreshes_The_Multiple_Selection_Commands()
+	public void IsActionInProgress_Refreshes_The_Commands_That_Stay_Off_During_An_Action()
 	{
 		// Arrange
 		List<string> refreshed = [];
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The commands are refreshed through the dispatcher.
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.SetCheckAllCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.SetCheckAllCommand));
-
-		sut.SetMultipleSelectionCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.SetMultipleSelectionCommand));
+		foreach (PropertyInfo property in typeof(EditorViewModel)
+			.GetProperties()
+			.Where(static x => x.PropertyType.IsAssignableTo(typeof(IRelayCommand))))
+		{
+			((IRelayCommand)property.GetValue(sut)!).CanExecuteChanged += (_, _) => refreshed.Add(property.Name);
+		}
 
 		// Act
 		sut.IsActionInProgress = true;
@@ -4061,7 +4128,28 @@ internal class EditorViewModelTests
 		// Assert
 		refreshed
 			.Should()
-			.BeEquivalentTo(nameof(sut.SetCheckAllCommand), nameof(sut.SetMultipleSelectionCommand));
+			.BeEquivalentTo(
+				nameof(sut.AddCommand),
+				nameof(sut.ChangePasswordCommand),
+				nameof(sut.CopyContentByContextMenuCommand),
+				nameof(sut.DecryptFolderCommand),
+				nameof(sut.DeleteCommand),
+				nameof(sut.EditFileCommand),
+				nameof(sut.EditNoteCommand),
+				nameof(sut.EncryptFolderCommand),
+				nameof(sut.ExecuteFileCommand),
+				nameof(sut.ExportCommand),
+				nameof(sut.ImportCommand),
+				nameof(sut.RenameCommand),
+				nameof(sut.SeedLargeSamplesCommand),
+				nameof(sut.SeedSamplesCommand),
+				nameof(sut.SetCheckAllCommand),
+				nameof(sut.SetFavoriteCommand),
+				nameof(sut.SetMultipleSelectionCommand),
+				nameof(sut.ShowFavoritesCommand),
+				nameof(sut.ShowFileContentsCommand),
+				nameof(sut.ShowFolderContentsCommand),
+				nameof(sut.ShowHotkeysEditorCommand));
 	}
 
 	/// <summary>

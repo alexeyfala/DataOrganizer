@@ -119,40 +119,22 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task ExportDataAsync(CancellationToken token = default)
+	public Task ExportDataAsync(CancellationToken token = default)
 	{
-		FileSaveParameters parameters = new()
-		{
-			DefaultExtension = KnownFileExtensions.Json.TrimStart('.'),
-			FileTypes = [.. _formats.Select(CreateFileType)],
-			ShowOverwritePrompt = true,
-			SuggestedFileName = AppInfo.AppName,
-			Title = Strings.SaveAs
-		};
+		return ExportAsync(
+			_formats,
+			(format, filePath) => format.ExportAsync(filePath, token));
+	}
 
-		if (await _picker
-			.SaveFileAsync(parameters)
-			.ConfigureAwait(false) is not { } filePath)
-		{
-			return;
-		}
-
-		try
-		{
-			using ProgressScope _ = _messenger.ShowProgress();
-
-			await GetFormat(filePath)
-				.ExportAsync(filePath, token)
-				.ConfigureAwait(false);
-
-			_notification.ShowInformationSnackbar(Strings.DataExportCompleted);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			_notification.ShowErrorSnackbar(Strings.FailedToExportData);
-		}
+	/// <inheritdoc />
+	public Task ExportPartAsync(IReadOnlySet<Guid> ids, CancellationToken token = default)
+	{
+		return ExportAsync(
+			[.. _formats.OfType<IPartialExportFormat>()],
+			(format, filePath) => format.ExportPartAsync(
+				filePath,
+				ids,
+				token));
 	}
 
 	/// <inheritdoc />
@@ -220,7 +202,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			string filePath = filePaths[0];
 
-			IExchangeFormat format = GetFormat(filePath);
+			IExchangeFormat format = GetFormat(_formats, filePath);
 
 			LoadedHierarchy? imported = variant == ImportMode.Replace && format.IsDatabaseCopy
 				? await ReplaceDatabaseAsync(filePath).ConfigureAwait(false)
@@ -262,6 +244,19 @@ public sealed class DataExchangeService : IDataExchangeService
 			Name = format.FileTypeName,
 			Patterns = [$"*{format.Extension}"]
 		};
+	}
+
+	/// <summary>
+	/// Returns the format of <paramref name="filePath" /> among <paramref name="formats" /> by its extension.
+	/// </summary>
+	private static TFormat GetFormat<TFormat>(TFormat[] formats, string filePath)
+		where TFormat : class, IExchangeFormat
+	{
+		string extension = Path.GetExtension(filePath);
+
+		// Stryker disable once Linq : First throws for an unknown extension as well, and every caller catches the failure
+		return formats.FirstOrDefault(x => x.Extension == extension)
+			?? throw new NotSupportedException($@"No exchange format reads ""{extension}"" files.");
 	}
 
 	/// <summary>
@@ -361,15 +356,41 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Returns the format of <paramref name="filePath" /> by its extension.
+	/// Asks for a file of one of <paramref name="formats" /> and writes it with <paramref name="export" />.
 	/// </summary>
-	private IExchangeFormat GetFormat(string filePath)
+	private async Task ExportAsync<TFormat>(TFormat[] formats, Func<TFormat, string, Task> export)
+		where TFormat : class, IExchangeFormat
 	{
-		string extension = Path.GetExtension(filePath);
+		FileSaveParameters parameters = new()
+		{
+			DefaultExtension = KnownFileExtensions.Json.TrimStart('.'),
+			FileTypes = [.. formats.Select(CreateFileType)],
+			ShowOverwritePrompt = true,
+			SuggestedFileName = AppInfo.AppName,
+			Title = Strings.SaveAs
+		};
 
-		// Stryker disable once Linq : First throws for an unknown extension as well, and every caller catches the failure
-		return _formats.FirstOrDefault(x => x.Extension == extension)
-			?? throw new NotSupportedException($@"No exchange format reads ""{extension}"" files.");
+		if (await _picker
+			.SaveFileAsync(parameters)
+			.ConfigureAwait(false) is not { } filePath)
+		{
+			return;
+		}
+
+		try
+		{
+			using ProgressScope _ = _messenger.ShowProgress();
+
+			await export(GetFormat(formats, filePath), filePath).ConfigureAwait(false);
+
+			_notification.ShowInformationSnackbar(Strings.DataExportCompleted);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			_notification.ShowErrorSnackbar(Strings.FailedToExportData);
+		}
 	}
 
 	/// <summary>

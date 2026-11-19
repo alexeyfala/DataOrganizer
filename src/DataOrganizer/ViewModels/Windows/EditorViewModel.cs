@@ -35,6 +35,7 @@ using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Messages;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.Shared.Properties;
+using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
@@ -95,8 +96,6 @@ public sealed partial class EditorViewModel :
 	/// Controls the progress bar for an action.
 	/// </summary>
 	[ObservableProperty]
-	[NotifyCanExecuteChangedFor(nameof(SetCheckAllCommand))]
-	[NotifyCanExecuteChangedFor(nameof(SetMultipleSelectionCommand))]
 	public partial bool IsActionInProgress { get; set; }
 
 	/// <inheritdoc cref="ISessionMultipleSelection.IsCheckAll" />
@@ -223,6 +222,14 @@ public sealed partial class EditorViewModel :
 	#endregion
 
 	#region Partial
+	/// <summary>
+	/// Called when <see cref="IsActionInProgress" /> changes.
+	/// </summary>
+	/// <remarks>
+	/// An action reports from any thread, while the buttons of a command learn of its change only on the UI thread.
+	/// </remarks>
+	partial void OnIsActionInProgressChanged(bool value) => _dispatcher.Post(NotifyActionCommandsCanExecuteChanged);
+
 	/// <summary>
 	/// Called when <see cref="IsLeftDrawerOpened" /> changes.
 	/// </summary>
@@ -738,10 +745,18 @@ public sealed partial class EditorViewModel :
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
 
 	/// <summary>
-	/// Exports data.
+	/// Exports the checked objects, or every object when none is checked.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExport))]
-	private Task Export() => _dataExchange.ExportDataAsync();
+	private Task Export()
+	{
+		// The folders on the way go along: an encrypted file needs the key its folder keeps.
+		IReadOnlySet<Guid> ids = _checkMarks.GetCheckedWithParents(Hierarchy);
+
+		return ids.Count > 0
+			? _dataExchange.ExportPartAsync(ids)
+			: _dataExchange.ExportDataAsync();
+	}
 
 	/// <summary>
 	/// Displays the rename object dialog box.
@@ -982,6 +997,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
+
 	/// <inheritdoc cref="IFileExecutionScenario" />
 	private readonly IFileExecutionScenario _fileExecution;
 
@@ -1076,6 +1094,7 @@ public sealed partial class EditorViewModel :
 		IDbFailureReporter dbFailureReporter,
 		IDeletionScenario deletion,
 		IDialogService dialogService,
+		IDispatcherAccessor dispatcher,
 		IEntityPropertyWriter propertyWriter,
 		IExecutingFiles executingFiles,
 		IFileExecutionScenario fileExecution,
@@ -1138,6 +1157,8 @@ public sealed partial class EditorViewModel :
 		_deletion = deletion;
 
 		_dialogService = dialogService;
+
+		_dispatcher = dispatcher;
 
 		_fileExecution = fileExecution;
 
@@ -1683,7 +1704,7 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Validates <see cref="ShowFileContentsCommand" />.
+	/// Validates <see cref="ShowFolderContentsCommand" />.
 	/// </summary>
 	private bool CanShowFolderContents(FolderDto? dto)
 	{
@@ -1761,6 +1782,54 @@ public sealed partial class EditorViewModel :
 			.ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
+	/// Re-evaluates the commands that stay off while an action runs.
+	/// </summary>
+	private void NotifyActionCommandsCanExecuteChanged()
+	{
+		AddCommand.NotifyCanExecuteChanged();
+
+		ChangePasswordCommand.NotifyCanExecuteChanged();
+
+		CopyContentByContextMenuCommand.NotifyCanExecuteChanged();
+
+		DecryptFolderCommand.NotifyCanExecuteChanged();
+
+		DeleteCommand.NotifyCanExecuteChanged();
+
+		EditFileCommand.NotifyCanExecuteChanged();
+
+		EditNoteCommand.NotifyCanExecuteChanged();
+
+		EncryptFolderCommand.NotifyCanExecuteChanged();
+
+		ExecuteFileCommand.NotifyCanExecuteChanged();
+
+		ExportCommand.NotifyCanExecuteChanged();
+
+		ImportCommand.NotifyCanExecuteChanged();
+
+		RenameCommand.NotifyCanExecuteChanged();
+
+		SeedLargeSamplesCommand.NotifyCanExecuteChanged();
+
+		SeedSamplesCommand.NotifyCanExecuteChanged();
+
+		SetCheckAllCommand.NotifyCanExecuteChanged();
+
+		SetFavoriteCommand.NotifyCanExecuteChanged();
+
+		SetMultipleSelectionCommand.NotifyCanExecuteChanged();
+
+		ShowFavoritesCommand.NotifyCanExecuteChanged();
+
+		ShowFileContentsCommand.NotifyCanExecuteChanged();
+
+		ShowFolderContentsCommand.NotifyCanExecuteChanged();
+
+		ShowHotkeysEditorCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>

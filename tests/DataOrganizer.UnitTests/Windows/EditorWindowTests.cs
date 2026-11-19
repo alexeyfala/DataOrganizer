@@ -30,11 +30,14 @@ using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.Storage.Services;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Notifications.Messages;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
+using DataOrganizer.Services.Views;
 using DataOrganizer.Shared.Common;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.TestSupport.Common;
@@ -1991,6 +1994,78 @@ internal class EditorWindowTests
 		viewModel.SelectedNode!.Model
 			.Should()
 			.BeSameAs(file);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(ShowProgressBarMessage)" />: an action that reports from a worker thread turns the
+	/// buttons of the toolbar off until it ends.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_ShowProgressBar_From_A_Worker_Thread_Turns_The_Toolbar_Off_Until_The_Action_Ends()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		Button addButton = sut
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single(x => x.Command == viewModel.AddCommand);
+
+		// Act
+		await Task.Run(() => viewModel.Receive(new ShowProgressBarMessage(true)));
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool[] duringAction = [addButton.IsEffectivelyEnabled, sut.MultipleSelectionSwitch.IsEffectivelyEnabled];
+
+		await Task.Run(() => viewModel.Receive(new ShowProgressBarMessage(false)));
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool[] afterAction = [addButton.IsEffectivelyEnabled, sut.MultipleSelectionSwitch.IsEffectivelyEnabled];
+
+		sut.Close();
+
+		// Assert
+		duringAction
+			.Should()
+			.Equal(false, false);
+
+		afterAction
+			.Should()
+			.Equal(true, true);
 	}
 
 	/// <summary>
