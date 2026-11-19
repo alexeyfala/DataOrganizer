@@ -29,14 +29,11 @@ internal class CheckMarksTests
 		// Arrange
 		FileDto a1 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(ItemDtoFactory.CreateFolderDto(), a1);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1]);
 
 		FileDto b = ItemDtoFactory.CreateFileDto();
 
-		FolderDto root = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a,
-			b);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a, b]);
 
 		HierarchyFilter filter = CreateSearch(root.Id, a.Id);
 
@@ -80,17 +77,11 @@ internal class CheckMarksTests
 
 		FileDto a2 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a1,
-			a2);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, a2]);
 
 		FolderDto empty = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto root = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a,
-			empty);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a, empty]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -130,12 +121,9 @@ internal class CheckMarksTests
 
 		FileDto a2 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a1,
-			a2);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, a2]);
 
-		FolderDto root = Nest(ItemDtoFactory.CreateFolderDto(), a);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a]);
 
 		HierarchyFilter filter = CreateSearch(
 			root.Id,
@@ -181,14 +169,9 @@ internal class CheckMarksTests
 		// Arrange
 		FileDto a1 = ItemDtoFactory.CreateFileDto();
 
-		FileDto a2 = ItemDtoFactory.CreateFileDto();
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, ItemDtoFactory.CreateFileDto()]);
 
-		FolderDto a = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a1,
-			a2);
-
-		FolderDto root = Nest(ItemDtoFactory.CreateFolderDto(), a);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -223,17 +206,11 @@ internal class CheckMarksTests
 		// Arrange
 		FileDto a1 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(ItemDtoFactory.CreateFolderDto(), a1);
-
-		FileDto b = ItemDtoFactory.CreateFileDto();
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1]);
 
 		FileDto c = ItemDtoFactory.CreateFileDto();
 
-		FolderDto root = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a,
-			b,
-			c);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a, ItemDtoFactory.CreateFileDto(), c]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -261,6 +238,123 @@ internal class CheckMarksTests
 	}
 
 	/// <summary>
+	/// <see cref="CheckMarks.Refresh" />: a folder checked in part whose unchecked object left becomes checked whole, and so
+	/// does its parent.
+	/// </summary>
+	[Test]
+	public void Refresh_Checks_A_Folder_Whose_Unchecked_Object_Left()
+	{
+		// Arrange
+		FileDto a1 = ItemDtoFactory.CreateFileDto();
+
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1]);
+
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a]);
+
+		CheckMarksTreeState treeState = new();
+
+		// The states the folders had while their unchecked object was still in.
+		treeState.SetChecked(a1.Id, true);
+
+		treeState.SetChecked(a.Id, null);
+
+		treeState.SetChecked(root.Id, null);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(treeState)
+			.As<ISessionTreeState>());
+
+		CheckMarks sut = mock.Create<CheckMarks>();
+
+		// Act
+		sut.Refresh(a);
+
+		// Assert
+		bool?[] states =
+		[
+			treeState.IsChecked(a.Id),
+			treeState.IsChecked(root.Id)
+		];
+
+		states
+			.Should()
+			.OnlyContain(static x => x == true);
+	}
+
+	/// <summary>
+	/// <see cref="CheckMarks.Refresh" />: a folder left without objects keeps a whole check and loses a partial one.
+	/// </summary>
+	[TestCase(true, true)]
+	[TestCase(null, false)]
+	public void Refresh_Keeps_Only_A_Whole_Check_Of_An_Emptied_Folder(bool? state, bool expected)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		CheckMarksTreeState treeState = new();
+
+		treeState.SetChecked(folder.Id, state);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(treeState)
+			.As<ISessionTreeState>());
+
+		CheckMarks sut = mock.Create<CheckMarks>();
+
+		// Act
+		sut.Refresh(folder);
+
+		// Assert
+		treeState.IsChecked(folder.Id)
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="CheckMarks.Refresh" />: a checked folder that got an unchecked object is checked in part, and so is its
+	/// parent.
+	/// </summary>
+	[Test]
+	public void Refresh_Turns_A_Checked_Folder_Partly_Checked_By_A_New_Object()
+	{
+		// Arrange
+		FileDto a1 = ItemDtoFactory.CreateFileDto();
+
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, ItemDtoFactory.CreateFileDto()]);
+
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a]);
+
+		CheckMarksTreeState treeState = new();
+
+		// The states the folders had before the new object came.
+		treeState.SetChecked(a1.Id, true);
+
+		treeState.SetChecked(a.Id, true);
+
+		treeState.SetChecked(root.Id, true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(treeState)
+			.As<ISessionTreeState>());
+
+		CheckMarks sut = mock.Create<CheckMarks>();
+
+		// Act
+		sut.Refresh(a);
+
+		// Assert
+		bool?[] states =
+		[
+			treeState.IsChecked(a.Id),
+			treeState.IsChecked(root.Id)
+		];
+
+		states
+			.Should()
+			.OnlyContain(static x => x == null);
+	}
+
+	/// <summary>
 	/// <see cref="CheckMarks.Toggle" />: a folder is checked with everything it holds, and its parent with an unchecked
 	/// object is checked in part.
 	/// </summary>
@@ -270,14 +364,11 @@ internal class CheckMarksTests
 		// Arrange
 		FileDto a1 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(ItemDtoFactory.CreateFolderDto(), a1);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1]);
 
 		FileDto b = ItemDtoFactory.CreateFileDto();
 
-		FolderDto root = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a,
-			b);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a, b]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -319,10 +410,7 @@ internal class CheckMarksTests
 
 		FileDto a2 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a1,
-			a2);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, a2]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -364,17 +452,11 @@ internal class CheckMarksTests
 
 		FileDto a2 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a1,
-			a2);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, a2]);
 
 		FileDto b = ItemDtoFactory.CreateFileDto();
 
-		FolderDto root = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a,
-			b);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a, b]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -420,17 +502,9 @@ internal class CheckMarksTests
 
 		FileDto a2 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a1,
-			a2);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, a2]);
 
-		FileDto b = ItemDtoFactory.CreateFileDto();
-
-		FolderDto root = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a,
-			b);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a, ItemDtoFactory.CreateFileDto()]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -440,16 +514,16 @@ internal class CheckMarksTests
 
 		treeState.SetChecked(root.Id, null);
 
-		IMessenger messenger = new StrongReferenceMessenger();
-
 		List<CheckMarksChangedMessage> received = [];
-
-		messenger.Register<List<CheckMarksChangedMessage>, CheckMarksChangedMessage>(
-			received,
-			static (list, message) => list.Add(message));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IMessenger messenger = new StrongReferenceMessenger();
+
+			messenger.Register<List<CheckMarksChangedMessage>, CheckMarksChangedMessage>(
+				received,
+				static (list, message) => list.Add(message));
+
 			builder.RegisterInstance(messenger);
 
 			builder
@@ -465,9 +539,9 @@ internal class CheckMarksTests
 		// Assert
 		received
 			.Should()
-			.ContainSingle()
-			.Which
-			.Ids
+			.ContainSingle();
+
+		received[0].Ids
 			.Should()
 			.BeEquivalentTo([a2.Id, a.Id]);
 	}
@@ -482,14 +556,11 @@ internal class CheckMarksTests
 		// Arrange
 		FileDto a1 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(ItemDtoFactory.CreateFolderDto(), a1);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1]);
 
 		FileDto b = ItemDtoFactory.CreateFileDto();
 
-		FolderDto root = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a,
-			b);
+		FolderDto root = ItemDtoFactory.CreateFolderDto(children: [a, b]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -535,16 +606,16 @@ internal class CheckMarksTests
 	public void UncheckAll_Reports_Nothing_When_Nothing_Is_Checked()
 	{
 		// Arrange
-		IMessenger messenger = new StrongReferenceMessenger();
-
 		List<CheckMarksChangedMessage> received = [];
-
-		messenger.Register<List<CheckMarksChangedMessage>, CheckMarksChangedMessage>(
-			received,
-			static (list, message) => list.Add(message));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IMessenger messenger = new StrongReferenceMessenger();
+
+			messenger.Register<List<CheckMarksChangedMessage>, CheckMarksChangedMessage>(
+				received,
+				static (list, message) => list.Add(message));
+
 			builder.RegisterInstance(messenger);
 
 			builder
@@ -555,7 +626,7 @@ internal class CheckMarksTests
 		CheckMarks sut = mock.Create<CheckMarks>();
 
 		// Act
-		sut.UncheckAll([Nest(ItemDtoFactory.CreateFolderDto(), ItemDtoFactory.CreateFileDto())]);
+		sut.UncheckAll([ItemDtoFactory.CreateFolderDto(children: [ItemDtoFactory.CreateFileDto()])]);
 
 		// Assert
 		received
@@ -574,10 +645,7 @@ internal class CheckMarksTests
 
 		FileDto a2 = ItemDtoFactory.CreateFileDto();
 
-		FolderDto a = Nest(
-			ItemDtoFactory.CreateFolderDto(),
-			a1,
-			a2);
+		FolderDto a = ItemDtoFactory.CreateFolderDto(children: [a1, a2]);
 
 		CheckMarksTreeState treeState = new();
 
@@ -620,21 +688,6 @@ internal class CheckMarksTests
 			Query = "query",
 			ShownIds = shownIds.ToFrozenSet()
 		};
-	}
-
-	/// <summary>
-	/// Puts objects into a folder.
-	/// </summary>
-	private static FolderDto Nest(FolderDto folder, params ReadOnlySpan<ExplorerItemDtoBase> children)
-	{
-		foreach (ExplorerItemDtoBase child in children)
-		{
-			child.Parent = folder;
-
-			folder.Children.Add(child);
-		}
-
-		return folder;
 	}
 	#endregion
 }

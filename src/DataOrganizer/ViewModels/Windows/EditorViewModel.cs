@@ -15,6 +15,8 @@ using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Extensions;
 using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Messages;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Messages;
@@ -42,6 +44,7 @@ using DataOrganizer.Workflows.HierarchyExchange.Interfaces;
 using DataOrganizer.Workflows.HierarchyScenarios.Interfaces;
 using DataOrganizer.Workflows.SampleSeeding.Interfaces;
 using DynamicData;
+using DynamicData.Aggregation;
 using DynamicData.Binding;
 using Serilog;
 using System;
@@ -61,6 +64,7 @@ namespace DataOrganizer.ViewModels.Windows;
 /// </summary>
 public sealed partial class EditorViewModel :
 	ViewModelBase,
+	IRecipient<CheckMarksChangedMessage>,
 	IRecipient<CloseEditingFileMessage>,
 	IRecipient<ConfirmUpdateMessage>,
 	IRecipient<SessionAutoLockedMessage>,
@@ -91,13 +95,45 @@ public sealed partial class EditorViewModel :
 	/// Controls the progress bar for an action.
 	/// </summary>
 	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(SetCheckAllCommand))]
+	[NotifyCanExecuteChangedFor(nameof(SetMultipleSelectionCommand))]
 	public partial bool IsActionInProgress { get; set; }
+
+	/// <inheritdoc cref="ISessionMultipleSelection.IsCheckAll" />
+	public bool IsCheckAll
+	{
+		get => _sessionMultipleSelection.IsCheckAll;
+		private set => SetProperty(
+			IsCheckAll,
+			value,
+			_sessionMultipleSelection,
+			static (selection, isCheckAll) => selection.IsCheckAll = isCheckAll);
+	}
 
 	/// <summary>
 	/// <c>True</c> when the left drawer should be opened.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsLeftDrawerOpened { get; set; }
+
+	/// <inheritdoc cref="ISessionMultipleSelection.IsMultipleSelection" />
+	public bool IsMultipleSelection
+	{
+		get => _sessionMultipleSelection.IsMultipleSelection;
+		private set
+		{
+			if (!SetProperty(
+				IsMultipleSelection,
+				value,
+				_sessionMultipleSelection,
+				static (selection, isMultipleSelection) => selection.IsMultipleSelection = isMultipleSelection))
+			{
+				return;
+			}
+
+			SetCheckAllCommand.NotifyCanExecuteChanged();
+		}
+	}
 
 	/// <inheritdoc cref="ISessionReadOnlyMode.IsReadOnly" />
 	public bool IsReadOnly
@@ -773,6 +809,40 @@ public sealed partial class EditorViewModel :
 	}
 
 	/// <summary>
+	/// Checks every object the tree shows, or unchecks every object.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSetCheckAll))]
+	private void SetCheckAll(bool isCheckAll)
+	{
+		if (!isCheckAll)
+		{
+			UncheckAll();
+
+			return;
+		}
+
+		IsCheckAll = true;
+
+		_checkMarks.CheckShown(Hierarchy, Search.Filter);
+	}
+
+	/// <summary>
+	/// Shows the check boxes of the tree, or hides them and unchecks every object.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanSetMultipleSelection))]
+	private void SetMultipleSelection(bool isMultipleSelection)
+	{
+		IsMultipleSelection = isMultipleSelection;
+
+		if (isMultipleSelection)
+		{
+			return;
+		}
+
+		UncheckAll();
+	}
+
+	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
@@ -854,6 +924,18 @@ public sealed partial class EditorViewModel :
 
 		IsClipboardHistoryEnabled = saved.TrackClipboardHistory;
 	}
+
+	/// <inheritdoc cref="ICheckMarks.Toggle" />
+	[RelayCommand]
+	private void ToggleCheck(ExplorerItemDtoBase? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		_checkMarks.Toggle(dto);
+	}
 	#endregion
 
 	#region Data
@@ -862,6 +944,9 @@ public sealed partial class EditorViewModel :
 
 	/// <inheritdoc cref="IAutoLockControl" />
 	private readonly IAutoLockControl _autoLockControl;
+
+	/// <inheritdoc cref="ICheckMarks" />
+	private readonly ICheckMarks _checkMarks;
 
 	/// <inheritdoc cref="IClipboardTextWriter" />
 	private readonly IClipboardTextWriter _clipboardWriter;
@@ -938,6 +1023,9 @@ public sealed partial class EditorViewModel :
 	/// <inheritdoc cref="ISessionEditorTabs" />
 	private readonly ISessionEditorTabs _sessionEditorTabs;
 
+	/// <inheritdoc cref="ISessionMultipleSelection" />
+	private readonly ISessionMultipleSelection _sessionMultipleSelection;
+
 	/// <inheritdoc cref="ISessionReadOnlyMode" />
 	private readonly ISessionReadOnlyMode _sessionReadOnlyMode;
 
@@ -968,6 +1056,7 @@ public sealed partial class EditorViewModel :
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,
 		IAutoLockControl autoLockControl,
+		ICheckMarks checkMarks,
 		IClipboardTextWriter clipboardWriter,
 		IConfirmationPrompt confirmationPrompt,
 		IContentCopier contentCopier,
@@ -995,6 +1084,7 @@ public sealed partial class EditorViewModel :
 		ISeedingScenarios seeding,
 		ISessionEditorTabs sessionEditorTabs,
 		ISessionHierarchy sessionHierarchy,
+		ISessionMultipleSelection sessionMultipleSelection,
 		ISessionReadOnlyMode sessionReadOnlyMode,
 		ISessionTreeState sessionTreeState,
 		ISettingsCommit settingsCommit,
@@ -1020,6 +1110,8 @@ public sealed partial class EditorViewModel :
 		_autoLock = autoLock;
 
 		_autoLockControl = autoLockControl;
+
+		_checkMarks = checkMarks;
 
 		_clipboardWriter = clipboardWriter;
 
@@ -1063,6 +1155,8 @@ public sealed partial class EditorViewModel :
 
 		_sessionEditorTabs = sessionEditorTabs;
 
+		_sessionMultipleSelection = sessionMultipleSelection;
+
 		_sessionReadOnlyMode = sessionReadOnlyMode;
 
 		_sessionTreeState = sessionTreeState;
@@ -1105,6 +1199,12 @@ public sealed partial class EditorViewModel :
 			.Subscribe(x => SaveIsSelected(x.Sender.Model, x.Value))
 			.DisposeWith(_disposables);
 
+		Hierarchy
+			.ToObservableChangeSet()
+			.Count()
+			.Subscribe(OnHierarchyCountChanged)
+			.DisposeWith(_disposables);
+
 		// The search goes last, after the rows that follow its filter.
 		Search.DisposeWith(_disposables);
 
@@ -1125,6 +1225,17 @@ public sealed partial class EditorViewModel :
 		}
 
 		IsReadOnly = windowSettings.IsReadOnly;
+	}
+
+	/// <inheritdoc />
+	public void Receive(CheckMarksChangedMessage message)
+	{
+		foreach (ExplorerNodeViewModelBase node in Nodes
+			.Flatten(static x => x.Children)
+			.Where(x => message.Ids.Contains(x.Model.Id)))
+		{
+			node.NotifyIsCheckedChanged();
+		}
 	}
 
 	/// <inheritdoc />
@@ -1192,6 +1303,12 @@ public sealed partial class EditorViewModel :
 				folder.IsExpanded = true;
 			}
 
+			// A checked folder holds an unchecked object now.
+			if (parent is not null)
+			{
+				_checkMarks.Refresh(parent);
+			}
+
 			UpdateHierarchySummary();
 		}
 
@@ -1205,11 +1322,19 @@ public sealed partial class EditorViewModel :
 		ExplorerItemDtoBase dto,
 		CancellationToken token = default)
 	{
+		FolderDto? parent = dto.Parent;
+
 		if (!await _deletion
 			.DeleteAsync(dto, Hierarchy, token)
 			.ConfigureAwait(false))
 		{
 			return false;
+		}
+
+		// The folder may hold only checked objects, or nothing checked, now.
+		if (parent is not null)
+		{
+			_checkMarks.Refresh(parent);
 		}
 
 		UpdateHierarchySummary();
@@ -1350,6 +1475,12 @@ public sealed partial class EditorViewModel :
 	/// </summary>
 	private void ApplyFilter(HierarchyFilter filter)
 	{
+		// A new search starts the checks anew.
+		if (IsMultipleSelection)
+		{
+			UncheckAll();
+		}
+
 		foreach (ExplorerNodeViewModelBase folder in Hierarchy
 			.GetFolders()
 			.Where(x => filter.ExpandedIds.Contains(x.Id))
@@ -1490,9 +1621,19 @@ public sealed partial class EditorViewModel :
 	private bool CanSeedSamples() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
+	/// Validates <see cref="SetCheckAllCommand" />.
+	/// </summary>
+	private bool CanSetCheckAll() => IsMultipleSelection && CanSetMultipleSelection();
+
+	/// <summary>
 	/// Validates <see cref="SetFavoriteCommand" />.
 	/// </summary>
 	private bool CanSetFavorite() => !IsReadOnly && !IsActionInProgress;
+
+	/// <summary>
+	/// Validates <see cref="SetMultipleSelectionCommand" />.
+	/// </summary>
+	private bool CanSetMultipleSelection() => !IsActionInProgress && Hierarchy.Count > 0;
 
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
@@ -1548,6 +1689,23 @@ public sealed partial class EditorViewModel :
 			.ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
+	/// Refreshes the commands of the multiple selection, and ends the mode once the tree has no object left to check.
+	/// </summary>
+	private void OnHierarchyCountChanged(int count)
+	{
+		SetCheckAllCommand.NotifyCanExecuteChanged();
+
+		SetMultipleSelectionCommand.NotifyCanExecuteChanged();
+
+		if (count > 0 || !IsMultipleSelection)
+		{
+			return;
+		}
+
+		SetMultipleSelection(false);
 	}
 
 	/// <summary>
@@ -1641,6 +1799,16 @@ public sealed partial class EditorViewModel :
 		RightSideSheetContent = content;
 
 		IsRightSideSheetOpened = true;
+	}
+
+	/// <summary>
+	/// Unchecks every object and turns the check of every shown object off.
+	/// </summary>
+	private void UncheckAll()
+	{
+		IsCheckAll = false;
+
+		_checkMarks.UncheckAll(Hierarchy);
 	}
 
 	/// <summary>

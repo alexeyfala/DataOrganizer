@@ -13,6 +13,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors;
 using DataOrganizer.Controls;
 using DataOrganizer.Database.Entities.Enums;
@@ -23,6 +24,8 @@ using DataOrganizer.Documents.Editor.Messages;
 using DataOrganizer.Documents.FileContents.Enums;
 using DataOrganizer.Enums;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.MultipleSelection.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Services;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.Storage.Services;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
@@ -138,6 +141,152 @@ internal class EditorWindowTests
 		await propertyWriter
 			.Received(1)
 			.UpdateIsExpandedAsync(folder.Id, true, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetCheckAllCommand" />: a click on the check all switch shows every row of the tree
+	/// checked.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Check_All_Switch_Checks_Every_Row()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.AddRange([first, second]);
+
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		sut.Click(sut.CheckAllSwitch);
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool?[] shown =
+		[
+			sut.FindRowCheckBox(first)!.IsChecked,
+			sut.FindRowCheckBox(second)!.IsChecked
+		];
+
+		sut.Close();
+
+		// Assert
+		shown
+			.Should()
+			.OnlyContain(static x => x == true);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ToggleCheckCommand" />: a click on the check box of a row checks the object, and its
+	/// folder with an unchecked object shows itself checked in part.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Check_Box_Of_A_Row_Shows_Its_Folder_Partly_Checked()
+	{
+		// Arrange
+		FileDto checkedFile = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [checkedFile, ItemDtoFactory.CreateFileDto()]);
+
+		WorkSession session = new()
+		{
+			IsMultipleSelection = true
+		};
+
+		session
+			.Hierarchy
+			.Add(folder);
+
+		session.SetExpanded(folder.Id, true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		sut.Click(sut.FindRowCheckBox(checkedFile)!);
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool? folderShown = sut
+			.FindRowCheckBox(folder)!
+			.IsChecked;
+
+		sut.Close();
+
+		// Assert
+		bool?[] states = [session.IsChecked(checkedFile.Id), folderShown];
+
+		states
+			.Should()
+			.Equal(true, null);
 	}
 
 	/// <summary>
@@ -331,6 +480,57 @@ internal class EditorWindowTests
 		mainWindowLauncher
 			.Received(1)
 			.SwitchToFavorites();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetMultipleSelectionCommand" />: a click on the multiple selection switch shows the check
+	/// boxes of the rows.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Multiple_Selection_Switch_Shows_The_Check_Boxes()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		sut.Click(sut.MultipleSelectionSwitch);
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool isVisible = sut
+			.FindRowCheckBox(file)!
+			.IsVisible;
+
+		sut.Close();
+
+		// Assert
+		isVisible
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1491,6 +1691,51 @@ internal class EditorWindowTests
 		showsTipWhileDisabled
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.IsMultipleSelection" />: outside the multiple selection mode the rows of the tree hide
+	/// their check boxes.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsMultipleSelection_Off_Hides_The_Check_Boxes_Of_The_Rows()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		// Act
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool isVisible = sut
+			.FindRowCheckBox(file)!
+			.IsVisible;
+
+		sut.Close();
+
+		// Assert
+		isVisible
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

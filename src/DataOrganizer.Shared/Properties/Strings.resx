@@ -883,4 +883,10 @@
   <data name="NothingFound" xml:space="preserve">
     <value>Nothing found</value>
   </data>
+  <data name="MultipleSelection" xml:space="preserve">
+    <value>Multiple Selection</value>
+  </data>
+  <data name="CheckAll" xml:space="preserve">
+    <value>Check All</value>
+  </data>
 </root>

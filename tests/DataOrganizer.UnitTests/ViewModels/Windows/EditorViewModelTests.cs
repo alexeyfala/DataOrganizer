@@ -21,6 +21,8 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Extensions;
+using DataOrganizer.Hierarchy.MultipleSelection.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Messages;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Infrastructure.AppInstance.Messages;
@@ -73,6 +75,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -199,6 +202,55 @@ internal class EditorViewModelTests
 		sut.HierarchySummary
 			.Should()
 			.NotBeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.AddAsync" />: the checks of the folder are brought in line with what it holds once an
+	/// object is added to it.
+	/// </summary>
+	[Test]
+	public async Task AddAsync_Refreshes_The_Checks_Of_The_Folder([Values] bool isAdded)
+	{
+		// Arrange
+		FolderDto parent = ItemDtoFactory.CreateFolderDto();
+
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.AddAsync(
+					Arg.Any<string>(),
+					Arg.Any<EntityKind>(),
+					parent,
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(isAdded ? ItemDtoFactory.CreateFileDto() : null);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		_ = await sut.AddAsync(
+			"name",
+			EntityKind.File,
+			parent);
+
+		// Assert
+		checkMarks
+			.Received(isAdded ? 1 : 0)
+			.Refresh(parent);
 	}
 
 	/// <summary>
@@ -1175,6 +1227,52 @@ internal class EditorViewModelTests
 		file.IsExecuting
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: the checks of the folder are brought in line with what it holds once an
+	/// object of it is deleted.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Refreshes_The_Checks_Of_The_Folder([Values] bool isDeleted)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FolderDto parent = ItemDtoFactory.CreateFolderDto(children: [file]);
+
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			deletion
+				.DeleteAsync(
+					file,
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(isDeleted);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		_ = await sut.DeleteAsync(file);
+
+		// Assert
+		checkMarks
+			.Received(isDeleted ? 1 : 0)
+			.Refresh(parent);
 	}
 
 	/// <summary>
@@ -2962,6 +3060,78 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: a tree left without objects ends the multiple selection and the check of
+	/// every shown object.
+	/// </summary>
+	[Test]
+	public void Hierarchy_Left_Empty_Ends_The_Multiple_Selection()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsCheckAll = true,
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateFileDto());
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut
+			.Hierarchy
+			.Clear();
+
+		// Assert
+		bool[] states = [sut.IsMultipleSelection, sut.IsCheckAll];
+
+		states
+			.Should()
+			.OnlyContain(static x => !x);
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Hierarchy" />: a change of the number of objects refreshes the commands of the multiple
+	/// selection.
+	/// </summary>
+	[Test]
+	public void Hierarchy_Refreshes_The_Multiple_Selection_Commands()
+	{
+		// Arrange
+		List<string> refreshed = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.SetCheckAllCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.SetCheckAllCommand));
+
+		sut.SetMultipleSelectionCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.SetMultipleSelectionCommand));
+
+		// Act
+		sut
+			.Hierarchy
+			.Add(ItemDtoFactory.CreateFileDto());
+
+		// Assert
+		refreshed
+			.Should()
+			.BeEquivalentTo(nameof(sut.SetCheckAllCommand), nameof(sut.SetMultipleSelectionCommand));
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.HierarchySummary" />: a new editor counts the objects of the tree of the work session.
 	/// </summary>
 	[Test]
@@ -3625,6 +3795,36 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.IsActionInProgress" />: the start of an action refreshes the commands of the multiple
+	/// selection.
+	/// </summary>
+	[Test]
+	public void IsActionInProgress_Refreshes_The_Multiple_Selection_Commands()
+	{
+		// Arrange
+		List<string> refreshed = [];
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.SetCheckAllCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.SetCheckAllCommand));
+
+		sut.SetMultipleSelectionCommand.CanExecuteChanged += (_, _) => refreshed.Add(nameof(sut.SetMultipleSelectionCommand));
+
+		// Act
+		sut.IsActionInProgress = true;
+
+		// Assert
+		refreshed
+			.Should()
+			.BeEquivalentTo(nameof(sut.SetCheckAllCommand), nameof(sut.SetMultipleSelectionCommand));
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.IsReadOnly" />: a change of the mode refreshes the commands that add and delete objects.
 	/// </summary>
 	[Test]
@@ -4108,6 +4308,51 @@ internal class EditorViewModelTests
 		autoLock
 			.DidNotReceive()
 			.Arm();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(CheckMarksChangedMessage)" />: the rows of the objects whose check changed, nested
+	/// ones too, show the new check, and the other rows stay as they are.
+	/// </summary>
+	[Test]
+	public void Receive_CheckMarksChanged_Refreshes_The_Rows_Of_The_Changed_Objects()
+	{
+		// Arrange
+		FileDto changed = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [changed, ItemDtoFactory.CreateFileDto()]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new();
+
+			session
+				.Hierarchy
+				.Add(folder);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		List<Guid> refreshed = [];
+
+		using IDisposable subscription = sut
+			.Nodes
+			.Flatten(static x => x.Children)
+			.Select(static x => x.WhenPropertyChanged(y => y.IsChecked, notifyOnInitialValue: false))
+			.Merge()
+			.Subscribe(x => refreshed.Add(x.Sender.Model.Id));
+
+		// Act
+		sut.Receive(new CheckMarksChangedMessage(new HashSet<Guid> { folder.Id, changed.Id }));
+
+		// Assert
+		refreshed
+			.Should()
+			.BeEquivalentTo([folder.Id, changed.Id]);
 	}
 
 	/// <summary>
@@ -4911,6 +5156,43 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Search" />: the search of a new window, as after the return from the favorites, leaves the
+	/// checks of the work session as they are.
+	/// </summary>
+	[Test]
+	public void Search_Of_A_New_Window_Keeps_The_Checks()
+	{
+		// Arrange
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateFileDto());
+
+			builder.RegisterInstance(checkMarks);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		// Act
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Assert
+		checkMarks
+			.DidNotReceive()
+			.UncheckAll(sut.Hierarchy);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Search" />: a search opens the folders on the way to the objects it matches.
 	/// </summary>
 	[Test]
@@ -4964,6 +5246,49 @@ internal class EditorViewModelTests
 		states
 			.Should()
 			.Equal(true, true);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Search" />: a new search unchecks every object in the multiple selection mode and leaves
+	/// the checks alone outside it.
+	/// </summary>
+	[Test]
+	public void Search_Unchecks_Every_Object_In_The_Multiple_Selection([Values] bool isMultipleSelection)
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = isMultipleSelection
+			};
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Search.Text = "needle";
+
+		// Act
+		time.Advance(PastThePause);
+
+		// Assert
+		checkMarks
+			.Received(isMultipleSelection ? 1 : 0)
+			.UncheckAll(sut.Hierarchy);
 	}
 
 	/// <summary>
@@ -5325,6 +5650,142 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.SetCheckAllCommand" />: the check of every object goes by what the search shows.
+	/// </summary>
+	[Test]
+	public void SetCheckAllCommand_Checks_What_The_Search_Shows()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		FakeTimeProvider time = new();
+
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateNamedFileDto("needle"));
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance<TimeProvider>(time);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.Search.Text = "needle";
+
+		time.Advance(PastThePause);
+
+		// Act
+		sut
+			.SetCheckAllCommand
+			.Execute(true);
+
+		// Assert
+		checkMarks
+			.Received(1)
+			.CheckShown(sut.Hierarchy, sut.Search.Filter);
+
+		sut.IsCheckAll
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetCheckAllCommand" />: the check of every object is offered only in the multiple
+	/// selection mode.
+	/// </summary>
+	[Test]
+	public void SetCheckAllCommand_Needs_The_Multiple_Selection([Values] bool isMultipleSelection)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = isMultipleSelection
+			};
+
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateFileDto());
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool canExecute = sut
+			.SetCheckAllCommand
+			.CanExecute(true);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(isMultipleSelection);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetCheckAllCommand" />: turned off, it unchecks every object.
+	/// </summary>
+	[Test]
+	public void SetCheckAllCommand_Unchecks_Every_Object_When_Turned_Off()
+	{
+		// Arrange
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsCheckAll = true,
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateFileDto());
+
+			builder.RegisterInstance(checkMarks);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut
+			.SetCheckAllCommand
+			.Execute(false);
+
+		// Assert
+		checkMarks
+			.Received(1)
+			.UncheckAll(sut.Hierarchy);
+
+		sut.IsCheckAll
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.SetFavorite" />: the IsFavorite flag is toggled and the change is delegated to the property writer.
 	/// </summary>
 	[Test]
@@ -5355,6 +5816,95 @@ internal class EditorViewModelTests
 		await propertyWriter
 			.Received(1)
 			.UpdateIsFavoriteAsync(dto, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetMultipleSelectionCommand" />: the mode is offered only for a tree with objects and while
+	/// no action runs.
+	/// </summary>
+	[Test]
+	public void SetMultipleSelectionCommand_Needs_Objects_And_No_Running_Action(
+		[Values] bool hasObjects,
+		[Values] bool isActionInProgress)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new();
+
+			if (hasObjects)
+			{
+				session
+					.Hierarchy
+					.Add(ItemDtoFactory.CreateFileDto());
+			}
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsActionInProgress = isActionInProgress;
+
+		// Act
+		bool canExecute = sut
+			.SetMultipleSelectionCommand
+			.CanExecute(true);
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(hasObjects && !isActionInProgress);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetMultipleSelectionCommand" />: turned off, the mode unchecks every object and ends the
+	/// check of every shown object.
+	/// </summary>
+	[Test]
+	public void SetMultipleSelectionCommand_Unchecks_Every_Object_When_Turned_Off()
+	{
+		// Arrange
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsCheckAll = true,
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateFileDto());
+
+			builder.RegisterInstance(checkMarks);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut
+			.SetMultipleSelectionCommand
+			.Execute(false);
+
+		// Assert
+		checkMarks
+			.Received(1)
+			.UncheckAll(sut.Hierarchy);
+
+		bool[] states = [sut.IsMultipleSelection, sut.IsCheckAll];
+
+		states
+			.Should()
+			.OnlyContain(static x => !x);
 	}
 
 	/// <summary>
@@ -6108,6 +6658,40 @@ internal class EditorViewModelTests
 		settingsStore
 			.Received(1)
 			.Save();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ToggleCheckCommand" />: the check of the object is toggled.
+	/// </summary>
+	[Test]
+	public void ToggleCheckCommand_Toggles_The_Check_Of_The_Object()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(checkMarks);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut
+			.ToggleCheckCommand
+			.Execute(file);
+
+		// Assert
+		checkMarks
+			.Received(1)
+			.Toggle(file);
 	}
 	#endregion
 }

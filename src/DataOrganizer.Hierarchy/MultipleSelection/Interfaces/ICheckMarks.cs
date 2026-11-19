@@ -27,6 +27,11 @@ public interface ICheckMarks
 	IReadOnlyList<ExplorerItemDtoBase> GetTopmostChecked(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
 	/// <summary>
+	/// Brings a folder whose contents changed, and the folders above it, in line with what they hold.
+	/// </summary>
+	void Refresh(FolderDto folder);
+
+	/// <summary>
 	/// Unchecks a checked object and checks any other one together with everything it holds.
 	/// </summary>
 	void Toggle(ExplorerItemDtoBase item);

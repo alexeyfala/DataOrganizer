@@ -331,6 +331,28 @@
 									Theme="{StaticResource MaterialFlatToggleButton}"
 									ToolTip.Tip="{x:Static prop:Strings.ReadOnlyMode}" />
 
+								<ToggleButton
+									x:Name="MultipleSelectionSwitch"
+									Classes="primary"
+									Command="{Binding SetMultipleSelectionCommand, Mode=OneWay}"
+									CommandParameter="{Binding $self.IsChecked, Mode=OneWay}"
+									Content="{materialIcons:MaterialIconTextExt Kind=OrderBoolAscendingVariant,
+									                                            IconSize={StaticResource ToolBarIconSize}}"
+									IsChecked="{Binding IsMultipleSelection, Mode=OneWay}"
+									Theme="{StaticResource MaterialFlatToggleButton}"
+									ToolTip.Tip="{x:Static prop:Strings.MultipleSelection}" />
+
+								<ToggleButton
+									x:Name="CheckAllSwitch"
+									Classes="primary"
+									Command="{Binding SetCheckAllCommand, Mode=OneWay}"
+									CommandParameter="{Binding $self.IsChecked, Mode=OneWay}"
+									Content="{materialIcons:MaterialIconTextExt Kind=CheckboxMultipleOutline,
+									                                            IconSize={StaticResource ToolBarIconSize}}"
+									IsChecked="{Binding IsCheckAll, Mode=OneWay}"
+									Theme="{StaticResource MaterialFlatToggleButton}"
+									ToolTip.Tip="{x:Static prop:Strings.CheckAll}" />
+
 								<Panel Classes="VerticalSeparatorPanelStyle" />
 
 								<Button
@@ -424,6 +446,7 @@
 										text:MatchHighlightBehavior.Query="{Binding Search.Query, Mode=OneWay}"
 										AutoScrollToSelectedItem="True"
 										Classes="VirtualizedTreeViewStyle"
+										Classes.multipleSelection="{Binding IsMultipleSelection, Mode=OneWay}"
 										ItemsSource="{Binding ShownNodes, Mode=OneTime}"
 										ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 										SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
@@ -435,6 +458,11 @@
 												<Setter Property="AutomationProperties.Name" Value="{Binding Model.Name, Mode=OneWay}" />
 												<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 												<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+											</Style>
+
+											<!--  The rows show their check boxes only in the multiple selection mode.  -->
+											<Style Selector="TreeView:not(.multipleSelection) CheckBox.RowCheckBoxStyle">
+												<Setter Property="IsVisible" Value="False" />
 											</Style>
 										</TreeView.Styles>
 

@@ -268,6 +268,15 @@ namespace DataOrganizer.Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Check All.
+        /// </summary>
+        public static string CheckAll {
+            get {
+                return ResourceManager.GetString("CheckAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Check for updates on startup.
         /// </summary>
         public static string CheckForUpdatesOnStartup {
@@ -1416,6 +1425,15 @@ namespace DataOrganizer.Shared.Properties {
         public static string MixedLineEndings {
             get {
                 return ResourceManager.GetString("MixedLineEndings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple Selection.
+        /// </summary>
+        public static string MultipleSelection {
+            get {
+                return ResourceManager.GetString("MultipleSelection", resourceCulture);
             }
         }
         

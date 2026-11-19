@@ -17,6 +17,9 @@ public abstract class ExplorerNodeViewModelBase : ObservableDisposableBase
 	/// </summary>
 	public abstract ReadOnlyObservableCollection<ExplorerNodeViewModelBase> Children { get; }
 
+	/// <inheritdoc cref="ISessionTreeState.IsChecked" />
+	public bool? IsChecked => _treeState.IsChecked(Model.Id);
+
 	/// <inheritdoc cref="ISessionTreeState.IsExpanded" />
 	public bool IsExpanded
 	{
@@ -82,5 +85,10 @@ public abstract class ExplorerNodeViewModelBase : ObservableDisposableBase
 			FileDto file => new FileNodeViewModel(file, treeState)
 		};
 	}
+
+	/// <summary>
+	/// Raises the change of <see cref="IsChecked" /> after the work session changed the check mark of the object.
+	/// </summary>
+	public void NotifyIsCheckedChanged() => OnPropertyChanged(nameof(IsChecked));
 	#endregion
 }

@@ -66,6 +66,22 @@ public sealed class CheckMarks : ICheckMarks
 	}
 
 	/// <inheritdoc />
+	public void Refresh(FolderDto folder)
+	{
+		HashSet<Guid> changed = [];
+
+		if (Set(
+			folder,
+			GetState(folder),
+			changed))
+		{
+			UpdateParents(folder, changed);
+		}
+
+		Notify(changed);
+	}
+
+	/// <inheritdoc />
 	public void Toggle(ExplorerItemDtoBase item)
 	{
 		HashSet<Guid> changed = [];
@@ -151,10 +167,16 @@ public sealed class CheckMarks : ICheckMarks
 	}
 
 	/// <summary>
-	/// The state of a folder that follows from the states of the objects inside it.
+	/// The state of a folder that follows from the states of the objects inside it; an empty folder keeps a whole check
+	/// and loses a partial one.
 	/// </summary>
 	private bool? GetState(FolderDto folder)
 	{
+		if (folder.Children.Count == 0)
+		{
+			return _treeState.IsChecked(folder.Id) == true;
+		}
+
 		bool?[] states =
 		[
 			.. folder.Children

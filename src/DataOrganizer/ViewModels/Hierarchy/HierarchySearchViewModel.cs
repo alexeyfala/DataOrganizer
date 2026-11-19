@@ -18,6 +18,9 @@ public sealed partial class HierarchySearchViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="FilteredHierarchy.Changes" />
 	public IObservable<HierarchyFilter> Changes => _filter.Changes;
 
+	/// <inheritdoc cref="FilteredHierarchy.Current" />
+	public HierarchyFilter Filter => _filter.Current;
+
 	/// <summary>
 	/// <c>True</c> when the applied search matches no object.
 	/// </summary>

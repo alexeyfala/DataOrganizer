@@ -57,11 +57,14 @@ public static class ItemDtoFactory
 	}
 
 	/// <summary>
-	/// Creates a <see cref="FolderDto" /> with random properties.
+	/// Creates a <see cref="FolderDto" /> with random properties that holds <paramref name="children" />.
 	/// </summary>
 	public static FolderDto CreateFolderDto(
 		in Guid id = default,
-		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
+		EncryptionStatus encryptionStatus = EncryptionStatus.None,
+		IEnumerable<ExplorerItemDtoBase>? children = null)
+	{
+		FolderDto folder = new()
 		{
 			CreatedAt = DateTime.Now,
 			EncryptionStatus = encryptionStatus,
@@ -71,6 +74,18 @@ public static class ItemDtoFactory
 			Name = RandomString.Create(10),
 			UpdatedAt = DateTime.Now
 		};
+
+		foreach (ExplorerItemDtoBase child in children ?? [])
+		{
+			child.Parent = folder;
+
+			folder
+				.Children
+				.Add(child);
+		}
+
+		return folder;
+	}
 
 	/// <summary>
 	/// Creates the required number of random <see cref="FolderDto" /> objects.
