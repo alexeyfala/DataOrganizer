@@ -105,7 +105,9 @@
 		x:DataType="nodes:FolderNodeViewModel"
 		ItemsSource="{Binding ShownChildren, DataType={x:Type nodes:ExplorerNodeViewModelBase}, Mode=OneTime}">
 		<DockPanel>
+			<!--  The hover circle of the check box reaches past the box, so the wrapper does not clip it.  -->
 			<ContentControl
+				ClipToBounds="False"
 				Content="{Binding Mode=OneWay}"
 				ContentTemplate="{StaticResource RowCheckBoxTemplate}"
 				DockPanel.Dock="Left" />
@@ -122,7 +124,9 @@
 		x:Key="FileInTreeViewTemplate"
 		x:DataType="nodes:FileNodeViewModel">
 		<DockPanel>
+			<!--  The hover circle of the check box reaches past the box, so the wrapper does not clip it.  -->
 			<ContentControl
+				ClipToBounds="False"
 				Content="{Binding Mode=OneWay}"
 				ContentTemplate="{StaticResource RowCheckBoxTemplate}"
 				DockPanel.Dock="Left" />
