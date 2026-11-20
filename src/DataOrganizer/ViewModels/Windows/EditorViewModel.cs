@@ -564,7 +564,7 @@ public sealed partial class EditorViewModel :
 
 		if (await _dialogService
 			.ShowEntityCreationAsync()
-			.ConfigureAwait(false) is not { } result)
+			.ConfigureAwait(true) is not { } result)
 		{
 			return;
 		}
@@ -1323,7 +1323,7 @@ public sealed partial class EditorViewModel :
 	{
 		ExplorerItemDtoBase? dto = await _hierarchyEditor
 			.AddAsync(name, kind, parent, Hierarchy, token)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		if (dto is not null)
 		{
@@ -1359,7 +1359,7 @@ public sealed partial class EditorViewModel :
 
 		if (!await _deletion
 			.DeleteAsync(dto, Hierarchy, token)
-			.ConfigureAwait(false))
+			.ConfigureAwait(true))
 		{
 			return false;
 		}
@@ -1746,7 +1746,7 @@ public sealed partial class EditorViewModel :
 		// The open files are closed next.
 		IReadOnlyList<ExplorerItemDtoBase> deleted = await _deletion
 			.DeleteManyAsync(items, Hierarchy)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		foreach (FolderDto parent in deleted
 			.Select(static x => x.Parent)

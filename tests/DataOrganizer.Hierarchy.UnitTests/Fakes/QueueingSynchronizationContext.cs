@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Fakes;
+namespace DataOrganizer.Hierarchy.UnitTests.Fakes;
 
 /// <summary>
 /// Synchronization context that keeps the posted callbacks until the test runs them.

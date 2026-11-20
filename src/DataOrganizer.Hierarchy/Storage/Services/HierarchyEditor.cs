@@ -97,9 +97,10 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		try
 		{
+			// The hierarchy may be bound to the UI, so it changes in the context of the caller.
 			entity = await _dbAccess
 				.AddEntityAsync(parameters, token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(true);
 		}
 		catch (Exception ex)
 		{
@@ -180,7 +181,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			if (!await DeleteEntityAsync(
 				item,
 				hierarchy,
-				token).ConfigureAwait(false))
+				token).ConfigureAwait(true))
 			{
 				break;
 			}
@@ -301,9 +302,10 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		try
 		{
+			// The hierarchy may be bound to the UI, so it changes in the context of the caller.
 			result = await _dbAccess
 				.DeleteAsync(dto.Kind, dto.Id, token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(true);
 		}
 		catch (Exception ex)
 		{
