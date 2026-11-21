@@ -264,7 +264,7 @@
 									Command="{Binding AddCommand}"
 									Content="{materialIcons:MaterialIconTextExt Kind=Plus,
 									                                            IconSize={StaticResource ToolBarIconSize}}"
-									ToolTip.Tip="{x:Static prop:Strings.Add}" />
+									ToolTip.Tip="{x:Static prop:Strings.AddToMainList}" />
 
 								<Button
 									Classes="primary"
