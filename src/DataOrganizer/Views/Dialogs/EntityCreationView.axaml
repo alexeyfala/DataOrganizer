@@ -14,8 +14,14 @@
 	mc:Ignorable="d">
 
 	<StackPanel
+		MaxWidth="{StaticResource DialogMaxWidth}"
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
+
+		<TextBlock
+			Classes="HeaderTextBlockStyle"
+			Text="{Binding Header, Mode=OneWay}"
+			TextTrimming="CharacterEllipsis" />
 
 		<StackPanel
 			Orientation="Vertical"

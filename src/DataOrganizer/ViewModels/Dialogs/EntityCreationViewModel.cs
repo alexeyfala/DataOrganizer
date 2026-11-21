@@ -15,6 +15,12 @@ namespace DataOrganizer.ViewModels.Dialogs;
 public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewModel
 {
 	#region Properties
+	/// <summary>
+	/// Text shown above the kinds of objects: where the new object goes.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Header { get; set; }
+
 	/// <inheritdoc cref="EntityCreationViewSettings.IsDatasetSelected" />
 	[ObservableProperty]
 	public partial bool IsDatasetSelected { get; set; }

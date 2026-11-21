@@ -256,6 +256,41 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.AddCommand" />: the dialog is headed by the folder the object goes to, or by the main
+	/// list when the command is given no folder.
+	/// </summary>
+	[Test]
+	public async Task AddCommand_Heads_The_Dialog_With_The_Target_Folder([Values] bool toFolder)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogService);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.AddCommand
+			.ExecuteAsync(toFolder ? folder : null);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.ShowEntityCreationAsync(toFolder ? folder.Name : null, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ChangePassword" />: open files are closed and the folder password is changed.
 	/// </summary>
 	[Test]

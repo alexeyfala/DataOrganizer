@@ -566,7 +566,7 @@ public sealed partial class EditorViewModel :
 		_logger.LogInformation("Adding an object using a dialog");
 
 		if (await _dialogService
-			.ShowEntityCreationAsync()
+			.ShowEntityCreationAsync(parent?.Name)
 			.ConfigureAwait(true) is not { } result)
 		{
 			return;

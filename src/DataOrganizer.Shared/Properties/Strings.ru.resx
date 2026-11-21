@@ -168,6 +168,9 @@
   <data name="AddToFolder" xml:space="preserve">
     <value>Добавить в папку</value>
   </data>
+  <data name="AddToMainList" xml:space="preserve">
+    <value>Добавить в главный список</value>
+  </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>Свернуть все</value>
   </data>

@@ -47,6 +47,9 @@
 	<!--#endregion-->
 
 	<!--#region Sizes-->
+	<!--  The widest a dialog grows: a longer text in it wraps or is cut.  -->
+	<system:Double x:Key="DialogMaxWidth">460.0</system:Double>
+
 	<system:Double x:Key="ElementSpacing">10.0</system:Double>
 
 	<system:Double x:Key="EntityKindIconSize">28.0</system:Double>

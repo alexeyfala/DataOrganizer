@@ -257,9 +257,15 @@ public sealed class DialogService :
 	}
 
 	/// <inheritdoc />
-	public async Task<EntityCreationResult?> ShowEntityCreationAsync(CancellationToken token = default)
+	public async Task<EntityCreationResult?> ShowEntityCreationAsync(
+		string? folderName,
+		CancellationToken token = default)
 	{
 		EntityCreationViewModel viewModel = _viewFactory.CreateViewModel<EntityCreationViewModel>();
+
+		viewModel.Header = folderName is null
+			? Strings.AddToMainList
+			: $@"{Strings.AddToFolder} ""{folderName}""";
 
 		Task dialogClosed = ShowDialog<EntityCreationView>(viewModel);
 

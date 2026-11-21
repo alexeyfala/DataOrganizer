@@ -298,7 +298,7 @@ internal class EditorWindowTests
 				.Returns(Substitute.For<ExplorerItemBase>());
 
 			dialogService
-				.ShowEntityCreationAsync(Arg.Any<CancellationToken>())
+				.ShowEntityCreationAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>())
 				.Returns(answer.Task);
 
 			mapper

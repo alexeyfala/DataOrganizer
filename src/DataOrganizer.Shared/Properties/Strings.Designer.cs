@@ -106,6 +106,15 @@ namespace DataOrganizer.Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add To Main List.
+        /// </summary>
+        public static string AddToMainList {
+            get {
+                return ResourceManager.GetString("AddToMainList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add Value.
         /// </summary>
         public static string AddValue {

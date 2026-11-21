@@ -693,6 +693,140 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DialogService.ShowEntityCreationAsync" />: the header of the dialog ends with the name of the folder the
+	/// object goes to, in quotes.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowEntityCreationAsync_Heads_The_Dialog_With_The_Folder()
+	{
+		// Arrange
+		const string folderName = "Documents";
+
+		EntityCreationViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<IWindowSettingsStore>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EntityCreationViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<EntityCreationView>(Arg.Any<object[]>())
+				.Returns(new EntityCreationView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost host = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		Window window = new() { Content = host };
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		Task<EntityCreationResult?> task = sut.ShowEntityCreationAsync(folderName);
+
+		Dispatcher.UIThread.RunJobs();
+
+		string? header = viewModel.Header;
+
+		// The dialog and the window are closed here, otherwise the host leaks into the following tests.
+		await viewModel
+			.CancelCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		await task;
+
+		window.Close();
+
+		// Assert
+		header
+			.Should()
+			.EndWith($@"""{folderName}""");
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.ShowEntityCreationAsync" />: without a folder the dialog is headed by the main list, a
+	/// header that names no folder.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowEntityCreationAsync_Heads_The_Dialog_With_The_Main_List_Without_A_Folder()
+	{
+		// Arrange
+		EntityCreationViewModel viewModel = new(
+			Substitute.For<IDialogCloser>(),
+			Substitute.For<ITaskExceptionHandler>(),
+			Substitute.For<IWindowSettingsStore>());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EntityCreationViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateUserControl<EntityCreationView>(Arg.Any<object[]>())
+				.Returns(new EntityCreationView(viewModel));
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost host = new()
+		{
+			Identifier = DialogHostIdentifiers.Main
+		};
+
+		Window window = new() { Content = host };
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		Task<EntityCreationResult?> task = sut.ShowEntityCreationAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		string? header = viewModel.Header;
+
+		// The dialog and the window are closed here, otherwise the host leaks into the following tests.
+		await viewModel
+			.CancelCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		await task;
+
+		window.Close();
+
+		// Assert
+		header
+			.Should()
+			.NotBeNullOrWhiteSpace()
+			.And
+			.NotContain(@"""");
+	}
+
+	/// <summary>
 	/// <see cref="DialogService.ShowSettingsAsync" />: closing the view with unsaved changes keeps it
 	/// open and asks for a confirmation, and discarding then closes it without saving.
 	/// </summary>
