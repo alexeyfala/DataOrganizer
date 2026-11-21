@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Extensions;
 using DataOrganizer.Infrastructure.Notifications.Helpers;
 using DataOrganizer.Security.Enums;
@@ -56,7 +57,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
 			keeper: folder,
-			header: Strings.ChangePassword,
+			header: ObjectHeaderBuilder.Build(Strings.ChangePassword, folder.Name),
 			label: Strings.OldPassword,
 			token: token).ConfigureAwait(false);
 
@@ -66,7 +67,7 @@ public sealed class FolderProtection : IFolderProtection
 		}
 
 		using PinnedSecret newPassword = await _passwordPrompt.RequestPasswordAsync(
-			header: Strings.ChangePassword,
+			header: ObjectHeaderBuilder.Build(Strings.ChangePassword, folder.Name),
 			label: Strings.NewPassword,
 			mode: PasswordPromptMode.Create,
 			token: token).ConfigureAwait(false);
@@ -99,7 +100,7 @@ public sealed class FolderProtection : IFolderProtection
 		// Unwrapping is the password check, so a wrong password never pulls the contents into memory.
 		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
 			keeper: folder,
-			header: Strings.DecryptFiles,
+			header: ObjectHeaderBuilder.Build(Strings.DecryptFiles, folder.Name),
 			token: token).ConfigureAwait(false);
 
 		if (dek is null)
@@ -131,7 +132,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		// A cancelled prompt returns an empty password, which changes nothing.
 		using PinnedSecret password = await _passwordPrompt.RequestPasswordAsync(
-			header: Strings.EncryptFiles,
+			header: ObjectHeaderBuilder.Build(Strings.EncryptFiles, folder.Name),
 			mode: PasswordPromptMode.Create,
 			token: token).ConfigureAwait(false);
 

@@ -1,5 +1,6 @@
 using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.Shared.Properties;
@@ -64,7 +65,10 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 				return false;
 			}
 
-			if (!await CopyTextAsync(file, Strings.CopyContent, token).ConfigureAwait(true))
+			if (!await CopyTextAsync(
+				file,
+				ObjectHeaderBuilder.Build(Strings.CopyContent, file.Name),
+				token).ConfigureAwait(true))
 			{
 				return false;
 			}

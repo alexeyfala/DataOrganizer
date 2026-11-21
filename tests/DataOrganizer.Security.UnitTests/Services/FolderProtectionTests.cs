@@ -182,6 +182,64 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderProtection.ChangePasswordAsync" />: both the old and the new password are asked for under a header
+	/// that names the folder.
+	/// </summary>
+	[Test]
+	public async Task ChangePasswordAsync_Heads_Both_Prompts_With_The_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns(SecretFactory.CreateRandomKey(10));
+
+			// An empty new password stops the flow right after the second prompt.
+			passwordPrompt
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
+
+			builder.RegisterInstance(passwordPrompt);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.ChangePasswordAsync(folder);
+
+		// Assert
+		await unlocker.Received(1).RequestDekAsync(
+			folder,
+			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>());
+
+		await passwordPrompt.Received(1).RequestPasswordAsync(
+			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<PasswordPromptMode>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="FolderProtection.ChangePasswordAsync" />: a cancelled new password keeps the key as it is.
 	/// </summary>
 	[Test]
@@ -578,6 +636,49 @@ internal class FolderProtectionTests
 		contentKeys
 			.Received(isWriteSaved ? 1 : 0)
 			.DiscardKeys(folder);
+	}
+
+	/// <summary>
+	/// <see cref="FolderProtection.DecryptFolderAsync" />: the password is asked for under a header that names the
+	/// folder.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Heads_The_Prompt_With_The_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// A rejected password stops the flow right after the prompt.
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, []);
+
+		// Assert
+		await unlocker.Received(1).RequestDekAsync(
+			folder,
+			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1211,6 +1312,42 @@ internal class FolderProtectionTests
 		fileEraser
 			.Received(1)
 			.EraseAndDeleteFile(backup.FilePath);
+	}
+
+	/// <summary>
+	/// <see cref="FolderProtection.EncryptFolderAsync(FolderDto, FileDto[], CancellationToken)" />: the new password is
+	/// asked for under a header that names the folder.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Heads_The_Prompt_With_The_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// An empty result stops the flow right after the prompt.
+			passwordPrompt
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
+
+			builder.RegisterInstance(passwordPrompt);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, []);
+
+		// Assert
+		await passwordPrompt.Received(1).RequestPasswordAsync(
+			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<PasswordPromptMode>(),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

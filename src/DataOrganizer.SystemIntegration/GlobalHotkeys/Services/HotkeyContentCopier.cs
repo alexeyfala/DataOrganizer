@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Favorites.Messages;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Shared.Extensions;
@@ -74,7 +75,10 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 		}
 
 		// Stryker disable once String : wording of the description
-		if (!await CopyTextAsync(file, $"{Strings.CopyContent}: {file.Name}", token).ConfigureAwait(false))
+		if (!await CopyTextAsync(
+			file,
+			ObjectHeaderBuilder.Build(Strings.CopyContent, file.Name),
+			token).ConfigureAwait(false))
 		{
 			return;
 		}

@@ -528,6 +528,43 @@ internal class ContentCopierTests
 	}
 
 	/// <summary>
+	/// <see cref="ContentCopier.CopyAsync" />: the text is copied under a header that names the file, the header a
+	/// password prompt shows.
+	/// </summary>
+	[Test]
+	public async Task CopyAsync_Heads_The_Prompt_With_The_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileTextCopier);
+		});
+
+		ContentCopier sut = mock.Create<ContentCopier>();
+
+		// Act
+		await sut.CopyAsync(file, showAtOnce: false);
+
+		// Assert
+		await fileTextCopier.Received(1).CopyAsync(
+			file,
+			Arg.Is<string>(x => x.EndsWith($@"""{file.Name}""")),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="ContentCopier.CopyAsync" />: a file whose text is copied goes into the copy history, which hands on
 	/// whether a shown list moves it at once.
 	/// </summary>

@@ -5,6 +5,7 @@ using DataOrganizer.Documents.Notes.Helpers;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Enums;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Interfaces.Views;
@@ -265,7 +266,7 @@ public sealed class DialogService :
 
 		viewModel.Header = folderName is null
 			? Strings.AddToMainList
-			: $@"{Strings.AddToFolder} ""{folderName}""";
+			: ObjectHeaderBuilder.Build(Strings.AddToFolder, folderName);
 
 		Task dialogClosed = ShowDialog<EntityCreationView>(viewModel);
 

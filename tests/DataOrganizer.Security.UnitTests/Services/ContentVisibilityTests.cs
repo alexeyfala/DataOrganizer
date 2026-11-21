@@ -385,6 +385,57 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: the password of the keeper is asked for under a header that
+	/// names the file.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsAsync_Heads_The_Prompt_With_The_File()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// A cancelled prompt stops the flow right after it.
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		await sut.ShowFileContentsAsync(file);
+
+		// Assert
+		await unlocker.Received(1).RequestDekAsync(
+			folder,
+			Arg.Is<string>(x => x.EndsWith($@"""{file.Name}""")),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: a key store that refuses the key leaves the file encrypted
 	/// and turns the call down.
 	/// </summary>
@@ -649,6 +700,49 @@ internal class ContentVisibilityTests
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Decrypted);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: the password of the keeper is asked for under a header
+	/// that names the folder.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContentsAsync_Heads_The_Prompt_With_The_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// A cancelled prompt stops the flow right after it.
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		await sut.ShowFolderContentsAsync(folder);
+
+		// Assert
+		await unlocker.Received(1).RequestDekAsync(
+			folder,
+			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>());
 	}
 
 	/// <summary>

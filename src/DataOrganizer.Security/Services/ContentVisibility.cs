@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Extensions;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Extensions;
 using DataOrganizer.Infrastructure.Notifications.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
@@ -130,7 +131,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 
 		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
 			keeper: root,
-			header: Strings.ShowContents,
+			header: ObjectHeaderBuilder.Build(Strings.ShowContents, file.Name),
 			token: token).ConfigureAwait(false);
 
 		if (dek is null)
@@ -171,7 +172,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 
 		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
 			keeper: root,
-			header: Strings.ShowContents,
+			header: ObjectHeaderBuilder.Build(Strings.ShowContents, folder.Name),
 			token: token).ConfigureAwait(false);
 
 		if (dek is null)
