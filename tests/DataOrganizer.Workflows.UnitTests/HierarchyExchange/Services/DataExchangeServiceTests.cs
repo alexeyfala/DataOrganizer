@@ -70,7 +70,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportDataAsync();
+		await sut.ExportDataAsync([]);
 
 		// Assert
 		parameters!.ShowOverwritePrompt
@@ -132,7 +132,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportDataAsync();
+		await sut.ExportDataAsync([]);
 
 		// Assert
 		fileSystem.Statistics.FileStream.Methods
@@ -177,7 +177,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportDataAsync();
+		await sut.ExportDataAsync([]);
 
 		// Assert
 		await dbBackupService
@@ -239,7 +239,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportDataAsync();
+		await sut.ExportDataAsync([]);
 
 		// Assert
 		fileSystem.Statistics.FileStream.Methods
@@ -289,7 +289,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportDataAsync();
+		await sut.ExportDataAsync([]);
 
 		// Assert
 		parameters!.FileTypes.Select(static x => (x.Name, string.Join(", ", x.Patterns), string.Join(", ", x.MimeTypes!)))
@@ -302,6 +302,44 @@ internal class DataExchangeServiceTests
 		parameters.DefaultExtension
 			.Should()
 			.Be("json");
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ExportDataAsync" />: the title of the file picker shows the counts of every object.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Shows_The_Counts_Of_Every_Object()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		FileSaveParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			// The picker is closed, so the export stops at the choice.
+			picker
+				.SaveFileAsync(Arg.Do<FileSaveParameters>(x => parameters = x))
+				.Returns((string?)null);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync([folder]);
+
+		// Assert
+		parameters!.Title
+			.Should()
+			.EndWith("Σ: 3");
 	}
 
 	/// <summary>
@@ -345,7 +383,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportDataAsync();
+		await sut.ExportDataAsync([]);
 
 		// Assert
 		fileSystem.Statistics.FileStream.Methods
@@ -391,7 +429,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportPartAsync(ids);
+		await sut.ExportPartAsync([], ids);
 
 		// Assert
 		await format
@@ -438,12 +476,55 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportPartAsync(ids);
+		await sut.ExportPartAsync([], ids);
 
 		// Assert
 		parameters!.FileTypes.Select(static x => x.Name)
 			.Should()
 			.Equal("JSON File", "XML File");
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ExportPartAsync" />: the title of the file picker shows the counts of the objects of
+	/// the identifiers only.
+	/// </summary>
+	[Test]
+	public async Task ExportPartAsync_Shows_The_Counts_Of_The_Exported_Objects()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		folder.Children.Add(file);
+
+		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		HashSet<Guid> ids = [folder.Id, file.Id];
+
+		FileSaveParameters? parameters = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			// The picker is closed, so the export stops at the choice.
+			picker
+				.SaveFileAsync(Arg.Do<FileSaveParameters>(x => parameters = x))
+				.Returns((string?)null);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportPartAsync([folder], ids);
+
+		// Assert
+		parameters!.Title
+			.Should()
+			.EndWith("Σ: 2");
 	}
 
 	/// <summary>
@@ -478,7 +559,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ExportPartAsync(ids);
+		await sut.ExportPartAsync([], ids);
 
 		// Assert
 		await dbBackupService

@@ -650,6 +650,45 @@ internal class HierarchyExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyExtensions.GetCount(IEnumerable{ExplorerItemDtoBase}, IReadOnlySet{Guid})" />: counts only the
+	/// objects of the identifiers, at any depth, a dataset as a file.
+	/// </summary>
+	[Test]
+	public void GetCount_For_Ids_Counts_Only_The_Objects_Of_The_Ids()
+	{
+		// Arrange
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
+
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
+
+		FileDto dataset = ItemDtoFactory.CreateFileDto(kind: EntityKind.Dataset);
+
+		root.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		nested.Children.Add(dataset);
+
+		nested.Children.Add(ItemDtoFactory.CreateFileDto());
+
+		root.Children.Add(nested);
+
+		ExplorerItemDtoBase[] hierarchy = [root];
+
+		HashSet<Guid> ids = [root.Id, nested.Id, dataset.Id];
+
+		// Act
+		HierarchyCounts result = hierarchy.GetCount(ids);
+
+		// Assert
+		result.Files
+			.Should()
+			.Be(1);
+
+		result.Folders
+			.Should()
+			.Be(2);
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyExtensions.GetFiles" />: lists the files in the order of the walk.
 	/// </summary>
 	[Test]

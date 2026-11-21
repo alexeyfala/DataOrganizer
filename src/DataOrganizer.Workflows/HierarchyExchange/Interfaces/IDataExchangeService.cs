@@ -14,14 +14,18 @@ public interface IDataExchangeService
 {
 	#region Methods
 	/// <summary>
-	/// Exports data.
+	/// Exports every object; the file picker shows the counts of <paramref name="hierarchy" />.
 	/// </summary>
-	Task ExportDataAsync(CancellationToken token = default);
+	Task ExportDataAsync(IEnumerable<ExplorerItemDtoBase> hierarchy, CancellationToken token = default);
 
 	/// <summary>
-	/// Exports the objects whose identifiers are in <paramref name="ids" />.
+	/// Exports the objects whose identifiers are in <paramref name="ids" />; the file picker shows their counts, taken from
+	/// <paramref name="hierarchy" />.
 	/// </summary>
-	Task ExportPartAsync(IReadOnlySet<Guid> ids, CancellationToken token = default);
+	Task ExportPartAsync(
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IReadOnlySet<Guid> ids,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Imports data.

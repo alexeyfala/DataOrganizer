@@ -757,8 +757,8 @@ public sealed partial class EditorViewModel :
 		IReadOnlySet<Guid> ids = _checkMarks.GetCheckedWithParents(Hierarchy);
 
 		return ids.Count > 0
-			? _dataExchange.ExportPartAsync(ids)
-			: _dataExchange.ExportDataAsync();
+			? _dataExchange.ExportPartAsync(Hierarchy, ids)
+			: _dataExchange.ExportDataAsync(Hierarchy);
 	}
 
 	/// <summary>

@@ -3091,11 +3091,11 @@ internal class EditorViewModelTests
 		// Assert
 		await dataExchange
 			.Received(hasChecked ? 1 : 0)
-			.ExportPartAsync(ids, Arg.Any<CancellationToken>());
+			.ExportPartAsync(sut.Hierarchy, ids, Arg.Any<CancellationToken>());
 
 		await dataExchange
 			.Received(hasChecked ? 0 : 1)
-			.ExportDataAsync(Arg.Any<CancellationToken>());
+			.ExportDataAsync(sut.Hierarchy, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
