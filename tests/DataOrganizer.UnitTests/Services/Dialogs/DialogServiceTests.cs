@@ -7,14 +7,13 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Documents.Notes.Helpers;
-using DataOrganizer.Infrastructure.AppInstance.Interfaces;
-using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Services.Dialogs;
@@ -210,9 +209,9 @@ internal class DialogServiceTests
 	public void RequestKeyValueInputAsync_Shows_The_Dialog_In_The_Named_Host()
 	{
 		// Arrange
-		KeyValueInputViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel viewModel = viewModelMock.Create<KeyValueInputViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -293,9 +292,9 @@ internal class DialogServiceTests
 	public async Task RequestMultilineTextAsync_Heads_The_Dialog([Values(null, "", "   ", "Name")] string? name)
 	{
 		// Arrange
-		MultilineTextEditViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		MultilineTextEditViewModel viewModel = viewModelMock.Create<MultilineTextEditViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -410,9 +409,9 @@ internal class DialogServiceTests
 	public void RequestYesCancelAsync_Shows_Cancel_Where_RequestYesNoAsync_Shows_No([Values] bool isYesCancel)
 	{
 		// Arrange
-		YesNoCancelBoxViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		YesNoCancelBoxViewModel viewModel = viewModelMock.Create<YesNoCancelBoxViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -476,20 +475,31 @@ internal class DialogServiceTests
 			Content = notepadHost
 		};
 
-		// The dialog looks for its host among the windows of the application, which the headless one does not list.
-		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			// The dialog looks for its host among the windows of the application, which the headless one does not list.
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
 
-		lifetime
-			.Windows
-			.Returns([notepadWindow]);
+			Application app = Substitute.For<Application>();
 
-		Application app = Substitute.For<Application>();
+			lifetime
+				.Windows
+				.Returns([notepadWindow]);
 
-		app.ApplicationLifetime = lifetime;
+			app.ApplicationLifetime = lifetime;
 
-		YesNoCancelBoxViewModel viewModel = new(
-			new DialogCloser(new DesktopAccessor(app, Substitute.For<IProcessTerminator>()), Substitute.For<IUiTimer>()),
-			Substitute.For<ITaskExceptionHandler>());
+			builder.RegisterInstance(app);
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.As<IDialogHostFinder>();
+
+			builder
+				.RegisterType<DialogCloser>()
+				.As<IDialogCloser>();
+		});
+
+		YesNoCancelBoxViewModel viewModel = viewModelMock.Create<YesNoCancelBoxViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -542,9 +552,9 @@ internal class DialogServiceTests
 	public void RequestYesNoAsync_Shows_The_Dialog_In_The_Main_Host_Beside_Another_One()
 	{
 		// Arrange
-		YesNoCancelBoxViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		YesNoCancelBoxViewModel viewModel = viewModelMock.Create<YesNoCancelBoxViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -621,9 +631,9 @@ internal class DialogServiceTests
 	public void RequestYesNoAsync_Shows_The_Dialog_In_The_Named_Host()
 	{
 		// Arrange
-		YesNoCancelBoxViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		YesNoCancelBoxViewModel viewModel = viewModelMock.Create<YesNoCancelBoxViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -702,10 +712,9 @@ internal class DialogServiceTests
 		// Arrange
 		const string folderName = "Documents";
 
-		EntityCreationViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<IWindowSettingsStore>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		EntityCreationViewModel viewModel = viewModelMock.Create<EntityCreationViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -767,10 +776,9 @@ internal class DialogServiceTests
 	public async Task ShowEntityCreationAsync_Heads_The_Dialog_With_The_Main_List_Without_A_Folder()
 	{
 		// Arrange
-		EntityCreationViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<IWindowSettingsStore>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		EntityCreationViewModel viewModel = viewModelMock.Create<EntityCreationViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -834,22 +842,25 @@ internal class DialogServiceTests
 	public async Task ShowSettingsAsync_Confirms_Closing_With_Unsaved_Changes()
 	{
 		// Arrange
-		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-		settingsStore
-			.Settings
-			.Returns(SettingsFactory.CreateSettings());
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
 
-		// The view model and the dialog service share one settings session, as they do in the application.
-		SettingsSession session = new(
-			settingsStore,
-			Substitute.For<IAppThemeService>(),
-			Substitute.For<ISettingsApplier>());
+			builder.RegisterInstance(settingsStore);
 
-		SettingsViewModel viewModel = new(
-			Substitute.For<IDialogHostCloser>(),
-			session,
-			Substitute.For<ISettingsSessionState>());
+			// The view model and the dialog service share one settings session, as they do in the application.
+			builder
+				.RegisterType<SettingsSession>()
+				.AsSelf()
+				.As<ISettingsDraft>()
+				.SingleInstance();
+		});
+
+		SettingsViewModel viewModel = viewModelMock.Create<SettingsViewModel>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -866,7 +877,7 @@ internal class DialogServiceTests
 			builder.RegisterInstance(viewFactory);
 
 			builder
-				.RegisterInstance(session)
+				.RegisterInstance(viewModelMock.Create<SettingsSession>())
 				.As<ISettingsCloseGuard>();
 		});
 

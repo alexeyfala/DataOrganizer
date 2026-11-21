@@ -1,9 +1,10 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
@@ -27,19 +28,26 @@ internal class SettingsAppearanceViewTests
 	public void Theme_Buttons_Show_The_Theme_And_Choose_Another()
 	{
 		// Arrange
-		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-		settingsStore
-			.Settings
-			.Returns(SettingsFactory.CreateSettings());
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
 
-		SettingsViewModel viewModel = new(
-			Substitute.For<IDialogHostCloser>(),
-			new SettingsSession(
-				settingsStore,
-				Substitute.For<IAppThemeService>(),
-				Substitute.For<ISettingsApplier>()),
-			new SettingsSessionState());
+			builder.RegisterInstance(settingsStore);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.As<ISettingsDraft>();
+
+			builder
+				.RegisterType<SettingsSessionState>()
+				.As<ISettingsSessionState>();
+		});
+
+		SettingsViewModel viewModel = mock.Create<SettingsViewModel>();
 
 		SettingsAppearanceView sut = new()
 		{

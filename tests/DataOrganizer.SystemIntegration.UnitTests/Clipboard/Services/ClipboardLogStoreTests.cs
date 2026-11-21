@@ -1124,7 +1124,14 @@ internal class ClipboardLogStoreTests
 				.As<IDekRewrapper>();
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IDekCipher>()
+				.As<ISessionDekWrapper>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
 		});
 
 		ClipboardLogStore sut = second.Create<ClipboardLogStore>();
@@ -1195,7 +1202,14 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IDekCipher>()
+				.As<ISessionDekWrapper>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
 		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
@@ -1261,7 +1275,14 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IDekCipher>()
+				.As<ISessionDekWrapper>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
 		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
@@ -1321,7 +1342,14 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IDekCipher>()
+				.As<ISessionDekWrapper>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
 		});
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
@@ -1420,7 +1448,14 @@ internal class ClipboardLogStoreTests
 			builder.RegisterInstance(encryption);
 
 			// The key store keeps a real encryption service even though the store gets a substituted one.
-			builder.RegisterInstance<ISessionKeyStore>(new SessionKeyStore(new EncryptionService(), new EncryptionService()));
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IDekCipher>()
+				.As<ISessionDekWrapper>();
+
+			builder
+				.RegisterType<SessionKeyStore>()
+				.As<ISessionKeyStore>();
 		});
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();

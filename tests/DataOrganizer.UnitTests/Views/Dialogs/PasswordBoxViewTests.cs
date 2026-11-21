@@ -1,14 +1,12 @@
+using Autofac.Extras.Moq;
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
-using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using NSubstitute;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;
@@ -25,12 +23,11 @@ internal class PasswordBoxViewTests
 	public void Inputs_Give_No_Password_As_A_Value([Values] bool isRevealed)
 	{
 		// Arrange
-		PasswordBoxViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>())
-		{
-			IsConfirmationVisible = true
-		};
+		using AutoMock mock = AutoMock.GetLoose();
+
+		PasswordBoxViewModel viewModel = mock.Create<PasswordBoxViewModel>();
+
+		viewModel.IsConfirmationVisible = true;
 
 		PasswordBoxView view = new(viewModel);
 
