@@ -1278,6 +1278,50 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a deletion refreshes the command that hides everything, as the deleted
+	/// object may be the last one shown.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Refreshes_The_Hide_All_Command()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		bool isRefreshed = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			deletion
+				.DeleteAsync(
+					file,
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		_ = await sut.DeleteAsync(file);
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DeleteAsync" />: every file of a deleted folder's subtree leaves the copy history.
 	/// </summary>
 	[Test]
@@ -1530,6 +1574,76 @@ internal class EditorViewModelTests
 		checkMarks
 			.Received(1)
 			.Refresh(folder);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: in the multiple selection mode a deletion refreshes the command that
+	/// hides everything, as the deleted objects may be the last ones shown.
+	/// </summary>
+	[Test]
+	public async Task DeleteCommand_In_The_Multiple_Selection_Refreshes_The_Hide_All_Command()
+	{
+		// Arrange
+		bool isRefreshed = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FileDto file = ItemDtoFactory.CreateFileDto();
+
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			checkMarks
+				.GetTopmostChecked(session.Hierarchy)
+				.Returns([file]);
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			deletion
+				.DeleteManyAsync(
+					Arg.Any<IReadOnlyList<ExplorerItemDtoBase>>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		await sut
+			.DeleteCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -3971,6 +4085,47 @@ internal class EditorViewModelTests
 		await dataExchange
 			.Received(1)
 			.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that replaces the tree refreshes the command that hides everything,
+	/// as the replaced objects may have been shown.
+	/// </summary>
+	[Test]
+	public async Task Import_Refreshes_The_Hide_All_Command_On_Replacement()
+	{
+		// Arrange
+		bool isRefreshed = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IImportScenario import = Substitute.For<IImportScenario>();
+
+			import
+				.ImportAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult(
+					LoadedHierarchy.Empty,
+					ImportMode.Replace));
+
+			builder.RegisterInstance(import);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

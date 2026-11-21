@@ -467,6 +467,9 @@ public sealed partial class EditorViewModel :
 		if (result.Variant == ImportMode.Replace)
 		{
 			IsRightSideSheetOpened = false;
+
+			// The replaced objects may have been shown.
+			HideAllFileContentsCommand.NotifyCanExecuteChanged();
 		}
 
 		AddHierarchy(result.Imported.Items);
@@ -1372,6 +1375,9 @@ public sealed partial class EditorViewModel :
 
 		UpdateHierarchySummary();
 
+		// The deleted object may have been the last one shown.
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+
 		return true;
 	}
 
@@ -1757,6 +1763,9 @@ public sealed partial class EditorViewModel :
 		}
 
 		UpdateHierarchySummary();
+
+		// The deleted objects may have been the last ones shown.
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
