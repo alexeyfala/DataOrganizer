@@ -76,6 +76,22 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 	}
 
 	/// <inheritdoc />
+	public void DiscardUnusedKey(ExplorerItemDtoBase item)
+	{
+		FolderDto? keeper = item.FindPasswordKeeper();
+
+		// The search walks the whole subtree of the keeper.
+		if (keeper?
+			.ToEnumerable()
+			.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted) != false)
+		{
+			return;
+		}
+
+		_sessionKeyStore.Lock(keeper.Id);
+	}
+
+	/// <inheritdoc />
 	public void HideAllContents(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		hierarchy
@@ -90,7 +106,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 	{
 		file.EncryptionStatus = EncryptionStatus.Encrypted;
 
-		LockKeeperOf(file);
+		DiscardUnusedKey(file);
 	}
 
 	/// <inheritdoc />
@@ -101,7 +117,7 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
 
-		LockKeeperOf(folder);
+		DiscardUnusedKey(folder);
 	}
 
 	/// <inheritdoc />
@@ -183,24 +199,6 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Drops the key of the keeper the object belongs to, but only once nothing under that keeper is shown.
-	/// </summary>
-	private void LockKeeperOf(ExplorerItemDtoBase item)
-	{
-		FolderDto? keeper = item.FindPasswordKeeper();
-
-		// The search walks the whole subtree of the keeper.
-		if (keeper?
-			.ToEnumerable()
-			.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted) != false)
-		{
-			return;
-		}
-
-		_sessionKeyStore.Lock(keeper.Id);
-	}
-
 	/// <summary>
 	/// Shows the file contents in a folder.
 	/// </summary>

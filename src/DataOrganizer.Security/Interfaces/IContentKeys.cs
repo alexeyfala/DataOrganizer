@@ -17,5 +17,10 @@ public interface IContentKeys
 	/// Drops the session keys of a folder and of every folder beneath it, whatever their contents show.
 	/// </summary>
 	void DiscardKeys(FolderDto folder);
+
+	/// <summary>
+	/// Drops the session key of the keeper an object belongs to once nothing under that keeper is shown.
+	/// </summary>
+	void DiscardUnusedKey(ExplorerItemDtoBase item);
 	#endregion
 }

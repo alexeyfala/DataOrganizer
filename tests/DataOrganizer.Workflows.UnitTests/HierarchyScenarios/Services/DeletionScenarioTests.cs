@@ -152,10 +152,48 @@ internal class DeletionScenarioTests
 	}
 
 	/// <summary>
-	/// <see cref="DeletionScenario.DeleteAsync" />: a deleted file leaves the keys alone.
+	/// <see cref="DeletionScenario.DeleteAsync" />: a deleted object asks to drop the key of its keeper, which nothing
+	/// needs once nothing under the keeper is shown.
 	/// </summary>
 	[Test]
-	public async Task DeleteAsync_Keeps_The_Keys_For_A_Deleted_File()
+	public async Task DeleteAsync_Discards_The_Unused_Key_Of_The_Deleted_Object([Values] bool isFolder)
+	{
+		// Arrange
+		ExplorerItemDtoBase item = isFolder ? ItemDtoFactory.CreateFolderDto() : ItemDtoFactory.CreateFileDto();
+
+		Collection<ExplorerItemDtoBase> hierarchy = [item];
+
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.DeleteAsync(item, hierarchy, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(contentKeys);
+
+			builder.RegisterInstance(hierarchyEditor);
+		});
+
+		DeletionScenario sut = mock.Create<DeletionScenario>();
+
+		// Act
+		await sut.DeleteAsync(item, hierarchy);
+
+		// Assert
+		contentKeys
+			.Received(1)
+			.DiscardUnusedKey(item);
+	}
+
+	/// <summary>
+	/// <see cref="DeletionScenario.DeleteAsync" />: a deleted file leaves the keys of a folder subtree alone.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Keeps_The_Folder_Keys_For_A_Deleted_File()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
@@ -250,6 +288,10 @@ internal class DeletionScenarioTests
 		contentKeys
 			.DidNotReceive()
 			.DiscardKeys(Arg.Any<FolderDto>());
+
+		contentKeys
+			.DidNotReceive()
+			.DiscardUnusedKey(Arg.Any<ExplorerItemDtoBase>());
 	}
 
 	/// <summary>
@@ -426,6 +468,53 @@ internal class DeletionScenarioTests
 		openFilesCloser
 			.DidNotReceive()
 			.Close(Arg.Is<IReadOnlyCollection<FileDto>>(x => x.Contains(kept)));
+	}
+
+	/// <summary>
+	/// <see cref="DeletionScenario.DeleteManyAsync" />: only the objects the database deleted ask to drop the keys of
+	/// their keepers.
+	/// </summary>
+	[Test]
+	public async Task DeleteManyAsync_Discards_The_Unused_Keys_Of_The_Deleted_Objects()
+	{
+		// Arrange
+		FileDto deleted = ItemDtoFactory.CreateFileDto();
+
+		FileDto kept = ItemDtoFactory.CreateFileDto();
+
+		Collection<ExplorerItemDtoBase> hierarchy = [deleted, kept];
+
+		ExplorerItemDtoBase[] items = [deleted, kept];
+
+		IContentKeys contentKeys = Substitute.For<IContentKeys>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			// The database fails on the second object.
+			hierarchyEditor
+				.DeleteManyAsync(items, hierarchy, Arg.Any<CancellationToken>())
+				.Returns([deleted]);
+
+			builder.RegisterInstance(contentKeys);
+
+			builder.RegisterInstance(hierarchyEditor);
+		});
+
+		DeletionScenario sut = mock.Create<DeletionScenario>();
+
+		// Act
+		await sut.DeleteManyAsync(items, hierarchy);
+
+		// Assert
+		contentKeys
+			.Received(1)
+			.DiscardUnusedKey(deleted);
+
+		contentKeys
+			.DidNotReceive()
+			.DiscardUnusedKey(kept);
 	}
 	#endregion
 }

@@ -86,7 +86,8 @@ public sealed class DeletionScenario : IDeletionScenario
 
 	#region Helpers
 	/// <summary>
-	/// Closes the files of a deleted object, takes them out of the copy history and forgets the keys of a deleted folder.
+	/// Closes the files of a deleted object, takes them out of the copy history, forgets the keys of a deleted folder and
+	/// the key of a keeper that has nothing shown left.
 	/// </summary>
 	private void ForgetDeleted(ExplorerItemDtoBase item)
 	{
@@ -104,12 +105,13 @@ public sealed class DeletionScenario : IDeletionScenario
 			_copyHistoryRecorder.Remove(deletedFile);
 		}
 
-		if (item is not FolderDto deletedFolder)
+		if (item is FolderDto deletedFolder)
 		{
-			return;
+			_contentKeys.DiscardKeys(deletedFolder);
 		}
 
-		_contentKeys.DiscardKeys(deletedFolder);
+		// The object still knows its parents, so the keeper above it is found.
+		_contentKeys.DiscardUnusedKey(item);
 	}
 	#endregion
 }

@@ -101,6 +101,96 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
+	/// <see cref="ContentVisibility.DiscardUnusedKey" />: an object taken out of a keeper keeps the key of the keeper
+	/// while anything else under it is shown.
+	/// </summary>
+	[Test]
+	public void DiscardUnusedKey_Keeps_The_Key_While_Another_Object_Is_Shown()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
+
+		FileDto removed = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		removed.Parent = keeper;
+
+		keeper
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted));
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardUnusedKey(removed);
+
+		// Assert
+		sessionKeyStore
+			.DidNotReceive()
+			.Lock(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.DiscardUnusedKey" />: an object outside any keeper drops no key.
+	/// </summary>
+	[Test]
+	public void DiscardUnusedKey_Leaves_The_Keys_For_An_Object_Outside_A_Keeper()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardUnusedKey(file);
+
+		// Assert
+		sessionKeyStore
+			.DidNotReceive()
+			.Lock(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.DiscardUnusedKey" />: an object taken out of a keeper drops the key of the keeper
+	/// once nothing under it is shown.
+	/// </summary>
+	[Test]
+	public void DiscardUnusedKey_Locks_The_Keeper_Once_Nothing_Under_It_Is_Shown()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
+
+		FileDto removed = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		removed.Parent = keeper;
+
+		keeper
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted));
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardUnusedKey(removed);
+
+		// Assert
+		sessionKeyStore
+			.Received(1)
+			.Lock(keeper.Id);
+	}
+
+	/// <summary>
 	/// <see cref="ContentVisibility.HideAllContents" />: hides every shown object, leaves the rest as it is and drops
 	/// every held key.
 	/// </summary>
