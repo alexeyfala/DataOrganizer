@@ -291,6 +291,11 @@
 		<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
 	</Style>
 
+	<!--  A disabled toggle button turns gray, as a disabled flat button does: Material's toggle themes keep its color.  -->
+	<Style Selector="ToggleButton.primary:disabled">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+	</Style>
+
 	<!--  The buttons inside an element of this class keep the color of the text.  -->
 	<Style Selector=".BodyColorButtonsStyle Button">
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
