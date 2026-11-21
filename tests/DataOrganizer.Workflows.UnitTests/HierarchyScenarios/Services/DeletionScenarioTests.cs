@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Security.Interfaces;
@@ -295,6 +296,49 @@ internal class DeletionScenarioTests
 	}
 
 	/// <summary>
+	/// <see cref="DeletionScenario.DeleteAsync" />: a deleted object that held shown contents brings the auto-lock in
+	/// line with what is left shown, and one that held none leaves the countdown as it runs.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Refreshes_The_Auto_Lock_Only_For_Shown_Contents([Values] bool isShown)
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto(
+			encryptionStatus: isShown ? EncryptionStatus.Decrypted : EncryptionStatus.Encrypted);
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(
+			encryptionStatus: EncryptionStatus.Encrypted,
+			children: [file]);
+
+		Collection<ExplorerItemDtoBase> hierarchy = [folder];
+
+		IAutoLockControl autoLockControl = Substitute.For<IAutoLockControl>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			hierarchyEditor
+				.DeleteAsync(folder, hierarchy, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(autoLockControl);
+
+			builder.RegisterInstance(hierarchyEditor);
+		});
+
+		DeletionScenario sut = mock.Create<DeletionScenario>();
+
+		// Act
+		await sut.DeleteAsync(folder, hierarchy);
+
+		// Assert
+		autoLockControl
+			.Received(isShown ? 1 : 0)
+			.RefreshAutoLock();
+	}
+
+	/// <summary>
 	/// <see cref="DeletionScenario.DeleteAsync" />: a deleted file leaves the copy history.
 	/// </summary>
 	[Test]
@@ -515,6 +559,53 @@ internal class DeletionScenarioTests
 		contentKeys
 			.DidNotReceive()
 			.DiscardUnusedKey(kept);
+	}
+
+	/// <summary>
+	/// <see cref="DeletionScenario.DeleteManyAsync" />: deleted objects that held shown contents bring the auto-lock in
+	/// line with what is left shown once, and a shown object the database kept does not count.
+	/// </summary>
+	[Test]
+	public async Task DeleteManyAsync_Refreshes_The_Auto_Lock_Once_For_Shown_Contents([Values] bool isShown)
+	{
+		// Arrange
+		EncryptionStatus status = isShown ? EncryptionStatus.Decrypted : EncryptionStatus.Encrypted;
+
+		FileDto first = ItemDtoFactory.CreateFileDto(encryptionStatus: status);
+
+		FileDto second = ItemDtoFactory.CreateFileDto(encryptionStatus: status);
+
+		FileDto kept = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		Collection<ExplorerItemDtoBase> hierarchy = [first, second, kept];
+
+		ExplorerItemDtoBase[] items = [first, second, kept];
+
+		IAutoLockControl autoLockControl = Substitute.For<IAutoLockControl>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			// The database fails on the last object.
+			hierarchyEditor
+				.DeleteManyAsync(items, hierarchy, Arg.Any<CancellationToken>())
+				.Returns([first, second]);
+
+			builder.RegisterInstance(autoLockControl);
+
+			builder.RegisterInstance(hierarchyEditor);
+		});
+
+		DeletionScenario sut = mock.Create<DeletionScenario>();
+
+		// Act
+		await sut.DeleteManyAsync(items, hierarchy);
+
+		// Assert
+		autoLockControl
+			.Received(isShown ? 1 : 0)
+			.RefreshAutoLock();
 	}
 	#endregion
 }
