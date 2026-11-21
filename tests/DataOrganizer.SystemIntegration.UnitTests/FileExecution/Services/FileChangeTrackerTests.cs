@@ -559,10 +559,12 @@ internal class FileChangeTrackerTests
 			FilePath = TrackedFilePath
 		};
 
-		cancellation.CancelAfter(TimeSpan.FromMilliseconds(50));
-
 		// Act
-		await sut.TrackChangesAsync(parameters, cancellation.Token);
+		Task tracking = sut.TrackChangesAsync(parameters, cancellation.Token);
+
+		await cancellation.CancelAsync();
+
+		await tracking;
 
 		// Assert
 		await dbAccess.DidNotReceive().UpdateFileContentsAsync(

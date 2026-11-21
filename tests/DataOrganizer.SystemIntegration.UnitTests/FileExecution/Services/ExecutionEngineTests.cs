@@ -778,6 +778,93 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.CloseAsync" />: the wait for a file another program keeps locked ends after ten
+	/// seconds, and the folder of the file is erased all the same.
+	/// </summary>
+	[Test]
+	public async Task CloseAsync_Stops_Waiting_For_A_Locked_File_After_Ten_Seconds()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		IFileEraser fileEraser = Substitute.For<IFileEraser>();
+
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileLockChecker fileLockChecker = Substitute.For<IFileLockChecker>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(TestPath.Combine(RandomValues.CreateDirectoryName()));
+
+			fileLockChecker
+				.IsLocked(Arg.Any<string>())
+				.Returns(true);
+
+			// The file stays locked, so only the end of the wait stops it.
+			fileLockChecker
+				.WaitUntilUnlockedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(x =>
+				{
+					TaskCompletionSource<bool> unlocked = new();
+
+					x
+						.ArgAt<CancellationToken>(1)
+						.Register(() => unlocked.TrySetResult(false));
+
+					return new ValueTask<bool>(unlocked.Task);
+				});
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileEraser);
+
+			builder.RegisterInstance(fileLockChecker);
+
+			builder
+				.RegisterType<MockFileSystem>()
+				.As<IFileSystem>()
+				.SingleInstance();
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = dto,
+			IsReadOnly = true
+		};
+
+		await sut.ExecuteAsync(parameters);
+
+		Task closing = sut.CloseAsync(dto.Id);
+
+		// Act
+		await Task.Run(() => time.Advance(TimeSpan.FromSeconds(9)));
+
+		// Assert
+		closing.IsCompleted
+			.Should()
+			.BeFalse();
+
+		await Task.Run(() => time.Advance(TimeSpan.FromSeconds(1)));
+
+		// Shorter than the cap, so a cap on the real clock fails here; otherwise only a guard against a hang.
+		await closing.WaitAsync(TimeSpan.FromSeconds(5));
+
+		fileEraser
+			.Received(1)
+			.EraseAndDeleteDirectory(Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.CloseAsync" />: waits for a locked file to be released before deleting it.
 	/// </summary>
 	[Test]
@@ -816,6 +903,11 @@ internal class ExecutionEngineTests
 				.RegisterType<MockFileSystem>()
 				.As<IFileSystem>()
 				.SingleInstance();
+
+			// The cap on the wait for the lock runs on this clock, which never moves.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -879,6 +971,11 @@ internal class ExecutionEngineTests
 				.SingleInstance();
 
 			builder.RegisterInstance(processLauncher);
+
+			// The cap on the wait for the engine runs on this clock, which never moves.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -940,6 +1037,11 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(sandbox);
+
+			// The cap on the wait for the engine runs on this clock, which never moves.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -972,6 +1074,68 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.DisposeAsync" />: the wait for an engine that another call keeps busy ends after ten
+	/// seconds, and the disposal goes on without it.
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_Goes_On_Without_The_Engine_After_Ten_Seconds()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
+				.Returns(RandomValues.CreateDirectoryName());
+
+			// The start holds the engine while it writes the file, which never ends.
+			fileSystem
+				.File
+				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
+				.Returns(new TaskCompletionSource().Task);
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance<TimeProvider>(time);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
+			IsReadOnly = true
+		};
+
+		_ = sut.ExecuteAsync(parameters);
+
+		Task disposing = sut
+			.DisposeAsync()
+			.AsTask();
+
+		// Act
+		await Task.Run(() => time.Advance(TimeSpan.FromSeconds(9)));
+
+		// Assert
+		disposing.IsCompleted
+			.Should()
+			.BeFalse();
+
+		await Task.Run(() => time.Advance(TimeSpan.FromSeconds(1)));
+
+		// Shorter than the cap, so a cap on the real clock fails here; otherwise only a guard against a hang.
+		await disposing.WaitAsync(TimeSpan.FromSeconds(5));
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.DisposeAsync" />: a folder that is gone from the sandbox is not erased again.
 	/// </summary>
 	[Test]
@@ -997,6 +1161,11 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance<IFileSystem>(files);
 
 			builder.RegisterInstance(sandbox);
+
+			// The cap on the wait for the engine runs on this clock, which never moves.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1053,6 +1222,11 @@ internal class ExecutionEngineTests
 
 			// Moq fakes the file system with no folders behind it, and the start writes the file into one.
 			builder.RegisterInstance(Substitute.For<IFileSystem>());
+
+			// The cap on the wait for the engine runs on this clock, which never moves.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1470,7 +1644,15 @@ internal class ExecutionEngineTests
 		// Arrange
 		IProcessLauncher processLauncher = Substitute.For<IProcessLauncher>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(processLauncher));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(processLauncher);
+
+			// The cap on the wait for the engine runs on this clock, which never moves.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
@@ -1581,6 +1763,11 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processLauncher);
+
+			// The cap on the wait for the engine runs on this clock, which never moves: only the start ends the wait.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -1725,6 +1912,11 @@ internal class ExecutionEngineTests
 			builder.RegisterInstance(processLauncher);
 
 			builder.RegisterInstance(changeTracker);
+
+			// The cap on the wait for the engine runs on this clock, which never moves: only the start ends the wait.
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();

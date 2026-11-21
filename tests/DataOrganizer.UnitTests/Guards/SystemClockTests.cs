@@ -21,15 +21,18 @@ internal partial class SystemClockTests
 	];
 
 	/// <summary>
-	/// The forms of reading the system clock, each under the name a failure shows. A delay counts when its statement
-	/// names no time provider.
+	/// The forms of reading the system clock, each under the name a failure shows. A delay or a wait counts when its
+	/// statement names no time provider. A cancellation set with <c>CancelAfter</c> always counts: the call does not
+	/// show whether its source runs on a time provider.
 	/// </summary>
 	private static readonly Dictionary<string, Regex> Forms = new()
 	{
+		["CancelAfter"] = CancelAfterRegex(),
 		["DateTime.Now"] = DateTimeNowRegex(),
 		["Stopwatch"] = StopwatchRegex(),
 		["Task.Delay"] = TaskDelayRegex(),
-		["Thread.Sleep"] = ThreadSleepRegex()
+		["Thread.Sleep"] = ThreadSleepRegex(),
+		["WaitAsync"] = WaitAsyncRegex()
 	};
 	#endregion
 
@@ -69,6 +72,12 @@ internal partial class SystemClockTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Matches a cancellation set to fire after a delay.
+	/// </summary>
+	[GeneratedRegex(@"\.\s*CancelAfter\s*\(")]
+	private static partial Regex CancelAfterRegex();
+
 	/// <summary>
 	/// Matches a read of the current date or time.
 	/// </summary>
@@ -137,5 +146,11 @@ internal partial class SystemClockTests
 	/// </summary>
 	[GeneratedRegex(@"\bThread\s*\.\s*Sleep\b")]
 	private static partial Regex ThreadSleepRegex();
+
+	/// <summary>
+	/// Matches a wait bounded by a time span written in its statement, when the statement names no time provider.
+	/// </summary>
+	[GeneratedRegex(@"\.\s*WaitAsync\s*\((?![^;]*?(?i:timeprovider))[^;]*?\bTimeSpan\b")]
+	private static partial Regex WaitAsyncRegex();
 	#endregion
 }
