@@ -5,6 +5,7 @@ using DataOrganizer.Security.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
 using DataOrganizer.Workflows.HierarchyScenarios.Interfaces;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +60,36 @@ public sealed class DeletionScenario : IDeletionScenario
 			return false;
 		}
 
+		ForgetDeleted(item);
+
+		return true;
+	}
+
+	/// <inheritdoc />
+	public async Task<IReadOnlyList<ExplorerItemDtoBase>> DeleteManyAsync(
+		IReadOnlyList<ExplorerItemDtoBase> items,
+		Collection<ExplorerItemDtoBase> hierarchy,
+		CancellationToken token = default)
+	{
+		IReadOnlyList<ExplorerItemDtoBase> deleted = await _hierarchyEditor
+			.DeleteManyAsync(items, hierarchy, token)
+			.ConfigureAwait(false);
+
+		foreach (ExplorerItemDtoBase item in deleted)
+		{
+			ForgetDeleted(item);
+		}
+
+		return deleted;
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Closes the files of a deleted object, takes them out of the copy history and forgets the keys of a deleted folder.
+	/// </summary>
+	private void ForgetDeleted(ExplorerItemDtoBase item)
+	{
 		// A folder leaves the database together with every file of its subtree.
 		FileDto[] deletedFiles = item switch
 		{
@@ -73,12 +104,12 @@ public sealed class DeletionScenario : IDeletionScenario
 			_copyHistoryRecorder.Remove(deletedFile);
 		}
 
-		if (item is FolderDto deletedFolder)
+		if (item is not FolderDto deletedFolder)
 		{
-			_contentKeys.DiscardKeys(deletedFolder);
+			return;
 		}
 
-		return true;
+		_contentKeys.DiscardKeys(deletedFolder);
 	}
 	#endregion
 }

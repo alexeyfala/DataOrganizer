@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.VisualTree;
 using DataOrganizer.Controls;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.Windows;
 using System.Linq;
 
@@ -13,6 +14,17 @@ namespace DataOrganizer.UnitTests.Factories;
 internal static class EditorWindowExtensions
 {
 	#region Methods
+	/// <summary>
+	/// Returns the check box of the row of the tree that shows an object; <c>null</c> while the tree shows none.
+	/// </summary>
+	public static CheckBox? FindRowCheckBox(this EditorWindow window, ExplorerItemDtoBase dto)
+	{
+		return window
+			.GetVisualDescendants()
+			.OfType<CheckBox>()
+			.FirstOrDefault(x => x.DataContext is ExplorerNodeViewModelBase node && node.Model == dto);
+	}
+
 	/// <summary>
 	/// Returns the item of the tree that shows an object; <c>null</c> while the tree shows none.
 	/// </summary>

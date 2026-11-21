@@ -13,6 +13,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors;
 using DataOrganizer.Controls;
 using DataOrganizer.Database.Entities.Enums;
@@ -23,15 +24,21 @@ using DataOrganizer.Documents.Editor.Messages;
 using DataOrganizer.Documents.FileContents.Enums;
 using DataOrganizer.Enums;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.MultipleSelection.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Services;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.Storage.Services;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
+using DataOrganizer.Infrastructure.Notifications.Messages;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
+using DataOrganizer.Services.Views;
 using DataOrganizer.Shared.Common;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.TestSupport.Common;
@@ -49,6 +56,7 @@ using Material.Styles.Controls;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -67,6 +75,114 @@ internal class EditorWindowTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="EditorViewModel.AddAsync" />: an object added to a checked folder by an editor that answers on another
+	/// thread shows the folder checked in part.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task AddAsync_Answered_On_Another_Thread_Shows_The_Checked_Folder_Partly_Checked()
+	{
+		// Arrange
+		FileDto checkedFile = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [checkedFile]);
+
+		FileDto added = ItemDtoFactory.CreateFileDto();
+
+		TaskCompletionSource<ExplorerItemDtoBase?> answer = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(folder);
+
+			session.SetExpanded(folder.Id, true);
+
+			session.SetChecked(folder.Id, true);
+
+			session.SetChecked(checkedFile.Id, true);
+
+			// The editor puts the object into the tree before its answer comes.
+			hierarchyEditor
+				.AddAsync(
+					Arg.Any<string>(),
+					EntityKind.File,
+					folder,
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(_ =>
+				{
+					added.Parent = folder;
+
+					folder.Children.Add(added);
+
+					return answer.Task;
+				});
+
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		Task<ExplorerItemDtoBase?> adding = viewModel.AddAsync(
+			RandomString.Create(10),
+			EntityKind.File,
+			folder);
+
+		await Task.Run(() => answer.SetResult(added));
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		await adding;
+
+		bool? folderShown = sut
+			.FindRowCheckBox(folder)!
+			.IsChecked;
+
+		sut.Close();
+
+		// Assert
+		folderShown
+			.Should()
+			.BeNull();
+	}
+
 	/// <summary>
 	/// <see cref="EditorViewModel.AddAsync" />: the folder an object is added to is shown expanded and saved so.
 	/// </summary>
@@ -138,6 +254,264 @@ internal class EditorWindowTests
 		await propertyWriter
 			.Received(1)
 			.UpdateIsExpandedAsync(folder.Id, true, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.AddCommand" />: an object added to a checked folder after the dialog answers shows the
+	/// folder checked in part.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task AddCommand_Answered_By_The_Dialog_Later_Shows_The_Checked_Folder_Partly_Checked()
+	{
+		// Arrange
+		FileDto checkedFile = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [checkedFile]);
+
+		TaskCompletionSource<EntityCreationResult?> answer = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			IMapper mapper = Substitute.For<IMapper>();
+
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(folder);
+
+			session.SetExpanded(folder.Id, true);
+
+			session.SetChecked(folder.Id, true);
+
+			session.SetChecked(checkedFile.Id, true);
+
+			dbAccess
+				.AddEntityAsync(Arg.Any<AddEntityParameters>(), Arg.Any<CancellationToken>())
+				.Returns(Substitute.For<ExplorerItemBase>());
+
+			dialogService
+				.ShowEntityCreationAsync(Arg.Any<CancellationToken>())
+				.Returns(answer.Task);
+
+			mapper
+				.Map<ExplorerItemBase, ExplorerItemDtoBase>(Arg.Any<ExplorerItemBase>())
+				.Returns(ItemDtoFactory.CreateFileDto());
+
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(mapper);
+
+			builder
+				.RegisterType<HierarchyEditor>()
+				.As<IHierarchyEditor>();
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		Task adding = viewModel
+			.AddCommand
+			.ExecuteAsync(folder);
+
+		answer.SetResult(new EntityCreationResult(RandomString.Create(10), EntityKind.File));
+
+		await adding;
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool? folderShown = sut
+			.FindRowCheckBox(folder)!
+			.IsChecked;
+
+		sut.Close();
+
+		// Assert
+		folderShown
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetCheckAllCommand" />: a click on the check all switch shows every row of the tree
+	/// checked.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Check_All_Switch_Checks_Every_Row()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.AddRange([first, second]);
+
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		sut.Click(sut.CheckAllSwitch);
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool?[] shown =
+		[
+			sut.FindRowCheckBox(first)!.IsChecked,
+			sut.FindRowCheckBox(second)!.IsChecked
+		];
+
+		sut.Close();
+
+		// Assert
+		shown
+			.Should()
+			.OnlyContain(static x => x == true);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.ToggleCheckCommand" />: a click on the check box of a row checks the object, and its
+	/// folder with an unchecked object shows itself checked in part.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Check_Box_Of_A_Row_Shows_Its_Folder_Partly_Checked()
+	{
+		// Arrange
+		FileDto checkedFile = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [checkedFile, ItemDtoFactory.CreateFileDto()]);
+
+		WorkSession session = new()
+		{
+			IsMultipleSelection = true
+		};
+
+		session
+			.Hierarchy
+			.Add(folder);
+
+		session.SetExpanded(folder.Id, true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		sut.Click(sut.FindRowCheckBox(checkedFile)!);
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool? folderShown = sut
+			.FindRowCheckBox(folder)!
+			.IsChecked;
+
+		sut.Close();
+
+		// Assert
+		bool?[] states = [session.IsChecked(checkedFile.Id), folderShown];
+
+		states
+			.Should()
+			.Equal(true, null);
 	}
 
 	/// <summary>
@@ -331,6 +705,65 @@ internal class EditorWindowTests
 		mainWindowLauncher
 			.Received(1)
 			.SwitchToFavorites();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.SetMultipleSelectionCommand" />: a click on the multiple selection switch shows the check
+	/// boxes of the rows.
+	/// </summary>
+	[AvaloniaTest]
+	public void Click_On_The_Multiple_Selection_Switch_Shows_The_Check_Boxes()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// The delete button reads the checks once the mode is on.
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		sut.Click(sut.MultipleSelectionSwitch);
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool isVisible = sut
+			.FindRowCheckBox(file)!
+			.IsVisible;
+
+		sut.Close();
+
+		// Assert
+		isVisible
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -684,6 +1117,211 @@ internal class EditorWindowTests
 		clipboardWriter
 			.Received(1)
 			.WriteTextAsync(file.Name, false);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a checked object deleted by a scenario that answers on another thread
+	/// shows its folder with the unchecked rest unchecked.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task DeleteAsync_Answered_On_Another_Thread_Shows_The_Folder_Of_The_Deleted_Unchecked()
+	{
+		// Arrange
+		FileDto checkedFile = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [checkedFile, ItemDtoFactory.CreateFileDto()]);
+
+		TaskCompletionSource<bool> answer = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(folder);
+
+			session.SetExpanded(folder.Id, true);
+
+			session.SetChecked(folder.Id, null);
+
+			session.SetChecked(checkedFile.Id, true);
+
+			// The scenario takes the object out of the tree before its answer comes.
+			deletion
+				.DeleteAsync(checkedFile, Arg.Any<Collection<ExplorerItemDtoBase>>(), Arg.Any<CancellationToken>())
+				.Returns(_ =>
+				{
+					folder.Children.Remove(checkedFile);
+
+					return answer.Task;
+				});
+
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		Task<bool> deleting = viewModel.DeleteAsync(checkedFile);
+
+		await Task.Run(() => answer.SetResult(true));
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		await deleting;
+
+		bool? folderShown = sut
+			.FindRowCheckBox(folder)!
+			.IsChecked;
+
+		sut.Close();
+
+		// Assert
+		folderShown
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: in the multiple selection mode a checked object deleted by a scenario
+	/// that answers on another thread shows its folder with the unchecked rest unchecked.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task DeleteCommand_Answered_On_Another_Thread_Shows_The_Folder_Of_The_Deleted_Unchecked()
+	{
+		// Arrange
+		FileDto checkedFile = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [checkedFile, ItemDtoFactory.CreateFileDto()]);
+
+		TaskCompletionSource<IReadOnlyList<ExplorerItemDtoBase>> answer = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(folder);
+
+			session.SetExpanded(folder.Id, true);
+
+			session.SetChecked(folder.Id, null);
+
+			session.SetChecked(checkedFile.Id, true);
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			// The scenario takes the object out of the tree before its answer comes.
+			deletion
+				.DeleteManyAsync(
+					Arg.Is<IReadOnlyList<ExplorerItemDtoBase>>(x => x.Count == 1 && x[0] == checkedFile),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(_ =>
+				{
+					folder.Children.Remove(checkedFile);
+
+					return answer.Task;
+				});
+
+			// The editor and the check marks share one messenger.
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
+
+			builder
+				.RegisterType<CheckMarks>()
+				.As<ICheckMarks>();
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		// Act
+		Task deleting = viewModel
+			.DeleteCommand
+			.ExecuteAsync(null);
+
+		await Task.Run(() => answer.SetResult([checkedFile]));
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		await deleting;
+
+		bool? folderShown = sut
+			.FindRowCheckBox(folder)!
+			.IsChecked;
+
+		sut.Close();
+
+		// Assert
+		folderShown
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -1494,6 +2132,51 @@ internal class EditorWindowTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.IsMultipleSelection" />: outside the multiple selection mode the rows of the tree hide
+	/// their check boxes.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsMultipleSelection_Off_Hides_The_Check_Boxes_Of_The_Rows()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		// The launcher gives every editor window the width of its navigation column.
+		viewModel.SetDefaultNavigationColumnWidth(1000.0);
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		// Act
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool isVisible = sut
+			.FindRowCheckBox(file)!
+			.IsVisible;
+
+		sut.Close();
+
+		// Assert
+		isVisible
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ExplorerNodeViewModelBase.IsSelected" />: a choice in the tree made in a shown window that has not loaded
 	/// yet is not saved.
 	/// </summary>
@@ -1738,6 +2421,78 @@ internal class EditorWindowTests
 		viewModel.SelectedNode!.Model
 			.Should()
 			.BeSameAs(file);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Receive(ShowProgressBarMessage)" />: an action that reports from a worker thread turns the
+	/// buttons of the toolbar off until it ends.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task Receive_ShowProgressBar_From_A_Worker_Thread_Turns_The_Toolbar_Off_Until_The_Action_Ends()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
+
+			builder
+				.RegisterType<DispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel viewModel = mock.Create<EditorViewModel>();
+
+		viewModel
+			.Hierarchy
+			.Add(file);
+
+		EditorWindow sut = new(viewModel);
+
+		sut.Show();
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		Button addButton = sut
+			.GetVisualDescendants()
+			.OfType<Button>()
+			.Single(x => x.Command == viewModel.AddCommand);
+
+		// Act
+		await Task.Run(() => viewModel.Receive(new ShowProgressBarMessage(true)));
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool[] duringAction = [addButton.IsEffectivelyEnabled, sut.MultipleSelectionSwitch.IsEffectivelyEnabled];
+
+		await Task.Run(() => viewModel.Receive(new ShowProgressBarMessage(false)));
+
+		Dispatcher
+			.UIThread
+			.RunJobs();
+
+		bool[] afterAction = [addButton.IsEffectivelyEnabled, sut.MultipleSelectionSwitch.IsEffectivelyEnabled];
+
+		sut.Close();
+
+		// Assert
+		duringAction
+			.Should()
+			.Equal(false, false);
+
+		afterAction
+			.Should()
+			.Equal(true, true);
 	}
 
 	/// <summary>

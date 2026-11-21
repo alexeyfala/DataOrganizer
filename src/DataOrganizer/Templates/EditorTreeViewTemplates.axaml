@@ -10,7 +10,8 @@
 	xmlns:nodes="using:DataOrganizer.ViewModels.Hierarchy"
 	xmlns:notes="using:DataOrganizer.Documents.Notes.Interfaces"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
-	xmlns:views="using:DataOrganizer.Views">
+	xmlns:views="using:DataOrganizer.Views"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!--  FolderInTreeViewRowTemplate  -->
 	<DataTemplate
@@ -85,24 +86,55 @@
 		</Grid>
 	</DataTemplate>
 
+	<!--  RowCheckBoxTemplate  -->
+	<DataTemplate
+		x:Key="RowCheckBoxTemplate"
+		x:DataType="nodes:ExplorerNodeViewModelBase">
+		<!--  The work session keeps the check, so the box only shows it and asks the editor to toggle it.  -->
+		<CheckBox
+			AutomationProperties.Name="{Binding Model.Name, Mode=OneWay}"
+			Classes="RowCheckBoxStyle"
+			Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ToggleCheckCommand, Mode=OneWay}"
+			CommandParameter="{Binding Model, Mode=OneWay}"
+			IsChecked="{Binding IsChecked, Mode=OneWay}" />
+	</DataTemplate>
+
 	<!--  FolderInTreeViewTemplate  -->
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
 		x:DataType="nodes:FolderNodeViewModel"
 		ItemsSource="{Binding ShownChildren, DataType={x:Type nodes:ExplorerNodeViewModelBase}, Mode=OneTime}">
-		<!--  The row shows the folder itself, so its menu works with the folder.  -->
-		<ContentControl
-			Content="{Binding Model, Mode=OneWay}"
-			ContentTemplate="{StaticResource FolderInTreeViewRowTemplate}" />
+		<DockPanel>
+			<!--  The hover circle of the check box reaches past the box, so the wrapper does not clip it.  -->
+			<ContentControl
+				ClipToBounds="False"
+				Content="{Binding Mode=OneWay}"
+				ContentTemplate="{StaticResource RowCheckBoxTemplate}"
+				DockPanel.Dock="Left" />
+
+			<!--  The row shows the folder itself, so its menu works with the folder.  -->
+			<ContentControl
+				Content="{Binding Model, Mode=OneWay}"
+				ContentTemplate="{StaticResource FolderInTreeViewRowTemplate}" />
+		</DockPanel>
 	</TreeDataTemplate>
 
 	<!--  FileInTreeViewTemplate  -->
 	<DataTemplate
 		x:Key="FileInTreeViewTemplate"
 		x:DataType="nodes:FileNodeViewModel">
-		<!--  The row shows the file itself, so its menu works with the file.  -->
-		<ContentControl
-			Content="{Binding Model, Mode=OneWay}"
-			ContentTemplate="{StaticResource FileInTreeViewRowTemplate}" />
+		<DockPanel>
+			<!--  The hover circle of the check box reaches past the box, so the wrapper does not clip it.  -->
+			<ContentControl
+				ClipToBounds="False"
+				Content="{Binding Mode=OneWay}"
+				ContentTemplate="{StaticResource RowCheckBoxTemplate}"
+				DockPanel.Dock="Left" />
+
+			<!--  The row shows the file itself, so its menu works with the file.  -->
+			<ContentControl
+				Content="{Binding Model, Mode=OneWay}"
+				ContentTemplate="{StaticResource FileInTreeViewRowTemplate}" />
+		</DockPanel>
 	</DataTemplate>
 </ResourceDictionary>

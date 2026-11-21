@@ -3,7 +3,7 @@ using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.FilteredLists.Helpers;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
-using DataOrganizer.Hierarchy.UnitTests.FilteredLists.Fakes;
+using DataOrganizer.Hierarchy.UnitTests.Fakes;
 using System;
 using System.Collections.Generic;
 using System.Reactive.Subjects;

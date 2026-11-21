@@ -903,4 +903,13 @@
   <data name="NothingFound" xml:space="preserve">
     <value>Ничего не найдено</value>
   </data>
+  <data name="MultipleSelection" xml:space="preserve">
+    <value>Множественный выбор</value>
+  </data>
+  <data name="CheckAll" xml:space="preserve">
+    <value>Отметить все</value>
+  </data>
+  <data name="HaveBeenDeleted" xml:space="preserve">
+    <value>удалены</value>
+  </data>
 </root>

@@ -33,6 +33,7 @@ The projects of `src/`, in the order of the Solution Explorer:
 - `DataOrganizer.Hierarchy` — the tree of folders, files and datasets.
   - `Favorites` — the favorite files.
   - `FilteredLists` — filtered views of collections.
+  - `MultipleSelection` — the check marks of the objects of the tree.
   - `Storage` — loading the tree and writing its changes.
 - `DataOrganizer.Infrastructure` — the common services of the application.
   - `AppInstance` — the running instance: command line, environment, shutdown.

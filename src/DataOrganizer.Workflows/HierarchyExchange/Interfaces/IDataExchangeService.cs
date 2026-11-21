@@ -1,5 +1,6 @@
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Workflows.HierarchyExchange.Dto;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,11 @@ public interface IDataExchangeService
 	/// Exports data.
 	/// </summary>
 	Task ExportDataAsync(CancellationToken token = default);
+
+	/// <summary>
+	/// Exports the objects whose identifiers are in <paramref name="ids" />.
+	/// </summary>
+	Task ExportPartAsync(IReadOnlySet<Guid> ids, CancellationToken token = default);
 
 	/// <summary>
 	/// Imports data.

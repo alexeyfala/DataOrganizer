@@ -1,4 +1,5 @@
 using DataOrganizer.Hierarchy.Dto;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,15 @@ public interface IDeletionScenario
 	/// </summary>
 	Task<bool> DeleteAsync(
 		ExplorerItemDtoBase item,
+		Collection<ExplorerItemDtoBase> hierarchy,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Deletes objects as <see cref="DeleteAsync(ExplorerItemDtoBase, Collection{ExplorerItemDtoBase}, CancellationToken)" />
+	/// does, one by one up to the first that fails; returns the deleted ones.
+	/// </summary>
+	Task<IReadOnlyList<ExplorerItemDtoBase>> DeleteManyAsync(
+		IReadOnlyList<ExplorerItemDtoBase> items,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default);
 	#endregion

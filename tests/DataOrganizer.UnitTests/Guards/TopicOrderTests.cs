@@ -20,7 +20,7 @@ internal class TopicOrderTests
 	[
 		new object[] { "DataOrganizer.Database", new[] { "Entities", "Repository" } },
 		new object[] { "DataOrganizer.Documents", new[] { "TextProcessing", "DatasetRecords", "Editor", "FileContents", "Notepad", "Notes" } },
-		new object[] { "DataOrganizer.Hierarchy", new[] { "Favorites", "FilteredLists", "Storage" } },
+		new object[] { "DataOrganizer.Hierarchy", new[] { "Favorites", "FilteredLists", "MultipleSelection", "Storage" } },
 		new object[] { "DataOrganizer.Infrastructure", new[] { "WindowContracts", "DialogContracts", "Notifications", "Diagnostics", "FileSystemOperations", "AppInstance", "Settings", "AppUpdates" } },
 		new object[] { "DataOrganizer.Security", Array.Empty<string>() },
 		new object[] { "DataOrganizer.Shared", new[] { "Threading" } },

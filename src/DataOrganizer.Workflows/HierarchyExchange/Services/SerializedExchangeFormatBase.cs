@@ -3,6 +3,8 @@ using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Enums;
 using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Workflows.HierarchyExchange.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -14,7 +16,7 @@ namespace DataOrganizer.Workflows.HierarchyExchange.Services;
 /// <summary>
 /// The base of the formats that serialize the objects of the database into a document, which keeps no dates.
 /// </summary>
-public abstract class SerializedExchangeFormatBase : IExchangeFormat
+public abstract class SerializedExchangeFormatBase : IPartialExportFormat
 {
 	#region Data
 	/// <summary>
@@ -54,29 +56,24 @@ public abstract class SerializedExchangeFormatBase : IExchangeFormat
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task ExportAsync(string filePath, CancellationToken token = default)
+	public Task ExportAsync(string filePath, CancellationToken token = default)
 	{
-		FolderEntity[] folders = await _dbAccess
-			.GetAllFoldersAsync(token)
-			.ConfigureAwait(false);
+		return WriteAsync(
+			filePath,
+			static _ => true,
+			token);
+	}
 
-		FileEntity[] files = await _dbAccess
-			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, token)
-			.ConfigureAwait(false);
-
-		// Streaming serialization: the document goes directly to the file without being
-		// materialized as a string in memory.
-		await using Stream stream = _fileSystem
-			.FileStream
-			.New(
-				filePath,
-				FileMode.Create,
-				FileAccess.Write,
-				FileShare.None,
-				SequentialBufferSize,
-				FileOptions.Asynchronous);
-
-		await WriteDocumentAsync(stream, [.. folders.Concat<ExplorerItemBase>(files)], token).ConfigureAwait(false);
+	/// <inheritdoc />
+	public Task ExportPartAsync(
+		string filePath,
+		IReadOnlySet<Guid> ids,
+		CancellationToken token = default)
+	{
+		return WriteAsync(
+			filePath,
+			x => ids.Contains(x.Id),
+			token);
 	}
 
 	/// <inheritdoc />
@@ -119,5 +116,41 @@ public abstract class SerializedExchangeFormatBase : IExchangeFormat
 	/// Writes <paramref name="entities" /> into <paramref name="stream" /> as a document.
 	/// </summary>
 	protected abstract Task WriteDocumentAsync(Stream stream, ExplorerItemBase[] entities, CancellationToken token);
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Writes the objects of the database that <paramref name="isExported" /> accepts to <paramref name="filePath" />.
+	/// </summary>
+	private async Task WriteAsync(
+		string filePath,
+		Func<ExplorerItemBase, bool> isExported,
+		CancellationToken token)
+	{
+		FolderEntity[] folders = await _dbAccess
+			.GetAllFoldersAsync(token)
+			.ConfigureAwait(false);
+
+		FileEntity[] files = await _dbAccess
+			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, token)
+			.ConfigureAwait(false);
+
+		// Streaming serialization: the document goes directly to the file without being
+		// materialized as a string in memory.
+		await using Stream stream = _fileSystem
+			.FileStream
+			.New(
+				filePath,
+				FileMode.Create,
+				FileAccess.Write,
+				FileShare.None,
+				SequentialBufferSize,
+				FileOptions.Asynchronous);
+
+		await WriteDocumentAsync(
+			stream,
+			[.. folders.Concat<ExplorerItemBase>(files).Where(isExported)],
+			token).ConfigureAwait(false);
+	}
 	#endregion
 }

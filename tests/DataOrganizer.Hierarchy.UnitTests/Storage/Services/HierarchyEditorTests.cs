@@ -13,6 +13,7 @@ using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Storage.Services;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.Fakes;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.TestSupport.Database;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -33,6 +35,71 @@ namespace DataOrganizer.Hierarchy.UnitTests.Storage.Services;
 internal class HierarchyEditorTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="HierarchyEditor.AddAsync" />: a database that answers on another thread leaves the addition to the
+	/// hierarchy to the context of the caller.
+	/// </summary>
+	[Test]
+	public void AddAsync_Answered_On_Another_Thread_Adds_The_Object_Through_The_Context_Of_The_Caller()
+	{
+		// Arrange
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [];
+
+		TaskCompletionSource<ExplorerItemBase> answer = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			IMapper mapper = Substitute.For<IMapper>();
+
+			dbAccess
+				.AddEntityAsync(Arg.Any<AddEntityParameters>(), Arg.Any<CancellationToken>())
+				.Returns(answer.Task);
+
+			mapper
+				.Map<ExplorerItemBase, ExplorerItemDtoBase>(Arg.Any<ExplorerItemBase>())
+				.Returns(ItemDtoFactory.CreateFileDto());
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(mapper);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		List<SynchronizationContext?> addedOn = [];
+
+		hierarchy.CollectionChanged += (_, _) => addedOn.Add(SynchronizationContext.Current);
+
+		QueueingSynchronizationContext context = new();
+
+		SynchronizationContext? previous = SynchronizationContext.Current;
+
+		SynchronizationContext.SetSynchronizationContext(context);
+
+		try
+		{
+			// Act
+			_ = sut.AddAsync(RandomString.Create(10), EntityKind.File, null, hierarchy);
+
+			Task
+				.Run(() => answer.SetResult(EntityFactory.CreateFile()))
+				.Wait();
+
+			context.RunPosted();
+		}
+		finally
+		{
+			SynchronizationContext.SetSynchronizationContext(previous);
+		}
+
+		// Assert
+		addedOn
+			.Should()
+			.Equal(context);
+	}
+
 	/// <summary>
 	/// <see cref="HierarchyEditor.AddAsync" />: an object added to a folder takes the encryption status of the folder.
 	/// </summary>
@@ -337,6 +404,65 @@ internal class HierarchyEditorTests
 	}
 
 	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteAsync" />: a database that answers on another thread leaves the removal from the
+	/// hierarchy to the context of the caller.
+	/// </summary>
+	[Test]
+	public void DeleteAsync_Answered_On_Another_Thread_Removes_The_Object_Through_The_Context_Of_The_Caller()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [file];
+
+		TaskCompletionSource<bool> answer = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.DeleteAsync(file.Kind, file.Id, Arg.Any<CancellationToken>())
+				.Returns(answer.Task);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		List<SynchronizationContext?> removedOn = [];
+
+		hierarchy.CollectionChanged += (_, _) => removedOn.Add(SynchronizationContext.Current);
+
+		QueueingSynchronizationContext context = new();
+
+		SynchronizationContext? previous = SynchronizationContext.Current;
+
+		SynchronizationContext.SetSynchronizationContext(context);
+
+		try
+		{
+			// Act
+			_ = sut.DeleteAsync(file, hierarchy);
+
+			Task
+				.Run(() => answer.SetResult(true))
+				.Wait();
+
+			context.RunPosted();
+		}
+		finally
+		{
+			SynchronizationContext.SetSynchronizationContext(previous);
+		}
+
+		// Assert
+		removedOn
+			.Should()
+			.Equal(context);
+	}
+
+	/// <summary>
 	/// <see cref="HierarchyEditor.DeleteAsync" />: an object the database does not have stays in the hierarchy.
 	/// </summary>
 	[Test]
@@ -428,6 +554,187 @@ internal class HierarchyEditorTests
 		hierarchy
 			.Should()
 			.Contain(entity);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteManyAsync" />: every object leaves the database and the place in the hierarchy where
+	/// it lies, and all of them are returned.
+	/// </summary>
+	[Test]
+	public async Task DeleteManyAsync_Deletes_Each_Object_In_Database_And_In_Treeview()
+	{
+		// Arrange
+		FileDto nested = ItemDtoFactory.CreateFileDto();
+
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(children: [nested]);
+
+		FileDto root = ItemDtoFactory.CreateFileDto();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [folder, root];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.DeleteAsync(
+					Arg.Any<EntityKind>(),
+					Arg.Any<Guid>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		IReadOnlyList<ExplorerItemDtoBase> result = await sut.DeleteManyAsync([nested, root], hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.Equal(nested, root);
+
+		hierarchy
+			.Should()
+			.Equal(folder);
+
+		folder.Children
+			.Should()
+			.BeEmpty();
+
+		await dbAccess
+			.Received(1)
+			.DeleteAsync(nested.Kind, nested.Id, Arg.Any<CancellationToken>());
+
+		await dbAccess
+			.Received(1)
+			.DeleteAsync(root.Kind, root.Id, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteManyAsync" />: a database that answers on another thread leaves the removal of each
+	/// object from the hierarchy to the context of the caller.
+	/// </summary>
+	[Test]
+	public void DeleteManyAsync_Answered_On_Another_Thread_Removes_Each_Object_Through_The_Context_Of_The_Caller()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto second = ItemDtoFactory.CreateFileDto();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [first, second];
+
+		TaskCompletionSource<bool> firstAnswer = new();
+
+		TaskCompletionSource<bool> secondAnswer = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.DeleteAsync(first.Kind, first.Id, Arg.Any<CancellationToken>())
+				.Returns(firstAnswer.Task);
+
+			dbAccess
+				.DeleteAsync(second.Kind, second.Id, Arg.Any<CancellationToken>())
+				.Returns(secondAnswer.Task);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		List<SynchronizationContext?> removedOn = [];
+
+		hierarchy.CollectionChanged += (_, _) => removedOn.Add(SynchronizationContext.Current);
+
+		QueueingSynchronizationContext context = new();
+
+		SynchronizationContext? previous = SynchronizationContext.Current;
+
+		SynchronizationContext.SetSynchronizationContext(context);
+
+		try
+		{
+			// Act
+			_ = sut.DeleteManyAsync([first, second], hierarchy);
+
+			Task
+				.Run(() => firstAnswer.SetResult(true))
+				.Wait();
+
+			context.RunPosted();
+
+			Task
+				.Run(() => secondAnswer.SetResult(true))
+				.Wait();
+
+			context.RunPosted();
+		}
+		finally
+		{
+			SynchronizationContext.SetSynchronizationContext(previous);
+		}
+
+		// Assert
+		removedOn
+			.Should()
+			.Equal(context, context);
+	}
+
+	/// <summary>
+	/// <see cref="HierarchyEditor.DeleteManyAsync" />: the first object the database fails to delete ends the deletion, so
+	/// the objects after it stay, and only the objects before it are returned.
+	/// </summary>
+	[Test]
+	public async Task DeleteManyAsync_Stops_At_The_First_Object_It_Fails_To_Delete()
+	{
+		// Arrange
+		FileDto first = ItemDtoFactory.CreateFileDto();
+
+		FileDto failed = ItemDtoFactory.CreateFileDto();
+
+		FileDto last = ItemDtoFactory.CreateFileDto();
+
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [first, failed, last];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.DeleteAsync(first.Kind, first.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			// The database has no such object.
+			dbAccess
+				.DeleteAsync(failed.Kind, failed.Id, Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		HierarchyEditor sut = mock.Create<HierarchyEditor>();
+
+		// Act
+		IReadOnlyList<ExplorerItemDtoBase> result = await sut.DeleteManyAsync([first, failed, last], hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.Equal(first);
+
+		hierarchy
+			.Should()
+			.Equal(failed, last);
+
+		await dbAccess
+			.DidNotReceive()
+			.DeleteAsync(last.Kind, last.Id, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

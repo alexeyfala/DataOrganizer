@@ -1282,11 +1282,9 @@ internal class DocumentTextEditorTests
 
 		sut.TextArea.Focus();
 
-		//Press(window, PhysicalKey.M, CommandModifiers);
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
-		//Press(window, PhysicalKey.L, CommandModifiers);
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
 		Dispatcher.UIThread.RunJobs();

@@ -20,6 +20,11 @@ public sealed class FilteredHierarchy : IDisposable
 	/// The current filter, then each new one.
 	/// </summary>
 	public IObservable<HierarchyFilter> Changes => _filter;
+
+	/// <summary>
+	/// The filter applied now.
+	/// </summary>
+	public HierarchyFilter Current => _filter.Value;
 	#endregion
 
 	#region Data

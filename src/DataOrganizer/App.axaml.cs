@@ -16,6 +16,8 @@ using DataOrganizer.Documents.Notes.Services;
 using DataOrganizer.Documents.TextProcessing.Interfaces;
 using DataOrganizer.Extensions;
 using DataOrganizer.Hierarchy.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Interfaces;
+using DataOrganizer.Hierarchy.MultipleSelection.Services;
 using DataOrganizer.Hierarchy.Services;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.Storage.Services;
@@ -161,6 +163,7 @@ public sealed class App : Application
 		services.AddTransient<IBackedUpWriter, BackedUpWriter>();
 		services.AddTransient<IBackgroundServices, BackgroundServices>();
 		services.AddTransient<IBuildInfo, BuildInfo>();
+		services.AddTransient<ICheckMarks, CheckMarks>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IClipboardHistoryUnlocker, ClipboardHistoryUnlocker>();
 		services.AddTransient<IClipboardLogSeeder, ClipboardLogSeeder>();
@@ -317,6 +320,7 @@ public sealed class App : Application
 		services.AddSingleton<ISessionEditorTabs>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISessionHierarchy>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
+		services.AddSingleton<ISessionMultipleSelection>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISessionReadOnlyMode>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISessionTreeState>(static x => x.GetRequiredService<WorkSession>());
 		services.AddSingleton<ISettingsCloseGuard>(static x => x.GetRequiredService<SettingsSession>());

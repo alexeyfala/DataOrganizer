@@ -377,5 +377,55 @@ internal class DeletionScenarioTests
 			.Should()
 			.BeTrue();
 	}
+
+	/// <summary>
+	/// <see cref="DeletionScenario.DeleteManyAsync" />: only the objects the database deleted are closed and returned.
+	/// </summary>
+	[Test]
+	public async Task DeleteManyAsync_Closes_And_Returns_Only_The_Deleted_Objects()
+	{
+		// Arrange
+		FileDto deleted = ItemDtoFactory.CreateFileDto();
+
+		FileDto kept = ItemDtoFactory.CreateFileDto();
+
+		Collection<ExplorerItemDtoBase> hierarchy = [deleted, kept];
+
+		ExplorerItemDtoBase[] items = [deleted, kept];
+
+		IOpenFilesCloser openFilesCloser = Substitute.For<IOpenFilesCloser>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+			// The database fails on the second object.
+			hierarchyEditor
+				.DeleteManyAsync(items, hierarchy, Arg.Any<CancellationToken>())
+				.Returns([deleted]);
+
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(openFilesCloser);
+		});
+
+		DeletionScenario sut = mock.Create<DeletionScenario>();
+
+		// Act
+		IReadOnlyList<ExplorerItemDtoBase> result = await sut.DeleteManyAsync(items, hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.Equal(deleted);
+
+		openFilesCloser
+			.Received(1)
+			.Close(Arg.Is<IReadOnlyCollection<FileDto>>(x => x.Count == 1 && x.Contains(deleted)));
+
+		openFilesCloser
+			.DidNotReceive()
+			.Close(Arg.Is<IReadOnlyCollection<FileDto>>(x => x.Contains(kept)));
+	}
 	#endregion
 }

@@ -1,5 +1,6 @@
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Hierarchy.Dto;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,15 @@ public interface IHierarchyEditor
 	/// </summary>
 	Task<bool> DeleteAsync(
 		ExplorerItemDtoBase dto,
+		Collection<ExplorerItemDtoBase> hierarchy,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Deletes objects from the database and from the hierarchy one by one, up to the first that fails; returns the
+	/// deleted ones.
+	/// </summary>
+	Task<IReadOnlyList<ExplorerItemDtoBase>> DeleteManyAsync(
+		IReadOnlyList<ExplorerItemDtoBase> items,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default);
 
