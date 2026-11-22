@@ -1,10 +1,11 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards that the bundle installs the runtime of the framework the application targets")]

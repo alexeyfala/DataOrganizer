@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 /// <summary>
 /// The text of a C# file as a guard reads it: the code alone, without what only looks like code.

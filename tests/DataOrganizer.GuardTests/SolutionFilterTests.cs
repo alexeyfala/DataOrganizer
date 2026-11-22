@@ -1,11 +1,12 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards that the solution filter of the test run lists every test project")]

@@ -1,9 +1,10 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards the code against reading the time past the time provider")]

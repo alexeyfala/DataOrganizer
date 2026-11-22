@@ -1,11 +1,12 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards that the third-party notices list the packages of the application with their versions")]

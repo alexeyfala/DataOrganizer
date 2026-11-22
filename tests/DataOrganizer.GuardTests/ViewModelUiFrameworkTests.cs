@@ -1,10 +1,11 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards the view models against the types of the UI framework")]

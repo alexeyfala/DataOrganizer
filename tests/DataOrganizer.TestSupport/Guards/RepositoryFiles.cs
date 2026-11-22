@@ -1,14 +1,15 @@
+using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.TestSupport.Guards;
 
 /// <summary>
 /// The files of the repository a guard reads, located from the test output directory.
 /// </summary>
-internal static class RepositoryFiles
+public static class RepositoryFiles
 {
 	#region Data
 	/// <summary>

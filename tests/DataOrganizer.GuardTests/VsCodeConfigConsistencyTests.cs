@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml.Linq;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards that .vscode configs stay in sync with the app name and the target framework in Directory.Build.props")]

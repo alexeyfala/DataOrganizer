@@ -85,3 +85,7 @@ The topics of a project have an order: a topic may use only the topics before it
 A project with tests has its test project in `tests/`, named `<Project>.UnitTests`, and
 `<Project>.IntegrationTests` for tests that need a database file on the disk; a test on a database in
 memory stays a unit test. Its folders mirror the project: `tests/<Project>.UnitTests/<Topic>/<Kind>`.
+
+The guard tests, which read the files of the repository instead of exercising a project, have a test
+project of their own, `DataOrganizer.GuardTests`. A guard that needs the running application stays with
+the tests of the application.

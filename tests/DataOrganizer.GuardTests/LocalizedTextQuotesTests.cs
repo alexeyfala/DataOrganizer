@@ -1,11 +1,12 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards the localized texts against quotes that the quote builder does not put")]

@@ -1,10 +1,11 @@
 using AvaloniaEdit;
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.IO;
 using System.Reflection;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards that the Russian satellite of AvaloniaEdit has the version of AvaloniaEdit.dll")]

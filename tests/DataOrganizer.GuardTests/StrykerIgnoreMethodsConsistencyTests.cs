@@ -1,10 +1,11 @@
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.UnitTests.Guards;
+namespace DataOrganizer.GuardTests;
 
 [Guard]
 [TestFixture(Description = "Guards that every call the Stryker settings leave out is still made in the code")]

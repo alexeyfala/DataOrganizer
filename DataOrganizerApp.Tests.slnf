@@ -17,6 +17,7 @@
       "tests\\DataOrganizer.Database.IntegrationTests\\DataOrganizer.Database.IntegrationTests.csproj",
       "tests\\DataOrganizer.Database.UnitTests\\DataOrganizer.Database.UnitTests.csproj",
       "tests\\DataOrganizer.Documents.UnitTests\\DataOrganizer.Documents.UnitTests.csproj",
+      "tests\\DataOrganizer.GuardTests\\DataOrganizer.GuardTests.csproj",
       "tests\\DataOrganizer.Hierarchy.UnitTests\\DataOrganizer.Hierarchy.UnitTests.csproj",
       "tests\\DataOrganizer.Infrastructure.UnitTests\\DataOrganizer.Infrastructure.UnitTests.csproj",
       "tests\\DataOrganizer.Security.UnitTests\\DataOrganizer.Security.UnitTests.csproj",

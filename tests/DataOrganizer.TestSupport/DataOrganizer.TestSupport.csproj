@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
+		<!-- The test projects bring NUnit themselves, so it does not flow from here. -->
+		<PackageReference Include="NUnit" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\src\DataOrganizer.Database\DataOrganizer.Database.csproj" />
 	</ItemGroup>
 </Project>

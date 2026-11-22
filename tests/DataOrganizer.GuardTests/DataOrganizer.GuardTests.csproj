@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.TestSupport\DataOrganizer.TestSupport.csproj" />
+		<ProjectReference Include="..\..\src\DataOrganizer\DataOrganizer.csproj" />
+	</ItemGroup>
+
+</Project>
