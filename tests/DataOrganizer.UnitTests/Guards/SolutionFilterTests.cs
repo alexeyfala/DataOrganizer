@@ -43,7 +43,7 @@ internal class SolutionFilterTests
 
 		missing
 			.Should()
-			.BeEmpty($"{FilterFileName} must list every test project of {TestsFolder}/");
+			.HaveCount(0, $"{FilterFileName} must list every test project of {TestsFolder}/");
 	}
 	#endregion
 

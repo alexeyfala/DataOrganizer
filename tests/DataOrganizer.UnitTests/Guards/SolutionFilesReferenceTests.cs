@@ -54,7 +54,7 @@ internal class SolutionFilesReferenceTests
 		// Assert
 		undocumented
 			.Should()
-			.BeEmpty($"{ReferenceFilePath} must link every file it covers");
+			.HaveCount(0, $"{ReferenceFilePath} must link every file it covers");
 	}
 	#endregion
 
