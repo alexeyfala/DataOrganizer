@@ -2,6 +2,9 @@ using SharpHook.Data;
 
 namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 
+/// <summary>
+/// Takes the modifier keys out of an event mask.
+/// </summary>
 public static class EventMaskExtensions
 {
 	#region Methods

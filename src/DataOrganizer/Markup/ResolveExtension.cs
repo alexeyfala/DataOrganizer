@@ -27,10 +27,16 @@ public sealed class ResolveExtension : MarkupExtension
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ResolveExtension" /> class.
+	/// </summary>
 	public ResolveExtension()
 	{
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ResolveExtension" /> class.
+	/// </summary>
 	public ResolveExtension(Type type) => Type = type;
 	#endregion
 

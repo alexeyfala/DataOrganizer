@@ -289,6 +289,9 @@ internal class EmbeddedEditorViewModelBaseTests
 /// </summary>
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TestEditor" /> class.
+	/// </summary>
 	public TestEditor(
 		IDbFailureReporter dbFailureReporter,
 		IEditorStateStore editorStateStore,

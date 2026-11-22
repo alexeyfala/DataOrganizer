@@ -4,14 +4,11 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:controls="using:DataOrganizer.Controls"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	x:DataType="dialogs:EntityCreationViewModel"
-	Theme="{StaticResource DialogTheme}"
-	mc:Ignorable="d">
+	Theme="{StaticResource DialogTheme}">
 
 	<StackPanel
 		MaxWidth="{StaticResource DialogMaxWidth}"

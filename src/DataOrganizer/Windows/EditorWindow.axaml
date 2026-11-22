@@ -7,7 +7,6 @@
 	xmlns:common="using:DataOrganizer.Shared.Common"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogConstants="using:DataOrganizer.Infrastructure.DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:enums="using:DataOrganizer.Enums"
@@ -17,7 +16,6 @@
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:nodes="using:DataOrganizer.ViewModels.Hierarchy"
 	xmlns:notificationConstants="using:DataOrganizer.Infrastructure.Notifications.Constants"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
@@ -35,8 +33,7 @@
 	ShowActivated="True"
 	WindowDecorations="{OnPlatform Default=BorderOnly,
 	                               Windows=Full,
-	                               macOS=Full}"
-	mc:Ignorable="d">
+	                               macOS=Full}">
 
 	<!--
 		The "Icon" property above feeds the task bar, Alt+Tab and the window list; the icon drawn in our own title bar never reaches them.

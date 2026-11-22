@@ -95,6 +95,9 @@ public sealed class EncryptionService :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Writes new blobs with the current cost.
+	/// </summary>
 	public EncryptionService() : this(Argon2Settings.Current)
 	{
 	}

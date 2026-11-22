@@ -28,6 +28,9 @@ public sealed class DesktopAccessor : IAppShutdown, IDialogHostFinder, IWindowCl
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DesktopAccessor" /> class.
+	/// </summary>
 	public DesktopAccessor(Application app, IProcessTerminator processTerminator)
 	{
 		_app = app;

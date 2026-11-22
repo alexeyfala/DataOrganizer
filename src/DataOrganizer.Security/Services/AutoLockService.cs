@@ -55,6 +55,9 @@ public sealed partial class AutoLockService : ObservableObject, IAutoLockService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AutoLockService" /> class.
+	/// </summary>
 	public AutoLockService(
 		IAutoLockSettings autoLockSettings,
 		ILogger logger,

@@ -32,6 +32,9 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MultilineTextEditViewModel" /> class.
+	/// </summary>
 	public MultilineTextEditViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)

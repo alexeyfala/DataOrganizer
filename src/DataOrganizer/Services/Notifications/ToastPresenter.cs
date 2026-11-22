@@ -12,6 +12,7 @@ using System;
 
 namespace DataOrganizer.Services.Notifications;
 
+/// <inheritdoc cref="IToastPresenter" />
 public sealed class ToastPresenter : IToastPresenter
 {
 	#region Data
@@ -31,6 +32,9 @@ public sealed class ToastPresenter : IToastPresenter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ToastPresenter" /> class.
+	/// </summary>
 	public ToastPresenter(
 		ILogger logger,
 		IViewFactory viewFactory,

@@ -22,6 +22,9 @@ internal sealed class ExecutingFileProcess : IExecutingFileProcess
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ExecutingFileProcess" /> class.
+	/// </summary>
 	public ExecutingFileProcess(Process process) => _process = process;
 	#endregion
 

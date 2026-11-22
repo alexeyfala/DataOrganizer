@@ -5,6 +5,9 @@ using Material.Styles.Themes.Base;
 
 namespace DataOrganizer.Extensions;
 
+/// <summary>
+/// Maps the theme settings of the application to the colors and the modes of Material Design.
+/// </summary>
 internal static class MaterialDesignExtensions
 {
 	#region Methods

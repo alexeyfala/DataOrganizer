@@ -58,6 +58,9 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="UpdateCheckService" /> class.
+	/// </summary>
 	public UpdateCheckService(
 		IBuildInfo buildInfo,
 		IHttpClientFactory httpClientFactory,

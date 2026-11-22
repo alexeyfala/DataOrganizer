@@ -26,6 +26,9 @@ public sealed class ShownDialog : IShownDialog
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ShownDialog" /> class.
+	/// </summary>
 	public ShownDialog(DialogOverlayPopupHost host, IUiTimer uiTimer)
 	{
 		_host = host;

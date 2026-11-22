@@ -43,6 +43,9 @@ public sealed class NotificationService : INotificationService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Sets up a message channel for each snackbar host and one for the toasts.
+	/// </summary>
 	public NotificationService(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,

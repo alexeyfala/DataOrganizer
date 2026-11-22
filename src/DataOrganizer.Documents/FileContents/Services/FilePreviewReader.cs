@@ -31,6 +31,9 @@ public sealed class FilePreviewReader : IFilePreviewReader
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FilePreviewReader" /> class.
+	/// </summary>
 	public FilePreviewReader(
 		IFileTextReader fileTextReader,
 		ILogger logger,

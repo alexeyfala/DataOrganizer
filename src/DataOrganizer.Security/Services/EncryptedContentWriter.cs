@@ -35,6 +35,9 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EncryptedContentWriter" /> class.
+	/// </summary>
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
 		ILogger logger,

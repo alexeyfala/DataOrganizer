@@ -89,6 +89,9 @@ public sealed class DbAccess :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DbAccess" /> class.
+	/// </summary>
 	public DbAccess(
 		IDbContextService dbContextService,
 		IDbMaintenance dbMaintenance,

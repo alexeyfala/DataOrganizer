@@ -31,6 +31,9 @@ public sealed class FileContentsOpener : IFileContentsOpener
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileContentsOpener" /> class.
+	/// </summary>
 	public FileContentsOpener(
 		IDbFailureReporter dbFailureReporter,
 		IFileContentsReader fileContentsReader,

@@ -97,6 +97,9 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EditingFilesViewModel" /> class.
+	/// </summary>
 	public EditingFilesViewModel(ILogger logger, ISessionEditorTabs sessionEditorTabs)
 	{
 		_logger = logger;

@@ -16,6 +16,9 @@ public sealed class TypingPauseFactory : ITypingPauseFactory
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TypingPauseFactory" /> class.
+	/// </summary>
 	public TypingPauseFactory(IDispatcherAccessor dispatcher, TimeProvider timeProvider)
 	{
 		_dispatcher = dispatcher;

@@ -33,6 +33,9 @@ internal sealed class AsyncRollbackScope : IAsyncDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AsyncRollbackScope" /> class.
+	/// </summary>
 	public AsyncRollbackScope(ILogger? logger = null) => _logger = logger;
 	#endregion
 

@@ -58,6 +58,9 @@ public abstract partial class FileListViewModelBase : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileListViewModelBase" /> class.
+	/// </summary>
 	protected FileListViewModelBase(
 		IContentCopier contentCopier,
 		IMessenger messenger,

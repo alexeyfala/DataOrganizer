@@ -41,6 +41,9 @@ public sealed class ContentVisibility : IContentKeys, IContentVisibility
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ContentVisibility" /> class.
+	/// </summary>
 	public ContentVisibility(
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,

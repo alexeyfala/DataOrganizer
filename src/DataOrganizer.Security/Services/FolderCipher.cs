@@ -51,6 +51,9 @@ public sealed class FolderCipher : IFolderCipher
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FolderCipher" /> class.
+	/// </summary>
 	public FolderCipher(
 		IBackedUpWriter backedUpWriter,
 		IContentKeys contentKeys,

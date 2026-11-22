@@ -60,6 +60,9 @@ public class FileChangeTracker : IFileChangeTracker
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileChangeTracker" /> class.
+	/// </summary>
 	public FileChangeTracker(
 		IDbFailureReporter dbFailureReporter,
 		IFileContentsWriter fileContentsWriter,

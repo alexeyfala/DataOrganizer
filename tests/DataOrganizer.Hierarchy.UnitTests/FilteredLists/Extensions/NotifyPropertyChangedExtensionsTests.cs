@@ -69,6 +69,9 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	/// </summary>
 	private sealed class NameHolder : INamed
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="NameHolder" /> class.
+		/// </summary>
 		public NameHolder(string name) => Name = name;
 
 		public string Name { get; }

@@ -28,6 +28,9 @@ public sealed class FileLockChecker : IFileLockChecker
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileLockChecker" /> class.
+	/// </summary>
 	public FileLockChecker(
 		IFileSystem fileSystem,
 		IPlatform platform,

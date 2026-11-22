@@ -43,6 +43,9 @@ public sealed class ExecutingFiles : IExecutingFiles, IRecipient<CloseExecutingF
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates an empty list of running files and registers it for its messages.
+	/// </summary>
 	public ExecutingFiles(
 		IDispatcherAccessor dispatcher,
 		IExecutionEngine executionEngine,

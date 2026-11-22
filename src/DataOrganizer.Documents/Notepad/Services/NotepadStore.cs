@@ -49,6 +49,9 @@ public sealed class NotepadStore : INotepadStore
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Takes the folder of the notepad and the file of its settings from the environment of the instance.
+	/// </summary>
 	public NotepadStore(
 		IAppEnvironment appEnvironment,
 		IAtomicFileWriter atomicFileWriter,

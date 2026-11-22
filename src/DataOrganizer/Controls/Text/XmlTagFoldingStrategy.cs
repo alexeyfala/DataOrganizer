@@ -40,6 +40,9 @@ internal sealed class XmlTagFoldingStrategy : IFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the strategy with an inner one for the region markers.
+	/// </summary>
 	public XmlTagFoldingStrategy(SyntaxFoldingRules rules)
 	{
 		_regionStrategy = new CompositeFoldingStrategy(new MarkerFoldingStrategy(rules));

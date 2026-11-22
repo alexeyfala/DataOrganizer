@@ -19,6 +19,9 @@ public sealed class MarkerFoldingStrategy : ILineFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MarkerFoldingStrategy" /> class.
+	/// </summary>
 	public MarkerFoldingStrategy(SyntaxFoldingRules rules)
 	{
 		_rules = rules;

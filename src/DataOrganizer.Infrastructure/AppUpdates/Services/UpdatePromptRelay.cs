@@ -17,6 +17,9 @@ public sealed class UpdatePromptRelay : IUpdatePrompt
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="UpdatePromptRelay" /> class.
+	/// </summary>
 	public UpdatePromptRelay(IMessenger messenger) => _messenger = messenger;
 	#endregion
 

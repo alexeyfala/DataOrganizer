@@ -19,6 +19,9 @@ public abstract class DialogViewBase : UserControl
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Makes the view focusable.
+	/// </summary>
 	protected DialogViewBase() => Focusable = true;
 	#endregion
 

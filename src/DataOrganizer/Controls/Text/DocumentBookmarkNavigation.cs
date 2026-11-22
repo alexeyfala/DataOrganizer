@@ -39,6 +39,9 @@ internal sealed class DocumentBookmarkNavigation
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the commands of the bookmarks and binds them to the F2 keys of the editor.
+	/// </summary>
 	public DocumentBookmarkNavigation(DocumentTextEditor editor)
 	{
 		_editor = editor;

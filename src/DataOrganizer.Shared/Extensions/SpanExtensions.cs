@@ -3,6 +3,9 @@ using System.Security.Cryptography;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Clears byte buffers in a way the compiler cannot optimize away.
+/// </summary>
 public static class SpanExtensions
 {
 	#region Methods

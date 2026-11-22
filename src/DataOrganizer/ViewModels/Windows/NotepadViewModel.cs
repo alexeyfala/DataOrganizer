@@ -231,6 +231,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Opens the first tab and writes the tabs on each change; a new encoding of a tab reads its text again.
+	/// </summary>
 	public NotepadViewModel(
 		IConfirmationPrompt confirmationPrompt,
 		IDocumentEncodingSwitcher encodingSwitcher,

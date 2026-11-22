@@ -50,6 +50,9 @@ public sealed class ImportFoldingStrategy : ILineFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ImportFoldingStrategy" /> class.
+	/// </summary>
 	public ImportFoldingStrategy(SyntaxFoldingRules rules)
 	{
 		_rules = rules;

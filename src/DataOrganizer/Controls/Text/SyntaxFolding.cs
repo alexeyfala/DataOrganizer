@@ -71,6 +71,9 @@ internal sealed class SyntaxFolding : IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Installs the folding into the text area and finds the blocks of its text.
+	/// </summary>
 	public SyntaxFolding(TextArea textArea, string language, SyntaxFoldingRules rules)
 	{
 		// The manager takes the document the text area has now and keeps it.

@@ -91,6 +91,9 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="PasswordBoxViewModel" /> class.
+	/// </summary>
 	public PasswordBoxViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)

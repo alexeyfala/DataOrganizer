@@ -34,6 +34,9 @@ public sealed class DeletionScenario : IDeletionScenario
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DeletionScenario" /> class.
+	/// </summary>
 	public DeletionScenario(
 		IAutoLockControl autoLockControl,
 		IContentKeys contentKeys,

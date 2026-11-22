@@ -98,6 +98,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Shows the text of the log and reads its records, the earlier ones first.
+	/// </summary>
 	public ConsoleViewModel(
 		IAppEnvironment appEnvironment,
 		IConsoleLog consoleLog,

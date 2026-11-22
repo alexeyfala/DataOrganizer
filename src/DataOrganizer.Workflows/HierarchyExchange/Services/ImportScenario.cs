@@ -36,6 +36,9 @@ public sealed class ImportScenario : IImportScenario
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ImportScenario" /> class.
+	/// </summary>
 	public ImportScenario(
 		IAutoLockControl autoLockControl,
 		IContentKeys contentKeys,

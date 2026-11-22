@@ -26,6 +26,9 @@ public sealed class ProcessManager :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ProcessManager" /> class.
+	/// </summary>
 	public ProcessManager(IPlatform platform) => _platform = platform;
 	#endregion
 

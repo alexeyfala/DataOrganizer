@@ -22,6 +22,9 @@ public sealed class XmlExchangeFormat : SerializedExchangeFormatBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="XmlExchangeFormat" /> class.
+	/// </summary>
 	public XmlExchangeFormat(
 		IDbAccess dbAccess,
 		IFileSystem fileSystem,

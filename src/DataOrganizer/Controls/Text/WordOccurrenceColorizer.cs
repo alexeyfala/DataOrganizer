@@ -23,6 +23,9 @@ internal sealed class WordOccurrenceColorizer : DocumentColorizingTransformer
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="WordOccurrenceColorizer" /> class.
+	/// </summary>
 	public WordOccurrenceColorizer(string word, IBrush brush)
 	{
 		_word = word;

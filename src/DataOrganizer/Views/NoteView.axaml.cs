@@ -179,6 +179,9 @@ internal sealed partial class NoteView : UserControl
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NoteView" /> class.
+	/// </summary>
 	public NoteView() => InitializeComponent();
 	#endregion
 

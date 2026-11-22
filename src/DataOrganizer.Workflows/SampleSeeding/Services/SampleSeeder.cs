@@ -41,6 +41,9 @@ public sealed class SampleSeeder : ISampleSeeder
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SampleSeeder" /> class.
+	/// </summary>
 	public SampleSeeder(
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,

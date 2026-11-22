@@ -99,6 +99,9 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AppPickerViewModel" /> class.
+	/// </summary>
 	public AppPickerViewModel(
 		IAppPickerService appPicker,
 		IDialogCloser dialogCloser,

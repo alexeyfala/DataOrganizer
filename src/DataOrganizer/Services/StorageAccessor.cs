@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
+/// <inheritdoc cref="IStorageAccessor" />
 public sealed class StorageAccessor : IStorageAccessor
 {
 	#region Data
@@ -14,6 +15,9 @@ public sealed class StorageAccessor : IStorageAccessor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="StorageAccessor" /> class.
+	/// </summary>
 	public StorageAccessor(IWindowFinder windowFinder) => _windowFinder = windowFinder;
 	#endregion
 

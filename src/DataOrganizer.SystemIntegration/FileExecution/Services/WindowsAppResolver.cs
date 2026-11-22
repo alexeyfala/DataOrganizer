@@ -26,6 +26,9 @@ public sealed class WindowsAppResolver : IAppResolver
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="WindowsAppResolver" /> class.
+	/// </summary>
 	public WindowsAppResolver(
 		IAppPickerService appPicker,
 		IFileAssociationService fileAssociation,

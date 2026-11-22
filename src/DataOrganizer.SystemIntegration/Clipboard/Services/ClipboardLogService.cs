@@ -91,6 +91,9 @@ public sealed class ClipboardLogService : IAsyncDisposable, IClipboardLogMerger,
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ClipboardLogService" /> class.
+	/// </summary>
 	public ClipboardLogService(
 		IClipboardAccessor clipboard,
 		IClipboardAutoClear autoClear,

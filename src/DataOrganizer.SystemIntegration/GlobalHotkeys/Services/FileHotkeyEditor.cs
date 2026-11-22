@@ -38,6 +38,9 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileHotkeyEditor" /> class.
+	/// </summary>
 	public FileHotkeyEditor(
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,

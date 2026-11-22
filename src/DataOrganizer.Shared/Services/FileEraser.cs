@@ -23,6 +23,9 @@ public sealed class FileEraser : IFileEraser
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileEraser" /> class.
+	/// </summary>
 	public FileEraser(IFileSystem fileSystem) => _fileSystem = fileSystem;
 	#endregion
 

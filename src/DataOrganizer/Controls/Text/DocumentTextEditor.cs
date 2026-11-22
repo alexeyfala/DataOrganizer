@@ -248,6 +248,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Sets up the commands, key bindings and bookmarks, and follows the switches, language, theme and document.
+	/// </summary>
 	public DocumentTextEditor()
 	{
 		_folding = new(this);

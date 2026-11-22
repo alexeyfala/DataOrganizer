@@ -104,6 +104,9 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Places the tips of the marks and updates the marks after each run of changes of the text or of the selection.
+	/// </summary>
 	public ScrollMarkMargin(TextEditorBase editor, IObservable<TextArea> occurrenceSource)
 	{
 		_editor = editor;

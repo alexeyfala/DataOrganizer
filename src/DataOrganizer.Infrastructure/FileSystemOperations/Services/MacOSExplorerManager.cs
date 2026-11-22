@@ -16,6 +16,9 @@ public sealed class MacOSExplorerManager : IExplorerManager
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MacOSExplorerManager" /> class.
+	/// </summary>
 	public MacOSExplorerManager(IProcessLauncher processLauncher) => _processLauncher = processLauncher;
 	#endregion
 

@@ -36,6 +36,9 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Reads the options from the command line arguments.
+	/// </summary>
 	public CommandLineOptions(string[] args)
 	{
 		ShowConsole = args.Contains(ConsoleArg);

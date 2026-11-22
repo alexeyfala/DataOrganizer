@@ -34,6 +34,9 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the view model of the console.
+	/// </summary>
 	public ConsoleWindowHost(
 		IAppEnvironment appEnvironment,
 		IViewFactory viewFactory,

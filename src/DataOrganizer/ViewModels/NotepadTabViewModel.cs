@@ -46,6 +46,9 @@ public sealed partial class NotepadTabViewModel : ObservableObject, INotepadTab
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the editor of the tab over the given text.
+	/// </summary>
 	public NotepadTabViewModel(IDocumentText document) => Editor = CreateEditor(document);
 	#endregion
 

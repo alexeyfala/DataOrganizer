@@ -226,6 +226,9 @@ public sealed partial class FavoritesViewModel :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Reads whether the favorites show on hover and gathers the categories of the hierarchy.
+	/// </summary>
 	public FavoritesViewModel(
 		IAppSettingsStore settingsStore,
 		IConfirmationPrompt confirmationPrompt,

@@ -63,6 +63,9 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Follows the start of the hook and the keys it reports as released.
+	/// </summary>
 	public GlobalHookRunner(
 		IGlobalHook hook,
 		ILogger logger,

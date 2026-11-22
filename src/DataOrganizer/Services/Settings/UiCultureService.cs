@@ -5,6 +5,7 @@ using System.Globalization;
 
 namespace DataOrganizer.Services.Settings;
 
+/// <inheritdoc cref="IUiCultureService" />
 public sealed class UiCultureService : IUiCultureService
 {
 	#region Properties

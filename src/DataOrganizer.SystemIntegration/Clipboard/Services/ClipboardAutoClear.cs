@@ -39,6 +39,9 @@ public sealed class ClipboardAutoClear : IClipboardAutoClear, IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ClipboardAutoClear" /> class.
+	/// </summary>
 	public ClipboardAutoClear(
 		IClipboardAccessor clipboard,
 		IClipboardGate gate,

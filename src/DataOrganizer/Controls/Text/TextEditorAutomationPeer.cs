@@ -23,6 +23,9 @@ internal sealed class TextEditorAutomationPeer : ControlAutomationPeer, IValuePr
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TextEditorAutomationPeer" /> class.
+	/// </summary>
 	public TextEditorAutomationPeer(TextEditorBase owner)
 		: base(owner)
 	{

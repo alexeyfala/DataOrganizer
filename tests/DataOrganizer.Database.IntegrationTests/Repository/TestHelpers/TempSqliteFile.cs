@@ -21,6 +21,9 @@ internal sealed class TempSqliteFile : IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates a folder of its own for the database file and a connection string without pooling.
+	/// </summary>
 	public TempSqliteFile()
 	{
 		_directoryPath = Path.Combine(RunDirectoryPath, Guid.NewGuid().ToString("N"));

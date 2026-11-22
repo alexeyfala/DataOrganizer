@@ -293,6 +293,9 @@ internal class GlobalExceptionHandlerTests
 	private sealed class AccentColorReadException : Exception
 	{
 		#region Constructors
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AccentColorReadException" /> class.
+		/// </summary>
 		public AccentColorReadException(string message) : base(message)
 		{
 		}

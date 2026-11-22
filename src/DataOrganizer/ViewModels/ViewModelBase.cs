@@ -107,6 +107,9 @@ public abstract partial class ViewModelBase : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Reads whether the clipboard history is on and registers for messages.
+	/// </summary>
 	protected ViewModelBase(
 		IAppSettingsStore settingsStore,
 		ICopyHistory copyHistory,

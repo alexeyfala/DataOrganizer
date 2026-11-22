@@ -24,6 +24,9 @@ public sealed class NoteReader : INoteReader
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NoteReader" /> class.
+	/// </summary>
 	public NoteReader(
 		ILogger logger,
 		INoteCipher noteCipher,

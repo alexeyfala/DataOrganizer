@@ -130,6 +130,9 @@ internal abstract class TextEditorBase : TextEditor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Sets up the font, the margins, the occurrence highlight, the scroll marks and the commands of the editor.
+	/// </summary>
 	protected TextEditorBase()
 	{
 		FontFamily = new FontFamily("Cascadia Code,Consolas,Menlo,Monospace");

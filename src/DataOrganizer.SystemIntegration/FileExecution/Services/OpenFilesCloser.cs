@@ -26,6 +26,9 @@ public sealed class OpenFilesCloser : IOpenFilesCloser
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="OpenFilesCloser" /> class.
+	/// </summary>
 	public OpenFilesCloser(
 		IConfirmationPrompt confirmationPrompt,
 		IExecutingFiles executingFiles,

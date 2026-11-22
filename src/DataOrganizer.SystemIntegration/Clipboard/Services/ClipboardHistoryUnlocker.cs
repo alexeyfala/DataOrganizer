@@ -24,6 +24,9 @@ public sealed class ClipboardHistoryUnlocker : IClipboardHistoryUnlocker
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ClipboardHistoryUnlocker" /> class.
+	/// </summary>
 	public ClipboardHistoryUnlocker(
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		INotificationService notification,

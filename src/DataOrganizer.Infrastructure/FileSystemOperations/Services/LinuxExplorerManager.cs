@@ -130,6 +130,9 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="LinuxExplorerManager" /> class.
+	/// </summary>
 	public LinuxExplorerManager(IFileSystem fileSystem, IProcessRunner processRunner)
 	{
 		_fileSystem = fileSystem;

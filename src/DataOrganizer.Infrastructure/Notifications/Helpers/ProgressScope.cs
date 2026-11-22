@@ -21,6 +21,9 @@ public sealed class ProgressScope : IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ProgressScope" /> class.
+	/// </summary>
 	public ProgressScope(IMessenger messenger) => _messenger = messenger;
 	#endregion
 

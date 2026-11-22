@@ -32,6 +32,9 @@ public sealed class AppEnvironment : IAppEnvironment
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Builds the paths of the data folder of the instance, numbered after the instance, and of its subfolders.
+	/// </summary>
 	public AppEnvironment(IInstanceRegistry instanceRegistry)
 	{
 		const string directoryName = "Instance";

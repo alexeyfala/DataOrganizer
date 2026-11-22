@@ -28,6 +28,9 @@ public sealed class HotkeysEditingScenario : IHotkeysEditingScenario
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="HotkeysEditingScenario" /> class.
+	/// </summary>
 	public HotkeysEditingScenario(
 		IFileHotkeyEditor fileHotkeyEditor,
 		IHotkeysPrompt hotkeysPrompt,

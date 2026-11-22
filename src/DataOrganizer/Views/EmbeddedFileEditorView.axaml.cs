@@ -7,8 +7,14 @@ namespace DataOrganizer.Views;
 internal partial class EmbeddedFileEditorView : UserControl, IDisposable
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EmbeddedFileEditorView" /> class.
+	/// </summary>
 	public EmbeddedFileEditorView() => InitializeComponent();
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EmbeddedFileEditorView" /> class.
+	/// </summary>
 	public EmbeddedFileEditorView(EmbeddedFileEditorViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 

@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Shared.Threading.Extensions;
 
+/// <summary>
+/// Takes a <see cref="SemaphoreSlim" /> as a lock that is given back on disposal.
+/// </summary>
 public static class SemaphoreSlimExtensions
 {
 	#region Methods

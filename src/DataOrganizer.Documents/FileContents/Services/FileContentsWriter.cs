@@ -30,6 +30,9 @@ public sealed class FileContentsWriter : IFileContentsWriter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileContentsWriter" /> class.
+	/// </summary>
 	public FileContentsWriter(
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,

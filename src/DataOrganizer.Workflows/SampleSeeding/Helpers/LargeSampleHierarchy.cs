@@ -99,6 +99,9 @@ internal sealed class LargeSampleHierarchy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Makes the contents shared by the files of the deep, tree and wide branches.
+	/// </summary>
 	private LargeSampleHierarchy(DateTime now)
 	{
 		_now = now;

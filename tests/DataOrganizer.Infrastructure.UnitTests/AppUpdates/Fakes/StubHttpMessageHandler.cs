@@ -20,6 +20,9 @@ public sealed class StubHttpMessageHandler : HttpMessageHandler
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="StubHttpMessageHandler" /> class.
+	/// </summary>
 	public StubHttpMessageHandler(Func<StubHttpRequest, HttpResponseMessage> responder) => _responder = responder;
 	#endregion
 

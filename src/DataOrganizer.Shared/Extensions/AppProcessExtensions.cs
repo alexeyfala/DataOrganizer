@@ -5,6 +5,9 @@ using System.IO;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Finds the entry assembly of the running application and tells whether the shared <c>dotnet</c> host runs it.
+/// </summary>
 public static class AppProcessExtensions
 {
 	#region Data

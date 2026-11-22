@@ -3,6 +3,9 @@ using System.IO.Abstractions;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Sets and clears the hidden and read-only attributes of a file, keeping its other attributes.
+/// </summary>
 public static class FileSystemExtensions
 {
 	#region Methods

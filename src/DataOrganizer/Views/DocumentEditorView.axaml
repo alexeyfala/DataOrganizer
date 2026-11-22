@@ -4,19 +4,16 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:documents="using:DataOrganizer.Documents.Editor.Enums"
 	xmlns:folding="using:AvaloniaEdit.Folding"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:text="using:DataOrganizer.Documents.TextProcessing.Helpers"
 	xmlns:textBehaviors="using:DataOrganizer.Behaviors.Text"
 	xmlns:textControls="using:DataOrganizer.Controls.Text"
 	xmlns:textEnums="using:DataOrganizer.Documents.TextProcessing.Enums"
 	xmlns:views="using:DataOrganizer.Views"
-	x:Name="View"
-	mc:Ignorable="d">
+	x:Name="View">
 
 	<!--
 		Bound by name, not by $parent: an ancestor binding is lost while the control is detached, which resets the editor.

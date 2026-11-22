@@ -2,6 +2,9 @@ using Serilog.Events;
 
 namespace DataOrganizer.Infrastructure.Diagnostics.Extensions;
 
+/// <summary>
+/// Names the levels of the log by their short tags.
+/// </summary>
 public static class LogEventLevelExtensions
 {
 	#region Methods

@@ -9,6 +9,9 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.Hierarchy.Extensions;
 
+/// <summary>
+/// Searches, filters and flattens the hierarchy of explorer objects.
+/// </summary>
 public static class HierarchyExtensions
 {
 	#region Methods

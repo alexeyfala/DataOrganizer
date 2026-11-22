@@ -28,6 +28,9 @@ internal sealed partial class TitleBarView : UserControl
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TitleBarView" /> class.
+	/// </summary>
 	public TitleBarView() => InitializeComponent();
 	#endregion
 }

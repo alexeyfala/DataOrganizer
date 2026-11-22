@@ -20,6 +20,9 @@ internal sealed class DocumentFoldingAdapter : IFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DocumentFoldingAdapter" /> class.
+	/// </summary>
 	public DocumentFoldingAdapter(CompositeFoldingStrategy strategy)
 	{
 		_strategy = strategy;

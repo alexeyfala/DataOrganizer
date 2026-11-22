@@ -20,6 +20,9 @@ public sealed class DekRewrapper : IDekRewrapper
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DekRewrapper" /> class.
+	/// </summary>
 	public DekRewrapper(IPasswordDekWrapper encryption, ILogger logger)
 	{
 		_encryption = encryption;

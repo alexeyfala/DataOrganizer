@@ -24,6 +24,9 @@ internal sealed class SecretTextBoxAutomationPeer : TextBoxAutomationPeer, IValu
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SecretTextBoxAutomationPeer" /> class.
+	/// </summary>
 	public SecretTextBoxAutomationPeer(SecretTextBox owner)
 		: base(owner)
 	{

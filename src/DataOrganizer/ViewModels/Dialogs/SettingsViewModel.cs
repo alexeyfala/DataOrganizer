@@ -290,6 +290,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Begins a draft of the settings and opens the category chosen last.
+	/// </summary>
 	public SettingsViewModel(
 		IDialogHostCloser dialogHostCloser,
 		ISettingsDraft settingsDraft,

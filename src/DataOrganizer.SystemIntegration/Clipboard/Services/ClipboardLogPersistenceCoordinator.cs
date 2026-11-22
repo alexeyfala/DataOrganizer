@@ -70,6 +70,9 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the coordinator with the default pause before a save.
+	/// </summary>
 	public ClipboardLogPersistenceCoordinator(
 		IAppSettingsStore settingsStore,
 		IClipboardLogMerger clipboardLog,

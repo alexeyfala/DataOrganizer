@@ -13,9 +13,13 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Database.Repository.Services;
 
+/// <inheritdoc cref="IFolderRepository" />
 public sealed class FolderRepository : RepositoryBase<FolderEntity>, IFolderRepository
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FolderRepository" /> class.
+	/// </summary>
 	public FolderRepository(SqliteDbContext context) : base(context)
 	{
 	}

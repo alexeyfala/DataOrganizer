@@ -4,6 +4,9 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.Shared.Threading.Extensions;
 
+/// <summary>
+/// Paces the values of a search by the pauses in typing.
+/// </summary>
 public static class ObservableExtensions
 {
 	#region Data

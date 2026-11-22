@@ -45,6 +45,9 @@ public sealed class NotepadTexts : INotepadTexts
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NotepadTexts" /> class.
+	/// </summary>
 	public NotepadTexts(
 		IDispatcherAccessor dispatcher,
 		INotepadStore store,

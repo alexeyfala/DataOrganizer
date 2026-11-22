@@ -48,6 +48,9 @@ public sealed class ClipboardHistory : IClipboardHistory
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ClipboardHistory" /> class.
+	/// </summary>
 	public ClipboardHistory(ILogger logger, IMessenger messenger)
 	{
 		_logger = logger;

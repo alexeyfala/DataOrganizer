@@ -87,6 +87,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the editor over an empty text and saves its state and its split as they change;
+	/// a new encoding reads the text again.
+	/// </summary>
 	public EmbeddedFileEditorViewModel(
 		IDbFailureReporter dbFailureReporter,
 		IDocumentEncodingSwitcher encodingSwitcher,

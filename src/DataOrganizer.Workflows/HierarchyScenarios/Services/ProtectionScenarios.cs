@@ -51,6 +51,9 @@ public sealed class ProtectionScenarios : IProtectionScenarios
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ProtectionScenarios" /> class.
+	/// </summary>
 	public ProtectionScenarios(
 		IAutoLockControl autoLockControl,
 		IContentVisibility contentVisibility,

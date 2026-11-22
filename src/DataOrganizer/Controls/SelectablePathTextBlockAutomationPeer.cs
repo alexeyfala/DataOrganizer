@@ -9,6 +9,9 @@ namespace DataOrganizer.Controls;
 internal sealed class SelectablePathTextBlockAutomationPeer : TextBlockAutomationPeer
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SelectablePathTextBlockAutomationPeer" /> class.
+	/// </summary>
 	public SelectablePathTextBlockAutomationPeer(SelectablePathTextBlock owner) : base(owner)
 	{
 	}

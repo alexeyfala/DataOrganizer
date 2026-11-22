@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels.Dialogs;
 
+/// <summary>
+/// Base of a dialog view model whose answer comes as a task that ends once the dialog has closed.
+/// </summary>
 public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 {
 	#region Properties
@@ -33,6 +36,9 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AsyncResultViewModelBase{TResult}" /> class.
+	/// </summary>
 	protected AsyncResultViewModelBase(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler)

@@ -11,6 +11,9 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Writes entries to the log with the method, the line and the file of the call appended to the message.
+/// </summary>
 [ExcludeFromCodeCoverage(Justification = "Writes to the log, which tests do not check")]
 public static partial class SerilogExtensions
 {

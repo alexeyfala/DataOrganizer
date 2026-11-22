@@ -25,6 +25,9 @@ public sealed class UpdateNotifier : IUpdateNotifier
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="UpdateNotifier" /> class.
+	/// </summary>
 	public UpdateNotifier(
 		IProcessLauncher processLauncher,
 		IUpdateCheckService updateCheckService,

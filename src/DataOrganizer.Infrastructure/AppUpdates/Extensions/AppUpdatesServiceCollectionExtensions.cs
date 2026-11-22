@@ -6,6 +6,9 @@ using System.Net.Http;
 
 namespace DataOrganizer.Infrastructure.AppUpdates.Extensions;
 
+/// <summary>
+/// Registers the HTTP client that queries the releases of the application on GitHub.
+/// </summary>
 public static class AppUpdatesServiceCollectionExtensions
 {
 	#region Methods

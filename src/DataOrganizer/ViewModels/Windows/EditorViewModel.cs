@@ -1083,6 +1083,9 @@ public sealed partial class EditorViewModel :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Builds the rows of the tree, filters them by the search and keeps their expanded and selected states.
+	/// </summary>
 	public EditorViewModel(
 		EditingFilesViewModel editingFiles,
 		IAppSettingsStore settingsStore,

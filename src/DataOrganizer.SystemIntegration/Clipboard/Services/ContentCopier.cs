@@ -32,6 +32,9 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ContentCopier" /> class.
+	/// </summary>
 	public ContentCopier(
 		ICopyHistoryRecorder copyHistory,
 		IDbAccess dbAccess,

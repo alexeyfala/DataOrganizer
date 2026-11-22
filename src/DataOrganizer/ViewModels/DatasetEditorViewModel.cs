@@ -456,6 +456,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DatasetEditorViewModel" /> class.
+	/// </summary>
 	public DatasetEditorViewModel(
 		IClipboardTextWriter clipboardWriter,
 		IConfirmationPrompt confirmationPrompt,

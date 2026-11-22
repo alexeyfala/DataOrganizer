@@ -10,6 +10,7 @@ using System.Linq;
 
 namespace DataOrganizer.Services.Notifications;
 
+/// <inheritdoc cref="ISnackbarPresenter" />
 public sealed class SnackbarPresenter : ISnackbarPresenter
 {
 	#region Data

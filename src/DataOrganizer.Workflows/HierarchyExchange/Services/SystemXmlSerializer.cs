@@ -9,6 +9,9 @@ using System.Xml.Serialization;
 
 namespace DataOrganizer.Workflows.HierarchyExchange.Services;
 
+/// <summary>
+/// Reads and writes Xml through <see cref="XmlSerializer" />.
+/// </summary>
 public sealed class SystemXmlSerializer : IXmlSerializer
 {
 	#region Methods

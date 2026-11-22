@@ -2,6 +2,9 @@ using System;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Tells whether an array holds any elements.
+/// </summary>
 public static class ArrayExtensions
 {
 	#region Methods

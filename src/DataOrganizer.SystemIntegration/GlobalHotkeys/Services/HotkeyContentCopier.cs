@@ -42,6 +42,9 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="HotkeyContentCopier" /> class.
+	/// </summary>
 	public HotkeyContentCopier(
 		ICopyHistoryRecorder copyHistory,
 		IDispatcherAccessor dispatcher,

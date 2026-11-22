@@ -63,6 +63,9 @@ internal sealed partial class NoticeViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NoticeViewModel" /> class.
+	/// </summary>
 	public NoticeViewModel(IDirectoryAccessor directoryAccessor) => _directoryAccessor = directoryAccessor;
 	#endregion
 }

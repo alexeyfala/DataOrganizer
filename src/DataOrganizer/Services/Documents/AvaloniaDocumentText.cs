@@ -7,6 +7,9 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <summary>
+/// Text of a document held in an AvaloniaEdit <see cref="TextDocument" />, with its undo history.
+/// </summary>
 public sealed class AvaloniaDocumentText : IDocumentText, ITextDocumentHolder
 {
 	#region Properties
@@ -21,6 +24,9 @@ public sealed class AvaloniaDocumentText : IDocumentText, ITextDocumentHolder
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Reports each change of the text of the document through <see cref="Changed" />.
+	/// </summary>
 	public AvaloniaDocumentText()
 	{
 		Changed = Observable

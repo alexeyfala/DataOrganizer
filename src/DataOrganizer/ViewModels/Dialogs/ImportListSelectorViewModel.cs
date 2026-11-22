@@ -61,6 +61,9 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ImportListSelectorViewModel" /> class.
+	/// </summary>
 	public ImportListSelectorViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)

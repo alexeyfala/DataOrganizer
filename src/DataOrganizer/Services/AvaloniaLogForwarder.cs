@@ -38,6 +38,9 @@ internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILog
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AvaloniaLogForwarder" /> class.
+	/// </summary>
 	public AvaloniaLogForwarder(ILogger logger, IPlatform platform)
 	{
 		_logger = logger;

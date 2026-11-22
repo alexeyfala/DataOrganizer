@@ -31,6 +31,9 @@ internal sealed partial class PropertiesViewModel
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="PropertiesViewModel" /> class.
+	/// </summary>
 	public PropertiesViewModel(IDialogHostCloser dialogHostCloser) => _dialogHostCloser = dialogHostCloser;
 	#endregion
 }

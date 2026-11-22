@@ -234,6 +234,9 @@ internal sealed class SampleHierarchy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Makes the contents shared by the files and by the datasets of the random branch.
+	/// </summary>
 	private SampleHierarchy(
 		DateTime now,
 		KeyStroke[][] takenHotkeys,

@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Adds, replaces and sorts the elements of a <see cref="ICollection{T}" /> in place.
+/// </summary>
 public static class CollectionExtensions
 {
 	#region Methods

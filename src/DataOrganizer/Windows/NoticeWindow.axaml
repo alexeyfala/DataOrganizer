@@ -3,8 +3,6 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="using:DataOrganizer.Controls"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Title="{Binding Title, Mode=OneWay}"
@@ -14,8 +12,7 @@
 	Icon="/Assets/Logo.ico"
 	SizeToContent="Height"
 	Topmost="{Binding IsTopmost, Mode=OneWay}"
-	WindowStartupLocation="CenterScreen"
-	mc:Ignorable="d">
+	WindowStartupLocation="CenterScreen">
 
 	<StackPanel
 		Margin="16.0"

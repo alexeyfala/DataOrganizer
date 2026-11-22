@@ -44,6 +44,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="HierarchyEditor" /> class.
+	/// </summary>
 	public HierarchyEditor(
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,

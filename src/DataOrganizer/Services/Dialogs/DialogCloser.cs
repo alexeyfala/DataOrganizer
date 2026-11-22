@@ -18,6 +18,9 @@ public sealed class DialogCloser : IDialogCloser
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DialogCloser" /> class.
+	/// </summary>
 	public DialogCloser(IDialogHostFinder dialogHostFinder, IUiTimer uiTimer)
 	{
 		_dialogHostFinder = dialogHostFinder;

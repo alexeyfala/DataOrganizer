@@ -109,6 +109,7 @@ public sealed class App : Application
 		AvaloniaXamlLoader.Load(this);
 	}
 
+	/// <inheritdoc />
 	public override void OnFrameworkInitializationCompleted()
 	{
 		base.OnFrameworkInitializationCompleted();

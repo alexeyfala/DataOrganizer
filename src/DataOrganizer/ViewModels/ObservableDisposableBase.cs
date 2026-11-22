@@ -5,6 +5,9 @@ using System.Threading;
 
 namespace DataOrganizer.ViewModels;
 
+/// <summary>
+/// Observable object that disposes its subscriptions once.
+/// </summary>
 public abstract class ObservableDisposableBase : ObservableObject, IDisposable
 {
 	#region Properties

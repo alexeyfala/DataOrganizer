@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
+/// <inheritdoc cref="IAvaloniaClipboard" />
 public sealed class AvaloniaClipboard : IAvaloniaClipboard
 {
 	#region Data
@@ -22,6 +23,9 @@ public sealed class AvaloniaClipboard : IAvaloniaClipboard
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AvaloniaClipboard" /> class.
+	/// </summary>
 	public AvaloniaClipboard(
 		IDispatcherAccessor dispatcher,
 		IWindowFinder windowFinder)

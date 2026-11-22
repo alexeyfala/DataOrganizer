@@ -39,6 +39,9 @@ public sealed class StartupDataLoader : IStartupDataLoader
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="StartupDataLoader" /> class.
+	/// </summary>
 	public StartupDataLoader(
 		IDbConnector dbConnector,
 		IEntityLoader entityLoader,

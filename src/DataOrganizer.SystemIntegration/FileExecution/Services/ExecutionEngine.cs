@@ -73,6 +73,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ExecutionEngine" /> class.
+	/// </summary>
 	public ExecutionEngine(
 		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,

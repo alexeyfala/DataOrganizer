@@ -77,6 +77,9 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Loads the choices stored from the last use of the dialog.
+	/// </summary>
 	public EntityCreationViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler,

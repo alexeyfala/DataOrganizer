@@ -46,6 +46,9 @@ public sealed partial class HierarchySearchViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Filters the hierarchy by the search text after a pause in typing.
+	/// </summary>
 	public HierarchySearchViewModel(ISessionHierarchy sessionHierarchy, TimeProvider timeProvider)
 	{
 		_filter = new FilteredHierarchy(

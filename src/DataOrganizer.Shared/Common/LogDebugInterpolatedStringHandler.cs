@@ -23,6 +23,9 @@ public ref struct LogDebugInterpolatedStringHandler
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Starts the message only while Debug logging is enabled, which <paramref name="handlerIsValid" /> reports.
+	/// </summary>
 	public LogDebugInterpolatedStringHandler(
 		int literalLength,
 		int formattedCount,

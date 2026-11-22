@@ -194,7 +194,13 @@ internal class JsonFileStoreTests
 /// </summary>
 public sealed class JsonSample
 {
+	/// <summary>
+	/// Name kept in the sample.
+	/// </summary>
 	public string Name { get; set; } = string.Empty;
 
+	/// <summary>
+	/// Number kept in the sample.
+	/// </summary>
 	public int Number { get; set; }
 }

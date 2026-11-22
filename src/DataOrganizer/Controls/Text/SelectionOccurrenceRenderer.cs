@@ -27,6 +27,9 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Follows the selection of the text area that <paramref name="source" /> gives, starting with its own.
+	/// </summary>
 	public SelectionOccurrenceRenderer(TextArea textArea, IObservable<TextArea> source)
 	{
 		_textArea = textArea;

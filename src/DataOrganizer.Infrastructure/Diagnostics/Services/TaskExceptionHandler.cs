@@ -14,6 +14,9 @@ public class TaskExceptionHandler : ITaskExceptionHandler
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TaskExceptionHandler" /> class.
+	/// </summary>
 	public TaskExceptionHandler(ILogger logger) => _logger = logger;
 	#endregion
 

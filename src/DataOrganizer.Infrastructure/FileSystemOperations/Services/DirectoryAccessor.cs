@@ -39,6 +39,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DirectoryAccessor" /> class.
+	/// </summary>
 	public DirectoryAccessor(
 		IAppProcess appProcess,
 		IExplorerManager explorerManager,

@@ -31,6 +31,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Dialogs;
 
+/// <summary>
+/// Shows the dialogs and the prompts of the application in the dialog hosts of its windows.
+/// </summary>
 public sealed class DialogService :
 	IAppPickerPrompt,
 	IConfirmationPrompt,
@@ -55,6 +58,9 @@ public sealed class DialogService :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DialogService" /> class.
+	/// </summary>
 	public DialogService(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,

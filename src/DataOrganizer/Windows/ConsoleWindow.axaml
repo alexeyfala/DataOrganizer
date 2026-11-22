@@ -4,16 +4,13 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:textControls="using:DataOrganizer.Controls.Text"
 	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	x:DataType="windows:ConsoleViewModel"
-	Icon="/Assets/Logo.ico"
-	mc:Ignorable="d">
+	Icon="/Assets/Logo.ico">
 
 	<Grid RowDefinitions="Auto,Auto,Auto,*">
 		<Interaction.Behaviors>

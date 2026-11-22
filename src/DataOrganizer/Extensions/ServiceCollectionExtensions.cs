@@ -3,6 +3,9 @@ using System;
 
 namespace DataOrganizer.Extensions;
 
+/// <summary>
+/// Registers singletons that can also be taken as <see cref="Lazy{T}" />.
+/// </summary>
 internal static class ServiceCollectionExtensions
 {
 	#region Methods

@@ -21,6 +21,9 @@ public sealed class EditorStateStore : IEditorStateStore
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EditorStateStore" /> class.
+	/// </summary>
 	public EditorStateStore(IDbAccess dbAccess, ILogger logger)
 	{
 		_dbAccess = dbAccess;

@@ -3,11 +3,9 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:enums="using:DataOrganizer.SystemIntegration.Clipboard.Enums"
 	xmlns:local="using:DataOrganizer.Windows"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:sharedConstants="using:DataOrganizer.Shared.Constants"
 	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
@@ -26,8 +24,7 @@
 	ShowInTaskbar="False"
 	Topmost="True"
 	WindowDecorations="None"
-	WindowStartupLocation="Manual"
-	mc:Ignorable="d">
+	WindowStartupLocation="Manual">
 
 	<Interaction.Behaviors>
 		<windowBehaviors:CloseWindowOnDeactivatedBehavior KeepOpen="{Binding KeepOpen}" />

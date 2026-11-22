@@ -36,6 +36,9 @@ public sealed class DatabaseBackup : IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DatabaseBackup" /> class.
+	/// </summary>
 	public DatabaseBackup(
 		string filePath,
 		IFileEraser fileEraser,

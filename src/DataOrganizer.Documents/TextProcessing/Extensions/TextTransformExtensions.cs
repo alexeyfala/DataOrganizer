@@ -2,6 +2,9 @@ using DataOrganizer.Documents.TextProcessing.Enums;
 
 namespace DataOrganizer.Documents.TextProcessing.Extensions;
 
+/// <summary>
+/// Tells which transformations of a text work on a selection only.
+/// </summary>
 public static class TextTransformExtensions
 {
 	#region Methods

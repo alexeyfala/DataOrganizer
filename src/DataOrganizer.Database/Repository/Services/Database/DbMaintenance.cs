@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Database.Repository.Services.Database;
 
+/// <inheritdoc cref="IDbMaintenance" />
 public sealed class DbMaintenance : IDbMaintenance
 {
 	#region Data
@@ -35,6 +36,9 @@ public sealed class DbMaintenance : IDbMaintenance
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DbMaintenance" /> class.
+	/// </summary>
 	public DbMaintenance(
 		IDbContextService dbContextService,
 		IFileEraser fileEraser,

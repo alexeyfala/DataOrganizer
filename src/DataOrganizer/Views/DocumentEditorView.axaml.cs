@@ -380,6 +380,9 @@ internal sealed partial class DocumentEditorView :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the command of the line endings, then loads the markup.
+	/// </summary>
 	public DocumentEditorView()
 	{
 		// Before the markup, whose bindings read it once.

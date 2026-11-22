@@ -20,6 +20,9 @@ public sealed class JsonFileStore : IJsonFileStore
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="JsonFileStore" /> class.
+	/// </summary>
 	public JsonFileStore(IFileSystem fileSystem, IJsonSerializer jsonSerializer)
 	{
 		_fileSystem = fileSystem;

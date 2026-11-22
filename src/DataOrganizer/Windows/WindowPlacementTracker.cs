@@ -70,6 +70,9 @@ internal sealed class WindowPlacementTracker
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Follows the moves of the window, and its resizes unless its size is fixed.
+	/// </summary>
 	private WindowPlacementTracker(Window window, bool isSizeTracked)
 	{
 		_window = window;

@@ -4,7 +4,6 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:common="using:DataOrganizer.Shared.Common"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogConstants="using:DataOrganizer.Infrastructure.DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:enums="using:DataOrganizer.Enums"
@@ -14,7 +13,6 @@
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:notificationConstants="using:DataOrganizer.Infrastructure.Notifications.Constants"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
@@ -28,8 +26,7 @@
 	ShowInTaskbar="False"
 	SizeToContent="WidthAndHeight"
 	Topmost="True"
-	WindowDecorations="None"
-	mc:Ignorable="d">
+	WindowDecorations="None">
 
 	<Window.Resources>
 		<CornerRadius x:Key="CornerRadius">4.0</CornerRadius>

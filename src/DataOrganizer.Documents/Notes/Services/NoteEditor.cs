@@ -36,6 +36,9 @@ public sealed class NoteEditor : INoteEditor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NoteEditor" /> class.
+	/// </summary>
 	public NoteEditor(
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,

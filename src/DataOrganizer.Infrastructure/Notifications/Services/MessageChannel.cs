@@ -38,6 +38,9 @@ internal sealed class MessageChannel<TContent> where TContent : notnull
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MessageChannel{TContent}" /> class.
+	/// </summary>
 	public MessageChannel(IMessagePresenter<TContent> presenter, TimeProvider timeProvider)
 	{
 		_presenter = presenter;

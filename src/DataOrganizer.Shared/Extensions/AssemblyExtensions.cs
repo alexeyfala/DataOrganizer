@@ -2,6 +2,9 @@ using System.Reflection;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Reads the version of an assembly together with its suffix.
+/// </summary>
 public static class AssemblyExtensions
 {
 	#region Methods

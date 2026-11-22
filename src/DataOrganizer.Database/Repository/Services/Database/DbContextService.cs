@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Database.Repository.Services.Database;
 
+/// <inheritdoc cref="IDbContextService" />
 [ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 public sealed class DbContextService : IDbContextService
 {
@@ -27,6 +28,9 @@ public sealed class DbContextService : IDbContextService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DbContextService" /> class.
+	/// </summary>
 	public DbContextService(SqliteDbContext dbContext) => _dbContext = dbContext;
 	#endregion
 

@@ -34,6 +34,9 @@ public sealed class TypingPause : ITypingPause
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the timer that runs <paramref name="action" /> on the UI thread after a pause in typing.
+	/// </summary>
 	public TypingPause(Action action, IDispatcherAccessor dispatcher, TimeProvider timeProvider)
 	{
 		_action = action;

@@ -50,6 +50,9 @@ public sealed class MarkdownFoldingStrategy : ILineFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the strategy with an inner one for the blocks by indentation and by markers.
+	/// </summary>
 	public MarkdownFoldingStrategy(SyntaxFoldingRules rules, int tabSize)
 	{
 		_indentStrategy = new IndentFoldingStrategy(rules, tabSize);

@@ -5,7 +5,6 @@
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:chrome="using:Avalonia.Controls.Chrome"
 	xmlns:controls="using:DataOrganizer.Controls"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogConstants="using:DataOrganizer.Infrastructure.DialogContracts.Constants"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:interfaces="using:DataOrganizer.Interfaces"
@@ -13,7 +12,6 @@
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:notificationConstants="using:DataOrganizer.Infrastructure.Notifications.Constants"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
@@ -28,8 +26,7 @@
 	ShowActivated="True"
 	WindowDecorations="{OnPlatform Default=BorderOnly,
 	                               Windows=Full,
-	                               macOS=Full}"
-	mc:Ignorable="d">
+	                               macOS=Full}">
 
 	<Window.Styles>
 		<!--  Avalonia draws its own title bar only with full decorations; BorderOnly keeps the theme of Material.  -->

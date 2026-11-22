@@ -12,6 +12,10 @@ using System.Linq;
 
 namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 
+/// <summary>
+/// Converts hotkeys between <see cref="KeyStroke" /> and <see cref="HotkeyDto" />, presents them as text and finds the
+/// files whose hotkeys could not be read.
+/// </summary>
 public static class HotkeyExtensions
 {
 	#region Methods

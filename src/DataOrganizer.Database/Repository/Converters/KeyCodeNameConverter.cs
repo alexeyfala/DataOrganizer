@@ -11,6 +11,9 @@ namespace DataOrganizer.Database.Repository.Converters;
 public sealed class KeyCodeNameConverter : ValueConverter<KeyCode, string>
 {
 	#region Constructors
+	/// <summary>
+	/// Sets up the conversion of a key code to its name and back.
+	/// </summary>
 	public KeyCodeNameConverter() : base(x => x.ToString(), x => Read(x))
 	{
 	}

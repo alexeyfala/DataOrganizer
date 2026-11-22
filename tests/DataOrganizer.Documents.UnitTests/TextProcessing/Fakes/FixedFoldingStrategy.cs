@@ -26,6 +26,9 @@ internal sealed class FixedFoldingStrategy : ILineFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FixedFoldingStrategy" /> class.
+	/// </summary>
 	public FixedFoldingStrategy(params TextFolding[] blocks)
 	{
 		_blocks = blocks;

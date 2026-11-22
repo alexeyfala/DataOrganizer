@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Tells whether the code runs under the NUnit test host.
+/// </summary>
 [ExcludeFromCodeCoverage(Justification = "Detects the test host itself")]
 public static class AppDomainExtensions
 {

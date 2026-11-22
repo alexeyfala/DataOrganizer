@@ -22,6 +22,9 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EncryptionFailureReporter" /> class.
+	/// </summary>
 	public EncryptionFailureReporter(ILogger logger, INotificationService notification)
 	{
 		_logger = logger;

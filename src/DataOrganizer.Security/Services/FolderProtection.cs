@@ -30,6 +30,9 @@ public sealed class FolderProtection : IFolderProtection
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FolderProtection" /> class.
+	/// </summary>
 	public FolderProtection(
 		IFolderCipher folderCipher,
 		IKeeperUnlocker keeperUnlocker,

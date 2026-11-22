@@ -193,6 +193,9 @@ public sealed partial class ClipboardLogViewModel :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Registers for messages and refreshes the shown entries when the log, the search or the filter changes.
+	/// </summary>
 	public ClipboardLogViewModel(
 		IClipboardLogService clipboardLog,
 		IDispatcherAccessor dispatcher,

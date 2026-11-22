@@ -21,6 +21,9 @@ public sealed class TimeProviderScheduler : IScheduler
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TimeProviderScheduler" /> class.
+	/// </summary>
 	public TimeProviderScheduler(TimeProvider timeProvider)
 	{
 		_timeProvider = timeProvider;

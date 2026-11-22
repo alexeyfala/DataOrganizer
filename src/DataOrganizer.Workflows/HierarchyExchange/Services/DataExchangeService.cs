@@ -75,6 +75,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DataExchangeService" /> class.
+	/// </summary>
 	public DataExchangeService(
 		IBackedUpWriter backedUpWriter,
 		IDbAccess dbAccess,

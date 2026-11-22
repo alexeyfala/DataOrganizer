@@ -59,6 +59,9 @@ public abstract class ExplorerNodeViewModelBase : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ExplorerNodeViewModelBase" /> class.
+	/// </summary>
 	protected ExplorerNodeViewModelBase(ExplorerItemDtoBase model, ISessionTreeState treeState)
 	{
 		Model = model;

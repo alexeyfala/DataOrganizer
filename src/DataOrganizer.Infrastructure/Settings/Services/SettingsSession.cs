@@ -44,6 +44,9 @@ public sealed class SettingsSession : ISettingsCloseGuard, ISettingsCommit, ISet
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SettingsSession" /> class.
+	/// </summary>
 	public SettingsSession(
 		IAppSettingsStore settingsStore,
 		IAppThemeService themeService,

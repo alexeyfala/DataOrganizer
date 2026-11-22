@@ -24,6 +24,9 @@ public sealed class DocumentEncodingSwitcher : IDocumentEncodingSwitcher
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DocumentEncodingSwitcher" /> class.
+	/// </summary>
 	public DocumentEncodingSwitcher(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,

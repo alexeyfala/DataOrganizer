@@ -8,10 +8,14 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Database.Repository.Services;
 
+/// <inheritdoc cref="IHotkeysRepository" />
 [ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
 public sealed class HotkeysRepository : RepositoryBase<HotkeyEntity>, IHotkeysRepository
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="HotkeysRepository" /> class.
+	/// </summary>
 	public HotkeysRepository(SqliteDbContext context) : base(context)
 	{
 	}
