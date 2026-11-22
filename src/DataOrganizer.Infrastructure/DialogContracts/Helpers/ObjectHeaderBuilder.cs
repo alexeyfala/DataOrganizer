@@ -1,3 +1,5 @@
+using DataOrganizer.Shared.Helpers;
+
 namespace DataOrganizer.Infrastructure.DialogContracts.Helpers;
 
 /// <summary>
@@ -11,7 +13,7 @@ public static class ObjectHeaderBuilder
 	/// </summary>
 	public static string Build(string action, string name)
 	{
-		return $@"{action} ""{name}""";
+		return $"{action} {QuoteBuilder.Build(name)}";
 	}
 	#endregion
 }

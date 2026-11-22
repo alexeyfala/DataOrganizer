@@ -6,6 +6,7 @@ using DataOrganizer.Hierarchy.Extensions;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Enums;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
@@ -76,7 +77,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
-			_notification.ShowWarningSnackbar($@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""");
+			_notification.ShowWarningSnackbar($"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} {QuoteBuilder.Build(existed.Name)}");
 
 			return OverwriteHotkeysOutcome.AlreadyInUse;
 		}

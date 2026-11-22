@@ -10,6 +10,7 @@ using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
 using DataOrganizer.Security.UnitTests.Factories;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -429,7 +430,7 @@ internal class ContentVisibilityTests
 		// Assert
 		await unlocker.Received(1).RequestDekAsync(
 			folder,
-			Arg.Is<string>(x => x.EndsWith($@"""{file.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(file.Name))),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<string>());
@@ -739,7 +740,7 @@ internal class ContentVisibilityTests
 		// Assert
 		await unlocker.Received(1).RequestDekAsync(
 			folder,
-			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(folder.Name))),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<string>());

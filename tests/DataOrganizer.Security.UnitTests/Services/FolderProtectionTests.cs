@@ -22,6 +22,7 @@ using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
 using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.TestSupport.Database;
@@ -226,13 +227,13 @@ internal class FolderProtectionTests
 		// Assert
 		await unlocker.Received(1).RequestDekAsync(
 			folder,
-			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(folder.Name))),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<string>());
 
 		await passwordPrompt.Received(1).RequestPasswordAsync(
-			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(folder.Name))),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<PasswordPromptMode>(),
@@ -675,7 +676,7 @@ internal class FolderProtectionTests
 		// Assert
 		await unlocker.Received(1).RequestDekAsync(
 			folder,
-			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(folder.Name))),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<string>());
@@ -1343,7 +1344,7 @@ internal class FolderProtectionTests
 
 		// Assert
 		await passwordPrompt.Received(1).RequestPasswordAsync(
-			Arg.Is<string>(x => x.EndsWith($@"""{folder.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(folder.Name))),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<PasswordPromptMode>(),

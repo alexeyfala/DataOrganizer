@@ -48,6 +48,21 @@ internal static class RepositoryFiles
 	}
 
 	/// <summary>
+	/// Reads every C# file of the projects of the application, the build output left out, each paired with its path
+	/// inside the source folder, written with forward slashes.
+	/// </summary>
+	public static IEnumerable<(string FilePath, string Text)> EnumerateSourceCode()
+	{
+		string root = Path.Combine(LocateRoot(), SourceFolder);
+
+		return Directory
+			.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+			.Select(path => Path.GetRelativePath(root, path))
+			.Where(static x => !IsBuildOutput(x))
+			.Select(x => (FilePath: x.Replace(Path.DirectorySeparatorChar, '/'), Text: File.ReadAllText(Path.Combine(root, x))));
+	}
+
+	/// <summary>
 	/// Walks up from the test output directory to the folder containing the solution file.
 	/// </summary>
 	/// <exception cref="DirectoryNotFoundException">The tests run outside the repository.</exception>
@@ -95,6 +110,16 @@ internal static class RepositoryFiles
 		return Directory
 			.EnumerateFiles(root, searchPattern, SearchOption.AllDirectories)
 			.Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
+	}
+
+	/// <summary>
+	/// Tells whether a file, given by its path inside the source folder, lies in the build output.
+	/// </summary>
+	private static bool IsBuildOutput(string relativePath)
+	{
+		return relativePath
+			.Split(Path.DirectorySeparatorChar)
+			.Any(static x => x is "bin" or "obj");
 	}
 	#endregion
 }

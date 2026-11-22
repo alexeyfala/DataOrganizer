@@ -10,6 +10,7 @@ using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Constants;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DynamicData;
 using DynamicData.Binding;
@@ -115,7 +116,7 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		if (HasText(tab) && !await _confirmationPrompt
 			.RequestYesNoAsync(
-				$@"{Strings.Close} ""{tab.Header}""?",
+				$"{Strings.Close} {QuoteBuilder.Build(tab.Header)}?",
 				DialogHostIdentifiers.Notepad)
 			.ConfigureAwait(true))
 		{

@@ -4,6 +4,7 @@ using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using Serilog;
@@ -61,7 +62,7 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 				.ExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
-				_notification.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}");
+				_notification.ShowErrorSnackbar($"{QuoteBuilder.Build(file.Name)} {Strings.DoesNotExist}");
 
 				return false;
 			}

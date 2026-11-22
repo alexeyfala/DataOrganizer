@@ -1,6 +1,7 @@
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.Shared.Threading.Extensions;
@@ -364,7 +365,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_logger.LogException(ex);
 
-			_notification.ShowErrorSnackbar($@"{Strings.FailedToOpenInOS} ""{parameters.File.Name}""");
+			_notification.ShowErrorSnackbar($"{Strings.FailedToOpenInOS} {QuoteBuilder.Build(parameters.File.Name)}");
 
 			return false;
 		}

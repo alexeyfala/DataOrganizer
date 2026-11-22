@@ -3,6 +3,7 @@ using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Extensions;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using SharpHook.Data;
 using System;
@@ -79,11 +80,7 @@ public static class HotkeyExtensions
 		{
 			builder.Append(Environment.NewLine);
 
-			builder.Append('"');
-
-			builder.Append(files[i].Name);
-
-			builder.Append('"');
+			builder.Append(QuoteBuilder.Build(files[i].Name));
 		}
 
 		if (files.Length > maxNames)

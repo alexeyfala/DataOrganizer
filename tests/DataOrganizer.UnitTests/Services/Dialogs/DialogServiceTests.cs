@@ -18,6 +18,7 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Services.Dialogs;
 using DataOrganizer.Services.Views;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Threading.Enums;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
@@ -765,7 +766,7 @@ internal class DialogServiceTests
 		// Assert
 		header
 			.Should()
-			.EndWith($@"""{folderName}""");
+			.EndWith(QuoteBuilder.Build(folderName));
 	}
 
 	/// <summary>

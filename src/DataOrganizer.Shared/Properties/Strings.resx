@@ -895,4 +895,7 @@
   <data name="HaveBeenDeleted" xml:space="preserve">
     <value>have been deleted</value>
   </data>
+  <data name="QuotedFormat" xml:space="preserve">
+    <value>"{0}"</value>
+  </data>
 </root>

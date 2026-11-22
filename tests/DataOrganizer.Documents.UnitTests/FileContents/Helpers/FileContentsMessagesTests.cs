@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Documents.FileContents.Helpers;
+using DataOrganizer.Shared.Helpers;
 
 namespace DataOrganizer.Documents.UnitTests.FileContents.Helpers;
 
@@ -19,7 +20,7 @@ internal class FileContentsMessagesTests
 		// Assert
 		result
 			.Should()
-			.EndWith(@" ""Name""");
+			.EndWith($" {QuoteBuilder.Build("Name")}");
 	}
 
 	/// <summary>
@@ -34,7 +35,7 @@ internal class FileContentsMessagesTests
 		// Assert
 		result
 			.Should()
-			.EndWith(@" ""Name""");
+			.EndWith($" {QuoteBuilder.Build("Name")}");
 	}
 
 	/// <summary>
@@ -49,7 +50,7 @@ internal class FileContentsMessagesTests
 		// Assert
 		result
 			.Should()
-			.EndWith(@" ""Name""");
+			.EndWith($" {QuoteBuilder.Build("Name")}");
 	}
 	#endregion
 }

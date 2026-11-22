@@ -403,7 +403,7 @@
     <value>Назначение горячих клавиш...</value>
   </data>
   <data name="HotkeysAlreadyAssignedFor" xml:space="preserve">
-    <value>Горячие клавиши "{0}" уже назначены для</value>
+    <value>Горячие клавиши «{0}» уже назначены для</value>
   </data>
   <data name="ThisSettingWillBeAppliedAfterRestartingApplication" xml:space="preserve">
     <value>Данный параметр применится после перезагрузки приложения.</value>
@@ -415,7 +415,7 @@
     <value>Используется для копирования содержимого файла в текстовом виде в системный буфер обмена с помощью назначенных ему горячих клавиш.</value>
   </data>
   <data name="TheContentsCopiedToClipboard" xml:space="preserve">
-    <value>Содержимое "{0}" скопировано в буфер обмена</value>
+    <value>Содержимое «{0}» скопировано в буфер обмена</value>
   </data>
   <data name="General" xml:space="preserve">
     <value>Общее</value>
@@ -577,7 +577,7 @@
     <value>Открыть исполняемый файл</value>
   </data>
   <data name="TheFileMayRunProgramOrScriptOnYourDevice" xml:space="preserve">
-    <value>Файл "{0}" может запустить программу или скрипт на вашем устройстве.{1}Открывайте только если доверяете содержимому.</value>
+    <value>Файл «{0}» может запустить программу или скрипт на вашем устройстве.{1}Открывайте только если доверяете содержимому.</value>
   </data>
   <data name="OpenWith" xml:space="preserve">
     <value>Открыть с помощью</value>
@@ -886,10 +886,10 @@
     <value>Закрыть вкладки? Текст в них будет удалён.</value>
   </data>
   <data name="TabTextUnreadableFormat" xml:space="preserve">
-    <value>Текст вкладки "{0}" не удалось прочитать, вкладка открыта только для чтения</value>
+    <value>Текст вкладки «{0}» не удалось прочитать, вкладка открыта только для чтения</value>
   </data>
   <data name="TabTextNotSavedFormat" xml:space="preserve">
-    <value>Текст вкладки "{0}" не сохранён</value>
+    <value>Текст вкладки «{0}» не сохранён</value>
   </data>
   <data name="CharacterNotInEncodingSavedInUtf8Format" xml:space="preserve">
     <value>Символа «{0}» нет в кодировке {1}. Текст сохранён в UTF-8.</value>
@@ -914,5 +914,8 @@
   </data>
   <data name="HaveBeenDeleted" xml:space="preserve">
     <value>удалены</value>
+  </data>
+  <data name="QuotedFormat" xml:space="preserve">
+    <value>«{0}»</value>
   </data>
 </root>

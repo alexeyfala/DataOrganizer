@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Helpers;
+using DataOrganizer.Shared.Helpers;
 
 namespace DataOrganizer.Infrastructure.UnitTests.DialogContracts.Helpers;
 
@@ -19,7 +20,7 @@ internal class ObjectHeaderBuilderTests
 		// Assert
 		result
 			.Should()
-			.Be(@"Action ""Name""");
+			.Be($"Action {QuoteBuilder.Build("Name")}");
 	}
 	#endregion
 }

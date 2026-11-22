@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -85,29 +84,13 @@ internal partial class SystemClockTests
 	private static partial Regex DateTimeNowRegex();
 
 	/// <summary>
-	/// Enumerates the C# files of a folder, the build output left out.
-	/// </summary>
-	private static IEnumerable<string> EnumerateCode(string root)
-	{
-		return Directory
-			.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-			.Where(path => !IsBuildOutput(Path.GetRelativePath(root, path)));
-	}
-
-	/// <summary>
 	/// Finds the reads of the system clock in the projects of the application, each as its file and its form.
 	/// </summary>
 	private static IEnumerable<string> FindSystemClockReads()
 	{
-		string root = Path.Combine(RepositoryFiles.LocateRoot(), RepositoryFiles.SourceFolder);
-
-		foreach (string file in EnumerateCode(root))
+		foreach ((string path, string text) in RepositoryFiles.EnumerateSourceCode())
 		{
-			string code = CodeText.WithoutCommentsAndLiterals(File.ReadAllText(file));
-
-			string path = Path
-				.GetRelativePath(root, file)
-				.Replace(Path.DirectorySeparatorChar, '/');
+			string code = CodeText.WithoutCommentsAndLiterals(text);
 
 			foreach ((string name, Regex form) in Forms)
 			{
@@ -117,16 +100,6 @@ internal partial class SystemClockTests
 				}
 			}
 		}
-	}
-
-	/// <summary>
-	/// Tells whether a file, given by its path inside the source folder, lies in the build output.
-	/// </summary>
-	private static bool IsBuildOutput(string relativePath)
-	{
-		return relativePath
-			.Split(Path.DirectorySeparatorChar)
-			.Any(static x => x is "bin" or "obj");
 	}
 
 	/// <summary>

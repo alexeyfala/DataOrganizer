@@ -8,6 +8,7 @@ using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Favorites.Messages;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.UnitTests.Threading.Fakes;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -96,7 +97,7 @@ internal class HotkeyContentCopierTests
 		// Assert
 		await fileTextCopier.Received(1).CopyAsync(
 			file,
-			Arg.Is<string>(x => x.EndsWith($@"""{file.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(file.Name))),
 			Arg.Any<CancellationToken>());
 	}
 

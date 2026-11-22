@@ -34,6 +34,7 @@ using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Messages;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -714,7 +715,7 @@ public sealed partial class EditorViewModel :
 		};
 
 		if (!await _confirmationPrompt
-			.RequestYesNoAsync($@"{action} ""{toBeDeleted.Name}""?")
+			.RequestYesNoAsync($"{action} {QuoteBuilder.Build(toBeDeleted.Name)}?")
 			.ConfigureAwait(true))
 		{
 			return;
@@ -1743,7 +1744,7 @@ public sealed partial class EditorViewModel :
 		string action = items.Any(HoldsOpenedFile) ? Strings.CloseTheFilesAndDelete : Strings.Delete;
 
 		if (!await _confirmationPrompt
-			.RequestYesNoAsync($@"{action} ""{items.GetCount().AsString()}""?")
+			.RequestYesNoAsync($"{action} {QuoteBuilder.Build(items.GetCount().AsString())}?")
 			.ConfigureAwait(true))
 		{
 			return;

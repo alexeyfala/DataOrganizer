@@ -10,6 +10,7 @@ using DataOrganizer.Documents.FileContents.Services;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Services;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -560,7 +561,7 @@ internal class ContentCopierTests
 		// Assert
 		await fileTextCopier.Received(1).CopyAsync(
 			file,
-			Arg.Is<string>(x => x.EndsWith($@"""{file.Name}""")),
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(file.Name))),
 			Arg.Any<CancellationToken>());
 	}
 

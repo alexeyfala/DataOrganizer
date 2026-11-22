@@ -6,6 +6,7 @@ using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.SystemIntegration.FileExecution.Dto;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
@@ -162,7 +163,7 @@ public class FileChangeTracker : IFileChangeTracker
 			.Exists(parameters.FilePath))
 		{
 			// Stryker disable once String : wording of a message
-			return MissFile(parameters, mayMiss, $@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
+			return MissFile(parameters, mayMiss, $"{Strings.File} {QuoteBuilder.Build(parameters.FileName)} {Strings.DoesNotExist}");
 		}
 
 		Stream fileStream;
@@ -294,7 +295,7 @@ public class FileChangeTracker : IFileChangeTracker
 			// The changes have nowhere to go, so tracking them further would only lose more of them.
 			_dbFailureReporter.Report(
 				ex,
-				$@"{Strings.FailedToSaveFileContents} ""{parameters.FileName}""");
+				$"{Strings.FailedToSaveFileContents} {QuoteBuilder.Build(parameters.FileName)}");
 
 			CloseExecutingFile(parameters);
 
@@ -304,7 +305,7 @@ public class FileChangeTracker : IFileChangeTracker
 		if (writing.Status == FileContentsWriteStatus.Closed)
 		{
 			// Stryker disable once String : wording of a message
-			PublishFailure(parameters, $@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
+			PublishFailure(parameters, $"{Strings.FailedToProcessContents} {QuoteBuilder.Build(parameters.FileName)}");
 
 			return false;
 		}

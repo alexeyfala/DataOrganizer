@@ -1843,6 +1843,15 @@ namespace DataOrganizer.Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;{0}&quot;.
+        /// </summary>
+        public static string QuotedFormat {
+            get {
+                return ResourceManager.GetString("QuotedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Read-only mode.
         /// </summary>
         public static string ReadOnlyMode {
