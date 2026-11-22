@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards;
 
@@ -13,18 +12,6 @@ namespace DataOrganizer.GuardTests.Guards;
 [TestFixture(Description = "Guards the localized texts against quotes that the quote builder does not put")]
 internal partial class LocalizedTextQuotesTests
 {
-	#region Data
-	/// <summary>
-	/// Resources of the neutral language, relative to the repository root.
-	/// </summary>
-	private const string NeutralResourcesPath = "src/DataOrganizer.Shared/Properties/Strings.resx";
-
-	/// <summary>
-	/// Resources of the Russian language, relative to the repository root.
-	/// </summary>
-	private const string RussianResourcesPath = "src/DataOrganizer.Shared/Properties/Strings.ru.resx";
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// No interpolated string with a localized text puts quotes around a hole itself; a string handed straight to the
@@ -49,7 +36,7 @@ internal partial class LocalizedTextQuotesTests
 	public void Neutral_Resources_Hold_No_Russian_Quotes()
 	{
 		// Act
-		string[] quoted = [.. FindValuesWith(NeutralResourcesPath, '«', '»')];
+		string[] quoted = [.. FindValuesWith(LocalizedResources.NeutralPath, '«', '»')];
 
 		// Assert
 		quoted
@@ -64,7 +51,7 @@ internal partial class LocalizedTextQuotesTests
 	public void Russian_Resources_Hold_No_Straight_Quotes()
 	{
 		// Act
-		string[] quoted = [.. FindValuesWith(RussianResourcesPath, '"')];
+		string[] quoted = [.. FindValuesWith(LocalizedResources.RussianPath, '"')];
 
 		// Assert
 		quoted
@@ -101,12 +88,10 @@ internal partial class LocalizedTextQuotesTests
 	/// </summary>
 	private static IEnumerable<string> FindValuesWith(string relativePath, params char[] quotes)
 	{
-		return XDocument
-			.Parse(RepositoryFiles.ReadText(relativePath))
-			.Root!
-			.Elements("data")
-			.Where(x => x.Element("value")!.Value.IndexOfAny(quotes) >= 0)
-			.Select(static x => x.Attribute("name")!.Value);
+		return LocalizedResources
+			.ReadEntries(relativePath)
+			.Where(x => x.Value.IndexOfAny(quotes) >= 0)
+			.Select(static x => x.Name);
 	}
 
 	/// <summary>
