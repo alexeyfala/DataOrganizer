@@ -22,7 +22,6 @@ using DataOrganizer.Documents.TextProcessing.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Views;
-using DataOrganizer.Shared.Constants;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Services;
 using DataOrganizer.Shared.Threading.Interfaces;
@@ -50,11 +49,6 @@ internal class EmbeddedFileEditorViewTests
 	/// Language of <see cref="PowerShellFileName" />.
 	/// </summary>
 	private const string PowerShellLanguage = "powershell";
-
-	/// <summary>
-	/// A line of PowerShell.
-	/// </summary>
-	private const string PowerShellText = "if ($value) { Write-Host 'Text' }";
 	#endregion
 
 	#region Methods
@@ -105,6 +99,10 @@ internal class EmbeddedFileEditorViewTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -131,24 +129,6 @@ internal class EmbeddedFileEditorViewTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
@@ -212,24 +192,6 @@ internal class EmbeddedFileEditorViewTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
@@ -705,6 +667,10 @@ internal class EmbeddedFileEditorViewTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -862,24 +828,6 @@ internal class EmbeddedFileEditorViewTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = Encoding.UTF8.GetBytes("Hello"),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
@@ -1223,24 +1171,6 @@ internal class EmbeddedFileEditorViewTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
@@ -1276,24 +1206,6 @@ internal class EmbeddedFileEditorViewTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();

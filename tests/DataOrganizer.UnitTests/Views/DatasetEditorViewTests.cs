@@ -1239,6 +1239,10 @@ internal class DatasetEditorViewTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1322,6 +1326,10 @@ internal class DatasetEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -1530,6 +1538,10 @@ internal class DatasetEditorViewTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1603,6 +1615,10 @@ internal class DatasetEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -2048,16 +2064,6 @@ internal class DatasetEditorViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance<IDispatcher>(Dispatcher.UIThread);
@@ -2069,10 +2075,6 @@ internal class DatasetEditorViewTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -2490,6 +2492,10 @@ internal class DatasetEditorViewTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()

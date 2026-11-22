@@ -2247,6 +2247,10 @@ internal class EditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(engine);
 
 			builder
@@ -2301,6 +2305,10 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder.RegisterInstance(protectionScenarios);
 
@@ -2601,24 +2609,6 @@ internal class EditorViewModelTests
 				.ExecuteAsync(Arg.Any<ExecuteFileParameters>())
 				.Returns(true);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder.RegisterInstance(engine);
 
 			builder
@@ -2851,29 +2841,11 @@ internal class EditorViewModelTests
 				.RequestYesCancelAsync(Arg.Any<string>())
 				.Returns(isConfirmed);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = RandomValues.CreateBytes(10),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			engine
 				.ExecuteAsync(Arg.Any<ExecuteFileParameters>())
 				.Returns(true);
 
 			builder.RegisterInstance(confirmationPrompt);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
 
@@ -2915,29 +2887,11 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = RandomValues.CreateBytes(10),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
 
 			engine
 				.ExecuteAsync(Arg.Do<ExecuteFileParameters>(x => parameters = x))
 				.Returns(true);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
 

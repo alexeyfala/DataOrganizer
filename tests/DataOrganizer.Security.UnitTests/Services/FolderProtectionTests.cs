@@ -139,8 +139,6 @@ internal class FolderProtectionTests
 
 		folder.EncryptedDek = encryptedDek;
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		IPasswordPrompt passwordPrompt = Substitute.For<IPasswordPrompt>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -160,8 +158,6 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(passwordPrompt);
-
-			builder.RegisterInstance(dbAccess);
 		});
 
 		FolderProtection sut = mock.Create<FolderProtection>();
@@ -172,10 +168,6 @@ internal class FolderProtectionTests
 		await passwordPrompt
 			.DidNotReceiveWithAnyArgs()
 			.RequestPasswordAsync(default!);
-
-		await dbAccess
-			.DidNotReceive()
-			.UpdateEncryptedDekAsync(Arg.Any<Guid>(), Arg.Any<byte[]>());
 
 		folder.EncryptedDek
 			.Should()
@@ -772,8 +764,6 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Refuses_A_Failed_Conversion()
 	{
 		// Arrange
-		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
-
 		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = RandomValues.CreateBytes(10);
@@ -811,8 +801,6 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(converter);
 
-			builder.RegisterInstance(dbBackupService);
-
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
@@ -824,10 +812,6 @@ internal class FolderProtectionTests
 		await sut.DecryptFolderAsync(folder, files);
 
 		// Assert
-		await dbBackupService
-			.DidNotReceiveWithAnyArgs()
-			.CreateBackupAsync();
-
 		await contentWriter
 			.DidNotReceiveWithAnyArgs()
 			.UpdateDatabaseAsync(default!);
@@ -1047,19 +1031,11 @@ internal class FolderProtectionTests
 					Notes = [new(folder.Id, EntityKind.Folder, decryptedNote)]
 				});
 
-			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
-
-			dbBackupService
-				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
-
 			builder.RegisterInstance(contentWriter);
 
 			builder.RegisterInstance(unlocker);
 
 			builder.RegisterInstance(converter);
-
-			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<FolderCipher>()
@@ -1157,8 +1133,6 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Does_Not_Persist_When_A_Note_Cannot_Be_Encrypted()
 	{
 		// Arrange
-		IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
-
 		IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
 
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
@@ -1196,8 +1170,6 @@ internal class FolderProtectionTests
 
 			builder.RegisterInstance(passwordPrompt);
 
-			builder.RegisterInstance(dbBackupService);
-
 			builder
 				.RegisterType<FolderCipher>()
 				.As<IFolderCipher>();
@@ -1209,10 +1181,6 @@ internal class FolderProtectionTests
 		await sut.EncryptFolderAsync(folder, files);
 
 		// Assert
-		await dbBackupService
-			.DidNotReceive()
-			.CreateBackupAsync();
-
 		// The write goes through the content writer, so the database is asked nothing at all.
 		await contentWriter
 			.DidNotReceive()
@@ -1584,12 +1552,6 @@ internal class FolderProtectionTests
 					Notes = []
 				});
 
-			IDbBackupService dbBackupService = Substitute.For<IDbBackupService>();
-
-			dbBackupService
-				.CreateBackupAsync()
-				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileEraser>(), Substitute.For<IFileSystem>()));
-
 			builder.RegisterInstance(contentWriter);
 
 			builder.RegisterInstance(encryption);
@@ -1597,8 +1559,6 @@ internal class FolderProtectionTests
 			builder.RegisterInstance(converter);
 
 			builder.RegisterInstance(passwordPrompt);
-
-			builder.RegisterInstance(dbBackupService);
 
 			builder
 				.RegisterType<FolderCipher>()

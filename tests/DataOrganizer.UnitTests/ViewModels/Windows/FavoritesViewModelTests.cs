@@ -36,7 +36,6 @@ using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.SystemIntegration.FileExecution.Dto;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
 using DataOrganizer.SystemIntegration.FileExecution.Services;
-using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
@@ -89,56 +88,6 @@ internal class FavoritesViewModelTests
 		sut.IsPopupOpen
 			.Should()
 			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="FavoritesViewModel(IAppSettingsStore, IConfirmationPrompt, ICopyHistory, IDialogCloser, IDispatcherAccessor, IExecutingFiles, ILogger, IMainWindowLauncher, IMessenger, IProtectionScenarios, ISecondaryWindowLauncher, ISessionHierarchy, ITaskExceptionHandler, IViewModelFactory)" />:
-	/// a new favorites window leaves the running hotkey tracking alone.
-	/// </summary>
-	[Test]
-	public void Constructor_Leaves_The_Hotkey_Tracking_Alone()
-	{
-		// Arrange
-		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-			hook
-				.IsRunning
-				.Returns(true);
-
-			settingsStore
-				.Settings
-				.Returns(SettingsFactory.CreateSettings(trackHotkeys: true));
-
-			// The hook is a lazy singleton that an earlier window has already used.
-			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
-
-			_ = lazyHook.Value;
-
-			builder.RegisterInstance(lazyHook);
-
-			builder.RegisterInstance(settingsStore);
-
-			builder
-				.RegisterType<WorkSession>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-		});
-
-		// Act
-		_ = mock.Create<FavoritesViewModel>();
-
-		// Assert
-		hook
-			.DidNotReceiveWithAnyArgs()
-			.StopTrackingAsync();
-
-		hook
-			.DidNotReceiveWithAnyArgs()
-			.StartTrackingAsync();
 	}
 
 	/// <summary>

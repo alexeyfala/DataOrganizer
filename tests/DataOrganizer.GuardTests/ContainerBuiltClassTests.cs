@@ -4,7 +4,6 @@ using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests;
@@ -56,36 +55,6 @@ internal partial class ContainerBuiltClassTests
 
 	#region Helpers
 	/// <summary>
-	/// Enumerates the assemblies of the application: its own assembly and the assemblies of its projects it references.
-	/// </summary>
-	private static Assembly[] EnumerateAppAssemblies()
-	{
-		string prefix = typeof(App).Namespace!;
-
-		Dictionary<string, Assembly> found = [];
-
-		Queue<Assembly> pending = new([typeof(App).Assembly]);
-
-		while (pending.TryDequeue(out Assembly? assembly))
-		{
-			if (!found.TryAdd(assembly.GetName().Name!, assembly))
-			{
-				continue;
-			}
-
-			foreach (AssemblyName reference in assembly.GetReferencedAssemblies())
-			{
-				if (reference.Name!.StartsWith(prefix, StringComparison.Ordinal))
-				{
-					pending.Enqueue(Assembly.Load(reference));
-				}
-			}
-		}
-
-		return [.. found.Values];
-	}
-
-	/// <summary>
 	/// Finds the names of the classes that a code builds with <c>new</c> and arguments.
 	/// </summary>
 	private static IEnumerable<string> FindBuiltWithArguments(string text)
@@ -116,7 +85,8 @@ internal partial class ContainerBuiltClassTests
 				.Select(static x => x.Groups["type"].Value)
 		];
 
-		return EnumerateAppAssemblies()
+		return AppAssemblies
+			.Enumerate()
 			.SelectMany(static x => x.GetTypes())
 			.Where(static x => x.IsClass && !x.IsAbstract && !IsRecord(x) && !typeof(AvaloniaObject).IsAssignableFrom(x))
 			.Where(static x => x

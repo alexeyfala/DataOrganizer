@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
@@ -85,9 +84,6 @@ internal class CopyHistoryViewTests
 			builder
 				.RegisterType<ContentCopier>()
 				.As<IContentCopier>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
@@ -172,9 +168,6 @@ internal class CopyHistoryViewTests
 			builder
 				.RegisterType<ContentCopier>()
 				.As<IContentCopier>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
@@ -252,9 +245,6 @@ internal class CopyHistoryViewTests
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
@@ -318,9 +308,6 @@ internal class CopyHistoryViewTests
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();
@@ -387,9 +374,6 @@ internal class CopyHistoryViewTests
 			builder
 				.RegisterInstance(session)
 				.AsImplementedInterfaces();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
 		CopyHistoryViewModel viewModel = mock.Create<CopyHistoryViewModel>();

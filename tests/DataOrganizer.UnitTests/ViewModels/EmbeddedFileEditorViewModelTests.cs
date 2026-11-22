@@ -113,16 +113,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = "Hello"u8.ToArray(),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// The writes wait for the test, so the queue gets to the edit queued on closing only after the close.
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
@@ -137,18 +127,10 @@ internal class EmbeddedFileEditorViewModelTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
-
-			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
 				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -216,16 +198,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns(stateRead.Task);
@@ -239,10 +211,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -535,16 +503,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.ThrowsAsync(new InvalidOperationException());
@@ -554,10 +512,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -641,30 +595,12 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// The stored state breaks off after its first character.
 			editorStateStore
 				.ReadAsync(Arg.Any<Guid>())
 				.Returns("{");
 
-			builder.RegisterInstance(dbAccess);
-
 			builder.RegisterInstance(editorStateStore);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -702,21 +638,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -782,6 +704,10 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1015,24 +941,6 @@ internal class EmbeddedFileEditorViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
@@ -1064,16 +972,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = "Hello"u8.ToArray(),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(x =>
@@ -1084,10 +982,6 @@ internal class EmbeddedFileEditorViewModelTests
 				});
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -1152,16 +1046,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns(RecordedEditorState);
@@ -1175,10 +1059,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
@@ -1259,16 +1139,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			JsonObject state = JsonNode
 				.Parse(new SystemTextJsonSerializer().Serialize(new FileEditorState
 				{
@@ -1302,10 +1172,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1570,30 +1436,12 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(fileId)
-				.Returns(fileContents);
-
 			// The stored state breaks off after its first character.
 			editorStateStore
 				.ReadAsync(fileId)
 				.Returns("{");
 
-			builder.RegisterInstance(dbAccess);
-
 			builder.RegisterInstance(editorStateStore);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -1639,16 +1487,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			FileEditorState state = new()
 			{
 				Bookmarks = [3, 7],
@@ -1668,10 +1506,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1708,16 +1542,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			FileEditorState state = new()
 			{
 				FontSize = 14.0,
@@ -1737,10 +1561,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
@@ -1776,16 +1596,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			FileEditorState state = new()
 			{
 				FoldedBlocks = isMostlyFolded ? null : [3, 9],
@@ -1806,10 +1616,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1855,16 +1661,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			FileEditorState state = new()
 			{
 				CaretPosition = default,
@@ -1891,10 +1687,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -1932,19 +1724,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
 			IEditorSplitStore editorSplits = Substitute.For<IEditorSplitStore>();
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
 
 			editorSplits
 				.Find(fileId)
@@ -1953,12 +1733,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(editorSplits);
 
@@ -1996,16 +1770,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			FileEditorState state = new()
 			{
 				CaretPosition = new()
@@ -2034,10 +1798,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -2086,16 +1846,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = Encoding.UTF8.GetBytes("Hello"),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
@@ -2104,18 +1854,10 @@ internal class EmbeddedFileEditorViewModelTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
-
-			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
 				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -2179,16 +1921,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
@@ -2198,10 +1930,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -2291,24 +2019,6 @@ internal class EmbeddedFileEditorViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
@@ -2412,24 +2122,6 @@ internal class EmbeddedFileEditorViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
@@ -2515,26 +2207,12 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = Encoding.UTF8.GetBytes("Hello"),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
 
 			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
@@ -2549,10 +2227,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -2789,6 +2463,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
 
@@ -2828,26 +2506,12 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = Encoding.UTF8.GetBytes("Hello"),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
 
 			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
@@ -2862,10 +2526,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -2919,23 +2579,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = Encoding.UTF8.GetBytes("Hello"),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			builder.RegisterInstance(dbAccess);
 
 			builder
 				.RegisterType<InlineDispatcherAccessor>()
@@ -2944,10 +2590,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<DocumentEncodingSwitcher>()
 				.As<IDocumentEncodingSwitcher>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			// An edit starts a pause in typing, which the test does not wait for.
 			builder.RegisterInstance(Substitute.For<ITypingPauseFactory>());
@@ -3108,16 +2750,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns((string?)null);
@@ -3131,10 +2763,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -3182,16 +2810,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns((string?)null);
@@ -3205,10 +2823,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -3337,22 +2951,8 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// The session key opens the file and then refuses the edit.
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
 
 			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
@@ -3363,10 +2963,6 @@ internal class EmbeddedFileEditorViewModelTests
 			exceptionHandler.Watch(Arg.Do<Task>(watched.Add));
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -3431,26 +3027,12 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// No row takes the edit, as the file is gone from the database.
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(false);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -3502,31 +3084,13 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
 			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
 
 			fileContentsWriter
 				.WriteAsync(default, default, default!, default, default)
 				.ThrowsAsyncForAnyArgs(failure);
 
-			builder.RegisterInstance(dbAccess);
-
 			builder.RegisterInstance(failureReporter);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(fileContentsWriter);
 
@@ -3573,21 +3137,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -3641,26 +3191,12 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// The save of the edit lasts until the test lets it end.
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(written.Task);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -3833,6 +3369,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
@@ -3909,6 +3449,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
@@ -3963,25 +3507,11 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -4145,16 +3675,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = "Hello"u8.ToArray(),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// The first write waits for the test, so the next texts queue up behind it.
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
@@ -4168,10 +3688,6 @@ internal class EmbeddedFileEditorViewModelTests
 				});
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -4337,16 +3853,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(
@@ -4354,10 +3860,6 @@ internal class EmbeddedFileEditorViewModelTests
 					Task.FromResult(true));
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -4421,16 +3923,6 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
@@ -4439,18 +3931,10 @@ internal class EmbeddedFileEditorViewModelTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
-
-			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
 				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -4604,19 +4088,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
 			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
 
 			fileContentsWriter
 				.WriteAsync(default, default, default!, default, default)
@@ -4624,12 +4096,6 @@ internal class EmbeddedFileEditorViewModelTests
 				{
 					Status = status
 				});
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(fileContentsWriter);
 
@@ -4697,6 +4163,10 @@ internal class EmbeddedFileEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
@@ -4757,18 +4227,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			IFileContentsWriter fileContentsWriter = Substitute.For<IFileContentsWriter>();
 
 			fileContentsWriter
@@ -4782,12 +4240,6 @@ internal class EmbeddedFileEditorViewModelTests
 				{
 					Status = FileContentsWriteStatus.Written
 				});
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(fileContentsWriter);
 
@@ -4836,32 +4288,14 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// An encrypted file hands its plain text to the cipher; the copy survives the wipe after the save.
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
 
 			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Do<byte[]>(x => saved = [.. x]))
 				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -4918,21 +4352,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -5052,27 +4472,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
@@ -5119,27 +4521,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
@@ -5181,18 +4565,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// The file has no stored state yet.
 			editorStateStore
 				.ReadAsync(Arg.Any<Guid>())
@@ -5202,13 +4574,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 
-			builder.RegisterInstance(dbAccess);
-
 			builder.RegisterInstance(editorStateStore);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -5274,18 +4640,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			// The file has no stored state yet.
 			editorStateStore
 				.ReadAsync(Arg.Any<Guid>())
@@ -5295,13 +4649,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 
-			builder.RegisterInstance(dbAccess);
-
 			builder.RegisterInstance(editorStateStore);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -5356,36 +4704,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			// A protected file hands its contents to the cipher, which gives them back as they are.
-			IContentCipher contentCipher = Substitute.For<IContentCipher>();
-
-			contentCipher
-				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(x => x.ArgAt<byte[]>(2));
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
-			builder.RegisterInstance(contentCipher);
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -5445,16 +4766,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns((string?)null);
@@ -5468,10 +4779,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -5519,27 +4826,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -5589,18 +4878,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(fileId)
-				.Returns(fileContents);
-
 			// The file has no stored state yet.
 			editorStateStore
 				.ReadAsync(fileId)
@@ -5610,13 +4887,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 
-			builder.RegisterInstance(dbAccess);
-
 			builder.RegisterInstance(editorStateStore);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -5689,27 +4960,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()
@@ -5762,16 +5015,6 @@ internal class EmbeddedFileEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10)),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
 			dbAccess
 				.GetFileEditorStateAsync(Arg.Any<Guid>())
 				.Returns((string?)null);
@@ -5785,10 +5028,6 @@ internal class EmbeddedFileEditorViewModelTests
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()

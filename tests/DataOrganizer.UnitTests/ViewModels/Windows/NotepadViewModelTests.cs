@@ -2384,6 +2384,10 @@ internal class NotepadViewModelTests
 				.As<INotepadTexts>();
 
 			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -2436,6 +2440,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()

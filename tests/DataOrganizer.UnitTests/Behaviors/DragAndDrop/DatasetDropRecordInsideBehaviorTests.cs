@@ -10,7 +10,6 @@ using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.DragAndDrop;
-using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Documents.DatasetRecords.Dto;
 using DataOrganizer.Documents.DatasetRecords.Models;
@@ -993,16 +992,6 @@ internal class DatasetDropRecordInsideBehaviorTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
@@ -1012,10 +1001,6 @@ internal class DatasetDropRecordInsideBehaviorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(serializer);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()

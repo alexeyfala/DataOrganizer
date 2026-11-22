@@ -8,12 +8,8 @@ using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Database.Entities.Enums;
-using DataOrganizer.Database.Repository.Dto;
-using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Documents.Editor.Services;
-using DataOrganizer.Documents.FileContents.Interfaces;
-using DataOrganizer.Documents.FileContents.Services;
 using DataOrganizer.Documents.TextProcessing.Interfaces;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
@@ -21,13 +17,11 @@ using DataOrganizer.Interfaces.Documents;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.Shared.Constants;
 using DataOrganizer.Templates;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -135,10 +129,6 @@ internal class DocumentTabTemplateTests
 			builder
 				.RegisterType<EmbeddedEditorFactory>()
 				.As<IEmbeddedEditorFactory>();
-
-			builder
-				.RegisterType<DocumentTextFactory>()
-				.As<IDocumentTextFactory>();
 		});
 
 		DocumentTabTemplate sut = mock.Create<DocumentTabTemplate>();
@@ -208,24 +198,6 @@ internal class DocumentTabTemplateTests
 
 		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			// Both editors of the file share the store, as in the application.
 			builder
 				.RegisterType<EditorSplitStore>()
@@ -309,24 +281,6 @@ internal class DocumentTabTemplateTests
 
 		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterInstance(SyntaxRegistry.Instance)
 				.As<ISyntaxRegistry>();
@@ -453,24 +407,6 @@ internal class DocumentTabTemplateTests
 
 		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents fileContents = new()
-			{
-				Contents = TextDefaults.Encoding.GetBytes(PowerShellText),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(fileContents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
