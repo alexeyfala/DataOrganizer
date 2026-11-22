@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -63,6 +62,16 @@ internal static class RepositoryFiles
 	}
 
 	/// <summary>
+	/// Tells whether a relative path lies in the build output of a project.
+	/// </summary>
+	public static bool IsBuildOutput(string relativePath)
+	{
+		return relativePath
+			.Split(Path.DirectorySeparatorChar)
+			.Any(static x => x is "bin" or "obj");
+	}
+
+	/// <summary>
 	/// Walks up from the test output directory to the folder containing the solution file.
 	/// </summary>
 	/// <exception cref="DirectoryNotFoundException">The tests run outside the repository.</exception>
@@ -109,17 +118,7 @@ internal static class RepositoryFiles
 
 		return Directory
 			.EnumerateFiles(root, searchPattern, SearchOption.AllDirectories)
-			.Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
-	}
-
-	/// <summary>
-	/// Tells whether a file, given by its path inside the source folder, lies in the build output.
-	/// </summary>
-	private static bool IsBuildOutput(string relativePath)
-	{
-		return relativePath
-			.Split(Path.DirectorySeparatorChar)
-			.Any(static x => x is "bin" or "obj");
+			.Where(path => !IsBuildOutput(Path.GetRelativePath(root, path)));
 	}
 	#endregion
 }

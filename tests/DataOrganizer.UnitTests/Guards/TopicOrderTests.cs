@@ -83,7 +83,7 @@ internal class TopicOrderTests
 	{
 		return Directory
 			.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-			.Where(path => !IsBuildOutput(ReadTopic(root, path)));
+			.Where(path => !RepositoryFiles.IsBuildOutput(Path.GetRelativePath(root, path)));
 	}
 
 	/// <summary>
@@ -93,16 +93,8 @@ internal class TopicOrderTests
 	{
 		return Directory
 			.EnumerateDirectories(root)
-			.Where(static path => !IsBuildOutput(Path.GetFileName(path)) && !Directory.EnumerateFiles(path, "*.cs").Any())
+			.Where(static path => !RepositoryFiles.IsBuildOutput(Path.GetFileName(path)) && !Directory.EnumerateFiles(path, "*.cs").Any())
 			.Select(static path => Path.GetFileName(path));
-	}
-
-	/// <summary>
-	/// Tells whether a top folder of a project holds the build output.
-	/// </summary>
-	private static bool IsBuildOutput(string topFolder)
-	{
-		return topFolder is "bin" or "obj";
 	}
 
 	/// <summary>

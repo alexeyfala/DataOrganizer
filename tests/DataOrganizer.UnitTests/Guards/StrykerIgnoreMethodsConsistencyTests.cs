@@ -1,7 +1,5 @@
 using AwesomeAssertions;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -32,7 +30,12 @@ internal class StrykerIgnoreMethodsConsistencyTests
 	public void IgnoreMethods_Match_A_Call_In_The_Code()
 	{
 		// Arrange
-		string[] code = [.. ReadCode()];
+		string[] code =
+		[
+			.. RepositoryFiles
+				.EnumerateSourceCode()
+				.Select(static x => x.Text)
+		];
 
 		// Act
 		string[] patterns = ReadIgnoredMethods();
@@ -51,19 +54,6 @@ internal class StrykerIgnoreMethodsConsistencyTests
 
 	#region Helpers
 	/// <summary>
-	/// Reads every C# file of the projects, the test projects and the build output left out.
-	/// </summary>
-	private static IEnumerable<string> ReadCode()
-	{
-		string root = RepositoryFiles.LocateRoot();
-
-		return Directory
-			.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-			.Where(path => IsProjectCode(Path.GetRelativePath(root, path).Split(Path.DirectorySeparatorChar)))
-			.Select(File.ReadAllText);
-	}
-
-	/// <summary>
 	/// Reads the patterns of the calls the mutation runs leave out.
 	/// </summary>
 	private static string[] ReadIgnoredMethods()
@@ -75,16 +65,6 @@ internal class StrykerIgnoreMethodsConsistencyTests
 			.GetProperty("ignore-methods")
 			.EnumerateArray()
 			.Select(static x => x.GetString()!)];
-	}
-
-	/// <summary>
-	/// <c>True</c> for a file of a project Stryker mutates, given by the folders of its repository-relative path.
-	/// </summary>
-	private static bool IsProjectCode(string[] segments)
-	{
-		return segments[0] == RepositoryFiles.SourceFolder
-			&& !segments.Contains("bin")
-			&& !segments.Contains("obj");
 	}
 
 	/// <summary>
