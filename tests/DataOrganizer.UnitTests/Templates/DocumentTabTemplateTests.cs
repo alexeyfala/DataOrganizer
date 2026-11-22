@@ -18,7 +18,7 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Templates;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;

@@ -18,6 +18,7 @@ using DataOrganizer.Documents.FileContents.Services;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

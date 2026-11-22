@@ -12,7 +12,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Documents.TextProcessing.Helpers;
 using DataOrganizer.Services;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.Views;
 using System.Linq;
 using System.Text;

@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Database.IntegrationTests.Repository.Fixtures;
+using DataOrganizer.Database.IntegrationTests.Repository.TestHelpers;
 using DataOrganizer.Database.Repository.Interceptors;
 using DataOrganizer.TestSupport.Common;
 using Microsoft.Data.Sqlite;

@@ -1,4 +1,4 @@
-using DataOrganizer.Database.IntegrationTests.Repository.Fixtures;
+using DataOrganizer.Database.IntegrationTests.Repository.TestHelpers;
 using Microsoft.Data.Sqlite;
 using System.IO;
 

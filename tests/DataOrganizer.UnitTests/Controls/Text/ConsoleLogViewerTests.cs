@@ -6,7 +6,7 @@ using Avalonia.VisualTree;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using Serilog.Events;
 using System;
 using System.Linq;

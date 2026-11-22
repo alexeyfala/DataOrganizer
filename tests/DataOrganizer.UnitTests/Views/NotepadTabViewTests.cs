@@ -3,7 +3,7 @@ using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Documents.Editor.Dto;
 using DataOrganizer.Services.Documents;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using System.Text;

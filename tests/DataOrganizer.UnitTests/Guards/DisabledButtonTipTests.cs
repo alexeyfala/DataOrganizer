@@ -4,7 +4,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using System;
 
 namespace DataOrganizer.UnitTests.Guards;

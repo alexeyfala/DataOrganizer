@@ -11,7 +11,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;

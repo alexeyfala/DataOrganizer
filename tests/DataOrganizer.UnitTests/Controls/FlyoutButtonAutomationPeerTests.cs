@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
+using DataOrganizer.UnitTests.TestHelpers;
 using Material.Icons;
 
 namespace DataOrganizer.UnitTests.Controls;

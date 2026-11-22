@@ -10,7 +10,7 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Input;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;

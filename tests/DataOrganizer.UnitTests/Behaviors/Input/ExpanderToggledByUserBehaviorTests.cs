@@ -6,7 +6,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using DataOrganizer.Behaviors.Input;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using NSubstitute;
 using System.Linq;
 using System.Windows.Input;

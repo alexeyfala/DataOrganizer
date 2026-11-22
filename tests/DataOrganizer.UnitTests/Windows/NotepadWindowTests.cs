@@ -28,7 +28,7 @@ using DataOrganizer.Services.Views;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Templates;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Views;

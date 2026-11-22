@@ -6,7 +6,7 @@ using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UnitTests.Guards;
 

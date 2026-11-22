@@ -17,7 +17,7 @@ using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataOrganizer.Workflows.AppLifecycle.Services;

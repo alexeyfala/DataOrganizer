@@ -51,6 +51,7 @@ using DataOrganizer.SystemIntegration.FileExecution.Services;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;

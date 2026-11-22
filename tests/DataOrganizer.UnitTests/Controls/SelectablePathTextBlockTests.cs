@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UnitTests.TestHelpers;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;

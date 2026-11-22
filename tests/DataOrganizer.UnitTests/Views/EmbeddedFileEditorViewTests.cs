@@ -26,6 +26,7 @@ using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Services;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;

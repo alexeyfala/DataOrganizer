@@ -13,7 +13,7 @@ using DataOrganizer.Services.Views;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.Threading.Services;
 using DataOrganizer.Shared.UnitTests.Threading.Fakes;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DialogHostAvalonia;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

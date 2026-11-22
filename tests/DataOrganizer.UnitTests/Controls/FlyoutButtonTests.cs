@@ -8,7 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using Material.Icons;
 using System.Linq;
 
