@@ -13,11 +13,6 @@ public static class RepositoryFiles
 {
 	#region Data
 	/// <summary>
-	/// File of the central package versions, relative to the repository root.
-	/// </summary>
-	private const string PackageVersionsFileName = "Directory.Packages.props";
-
-	/// <summary>
 	/// Solution file at the repository root.
 	/// </summary>
 	public const string SolutionFileName = "DataOrganizerApp.slnx";
@@ -26,6 +21,16 @@ public static class RepositoryFiles
 	/// Folder of the projects of the application, relative to the repository root.
 	/// </summary>
 	public const string SourceFolder = "src";
+
+	/// <summary>
+	/// Folder of the test projects, relative to the repository root.
+	/// </summary>
+	public const string TestsFolder = "tests";
+
+	/// <summary>
+	/// File of the central package versions, relative to the repository root.
+	/// </summary>
+	private const string PackageVersionsFileName = "Directory.Packages.props";
 	#endregion
 
 	#region Methods
@@ -51,16 +56,13 @@ public static class RepositoryFiles
 	/// Reads every C# file of the projects of the application, the build output left out, each paired with its path
 	/// inside the source folder, written with forward slashes.
 	/// </summary>
-	public static IEnumerable<(string FilePath, string Text)> EnumerateSourceCode()
-	{
-		string root = Path.Combine(LocateRoot(), SourceFolder);
+	public static IEnumerable<(string FilePath, string Text)> EnumerateSourceCode() => EnumerateCode(SourceFolder);
 
-		return Directory
-			.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-			.Select(path => Path.GetRelativePath(root, path))
-			.Where(static x => !IsBuildOutput(x))
-			.Select(x => (FilePath: x.Replace(Path.DirectorySeparatorChar, '/'), Text: File.ReadAllText(Path.Combine(root, x))));
-	}
+	/// <summary>
+	/// Reads every C# file of the test projects, the build output left out, each paired with its path inside the tests
+	/// folder, written with forward slashes.
+	/// </summary>
+	public static IEnumerable<(string FilePath, string Text)> EnumerateTestCode() => EnumerateCode(TestsFolder);
 
 	/// <summary>
 	/// Tells whether a relative path lies in the build output of a project.
@@ -110,6 +112,21 @@ public static class RepositoryFiles
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Reads every C# file of a folder of the repository, the build output left out, each paired with its path inside
+	/// that folder, written with forward slashes.
+	/// </summary>
+	private static IEnumerable<(string FilePath, string Text)> EnumerateCode(string folder)
+	{
+		string root = Path.Combine(LocateRoot(), folder);
+
+		return Directory
+			.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+			.Select(path => Path.GetRelativePath(root, path))
+			.Where(static x => !IsBuildOutput(x))
+			.Select(x => (FilePath: x.Replace(Path.DirectorySeparatorChar, '/'), Text: File.ReadAllText(Path.Combine(root, x))));
+	}
+
 	/// <summary>
 	/// Paths of the files of the application project that match the pattern, the generated ones left out.
 	/// </summary>

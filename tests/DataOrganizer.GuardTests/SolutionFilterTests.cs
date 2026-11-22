@@ -17,11 +17,6 @@ internal class SolutionFilterTests
 	/// Solution filter the test run builds, relative to the repository root.
 	/// </summary>
 	private const string FilterFileName = "DataOrganizerApp.Tests.slnf";
-
-	/// <summary>
-	/// Folder of the test projects, relative to the repository root.
-	/// </summary>
-	private const string TestsFolder = "tests";
 	#endregion
 
 	#region Methods
@@ -44,7 +39,7 @@ internal class SolutionFilterTests
 
 		missing
 			.Should()
-			.HaveCount(0, $"{FilterFileName} must list every test project of {TestsFolder}/");
+			.HaveCount(0, $"{FilterFileName} must list every test project of {RepositoryFiles.TestsFolder}/");
 	}
 	#endregion
 
@@ -57,7 +52,7 @@ internal class SolutionFilterTests
 		string root = RepositoryFiles.LocateRoot();
 
 		return Directory
-			.EnumerateFiles(Path.Combine(root, TestsFolder), "*Tests.csproj", SearchOption.AllDirectories)
+			.EnumerateFiles(Path.Combine(root, RepositoryFiles.TestsFolder), "*Tests.csproj", SearchOption.AllDirectories)
 			.Select(path => Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '/'));
 	}
 
