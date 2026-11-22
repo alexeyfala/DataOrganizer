@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Notifications.Dto;
 using DataOrganizer.Infrastructure.Notifications.Enums;
+using DataOrganizer.TestSupport.Guards;
 using Material.Ripple;
 using Material.Styles.Controls;
 using Material.Styles.Models;

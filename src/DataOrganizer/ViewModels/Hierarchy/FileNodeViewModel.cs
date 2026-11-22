@@ -24,6 +24,9 @@ public sealed class FileNodeViewModel : ExplorerNodeViewModelBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileNodeViewModel" /> class.
+	/// </summary>
 	public FileNodeViewModel(FileDto model, ISessionTreeState treeState) : base(model, treeState)
 	{
 	}

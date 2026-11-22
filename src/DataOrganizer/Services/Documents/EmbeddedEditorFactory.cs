@@ -6,6 +6,7 @@ using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <inheritdoc cref="IEmbeddedEditorFactory" />
 public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 {
 	#region Data
@@ -14,6 +15,9 @@ public sealed class EmbeddedEditorFactory : IEmbeddedEditorFactory
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EmbeddedEditorFactory" /> class.
+	/// </summary>
 	public EmbeddedEditorFactory(IViewModelFactory viewModelFactory) => _viewModelFactory = viewModelFactory;
 	#endregion
 

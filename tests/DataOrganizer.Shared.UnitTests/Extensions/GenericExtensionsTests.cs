@@ -310,6 +310,9 @@ internal class GenericExtensionsTests
 	/// </summary>
 	public sealed class ReadOnlyTarget
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ReadOnlyTarget" /> class.
+		/// </summary>
 		public ReadOnlyTarget(string name) => Name = name;
 
 		public string Name { get; }

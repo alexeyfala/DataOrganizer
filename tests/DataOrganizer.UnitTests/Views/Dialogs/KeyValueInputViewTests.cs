@@ -1,3 +1,4 @@
+using Autofac.Extras.Moq;
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
@@ -7,11 +8,8 @@ using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
-using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
-using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using NSubstitute;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;
@@ -34,16 +32,19 @@ internal class KeyValueInputViewTests
 
 		const string value = "Value";
 
-		KeyValueInputViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>())
-		{
-			IsKeyMasked = isMasked,
-			IsValueInputVisible = true,
-			IsValueMasked = isMasked,
-			Key = key,
-			Value = value
-		};
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel viewModel = mock.Create<KeyValueInputViewModel>();
+
+		viewModel.IsKeyMasked = isMasked;
+
+		viewModel.IsValueInputVisible = true;
+
+		viewModel.IsValueMasked = isMasked;
+
+		viewModel.Key = key;
+
+		viewModel.Value = value;
 
 		KeyValueInputView view = new(viewModel);
 
@@ -94,12 +95,11 @@ internal class KeyValueInputViewTests
 	public void IsSensitive_Reaches_The_Copy_Behavior_Of_Both_Inputs([Values] bool isSensitive)
 	{
 		// Arrange
-		KeyValueInputViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>())
-		{
-			IsSensitive = isSensitive
-		};
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel viewModel = mock.Create<KeyValueInputViewModel>();
+
+		viewModel.IsSensitive = isSensitive;
 
 		KeyValueInputView view = new(viewModel);
 

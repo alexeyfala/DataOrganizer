@@ -11,6 +11,9 @@ namespace DataOrganizer.ViewModels.Dialogs;
 public abstract class BooleanAsyncResultViewModel : AsyncResultViewModelBase<bool>
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="BooleanAsyncResultViewModel" /> class.
+	/// </summary>
 	protected BooleanAsyncResultViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)

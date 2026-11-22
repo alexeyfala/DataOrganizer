@@ -114,6 +114,7 @@
     <Project Path="tests/DataOrganizer.Database.IntegrationTests/DataOrganizer.Database.IntegrationTests.csproj" />
     <Project Path="tests/DataOrganizer.Database.UnitTests/DataOrganizer.Database.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.Documents.UnitTests/DataOrganizer.Documents.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.GuardTests/DataOrganizer.GuardTests.csproj" />
     <Project Path="tests/DataOrganizer.Hierarchy.UnitTests/DataOrganizer.Hierarchy.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.Infrastructure.UnitTests/DataOrganizer.Infrastructure.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.Security.UnitTests/DataOrganizer.Security.UnitTests.csproj" />

@@ -1,6 +1,7 @@
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.Shared.Threading.Extensions;
@@ -72,6 +73,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ExecutionEngine" /> class.
+	/// </summary>
 	public ExecutionEngine(
 		IAppResolver appResolver,
 		IFileChangeTracker changeTracker,
@@ -175,9 +179,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 		// Drain in-flight ExecuteAsync / CloseAsync before iterating so the dictionary
 		// snapshot is stable. A 10-second cap keeps shutdown bounded if some operation
 		// is hung — in that case we log and continue in best-effort mode.
-		bool semaphoreAcquired = await _semaphore
-			.WaitAsync(TimeSpan.FromSeconds(10))
-			.ConfigureAwait(false);
+		using CancellationTokenSource timeoutSource = new(TimeSpan.FromSeconds(10), _timeProvider);
+
+		Task waiting = _semaphore.WaitAsync(timeoutSource.Token);
+
+		await waiting.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+		bool semaphoreAcquired = waiting.IsCompletedSuccessfully;
 
 		// Stryker disable once Boolean : the branch only writes to the log
 		if (!semaphoreAcquired)
@@ -360,7 +368,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_logger.LogException(ex);
 
-			_notification.ShowErrorSnackbar($@"{Strings.FailedToOpenInOS} ""{parameters.File.Name}""");
+			_notification.ShowErrorSnackbar($"{Strings.FailedToOpenInOS} {QuoteBuilder.Build(parameters.File.Name)}");
 
 			return false;
 		}
@@ -680,12 +688,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			_logger.LogWarning($@"File ""{fileId}"" is locked by another process, waiting it to be released.");
 
-			using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-
 			const int timeout = 10;
 
-			// Stryker disable once Statement : the cap shows only after a real wait of ten seconds
-			cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
+			using CancellationTokenSource timeoutSource = new(TimeSpan.FromSeconds(timeout), _timeProvider);
+
+			using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(
+				token,
+				timeoutSource.Token);
 
 			bool unlocked = await _fileLockChecker
 				.WaitUntilUnlockedAsync(filePath, cancellation.Token)

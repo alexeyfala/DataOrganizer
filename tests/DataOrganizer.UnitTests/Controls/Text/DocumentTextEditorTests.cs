@@ -23,7 +23,7 @@ using DataOrganizer.Documents.Editor.Enums;
 using DataOrganizer.Documents.TextProcessing.Enums;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Shared.Constants;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

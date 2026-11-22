@@ -1,10 +1,12 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Documents.FileContents.Dto;
 using DataOrganizer.Documents.FileContents.Enums;
+using DataOrganizer.Documents.FileContents.Helpers;
 using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.SystemIntegration.FileExecution.Dto;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
@@ -58,6 +60,9 @@ public class FileChangeTracker : IFileChangeTracker
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileChangeTracker" /> class.
+	/// </summary>
 	public FileChangeTracker(
 		IDbFailureReporter dbFailureReporter,
 		IFileContentsWriter fileContentsWriter,
@@ -138,8 +143,7 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogException(ex);
 
-			// Stryker disable once String : wording of a message
-			PublishFailure(parameters, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+			PublishFailure(parameters, FileContentsMessages.FailedToLoad(parameters.FileName));
 		}
 	}
 	#endregion
@@ -162,7 +166,7 @@ public class FileChangeTracker : IFileChangeTracker
 			.Exists(parameters.FilePath))
 		{
 			// Stryker disable once String : wording of a message
-			return MissFile(parameters, mayMiss, $@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
+			return MissFile(parameters, mayMiss, $"{Strings.File} {QuoteBuilder.Build(parameters.FileName)} {Strings.DoesNotExist}");
 		}
 
 		Stream fileStream;
@@ -182,8 +186,7 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogWarning($@"File ""{parameters.FileName}"" cannot be opened: {ex.Message}");
 
-			// Stryker disable once String : wording of a message
-			return MissFile(parameters, mayMiss, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+			return MissFile(parameters, mayMiss, FileContentsMessages.FailedToLoad(parameters.FileName));
 		}
 
 		byte[] currentHash;
@@ -295,7 +298,7 @@ public class FileChangeTracker : IFileChangeTracker
 			// The changes have nowhere to go, so tracking them further would only lose more of them.
 			_dbFailureReporter.Report(
 				ex,
-				$@"{Strings.FailedToSaveFileContents} ""{parameters.FileName}""");
+				$"{Strings.FailedToSaveFileContents} {QuoteBuilder.Build(parameters.FileName)}");
 
 			CloseExecutingFile(parameters);
 
@@ -305,7 +308,7 @@ public class FileChangeTracker : IFileChangeTracker
 		if (writing.Status == FileContentsWriteStatus.Closed)
 		{
 			// Stryker disable once String : wording of a message
-			PublishFailure(parameters, $@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
+			PublishFailure(parameters, $"{Strings.FailedToProcessContents} {QuoteBuilder.Build(parameters.FileName)}");
 
 			return false;
 		}

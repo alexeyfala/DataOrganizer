@@ -90,6 +90,9 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="KeyValueInputViewModel" /> class.
+	/// </summary>
 	public KeyValueInputViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)

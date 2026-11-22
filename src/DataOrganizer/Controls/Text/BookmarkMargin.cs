@@ -50,6 +50,9 @@ internal sealed class BookmarkMargin : AbstractMargin, IRecipient<BookmarksChang
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Gives the margin an arrow cursor and widens it with the zoom.
+	/// </summary>
 	public BookmarkMargin(DocumentTextEditor editor)
 	{
 		_editor = editor;

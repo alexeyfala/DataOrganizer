@@ -79,6 +79,9 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Lists the languages of the grammars, once each, sorted by name.
+	/// </summary>
 	private SyntaxRegistry()
 	{
 		// A language may come with more than one grammar package, as the one of diff does.

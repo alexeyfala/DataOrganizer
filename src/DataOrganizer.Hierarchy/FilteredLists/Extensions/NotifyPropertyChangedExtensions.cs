@@ -9,6 +9,9 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.Hierarchy.FilteredLists.Extensions;
 
+/// <summary>
+/// Turns a search property of an object into a predicate that filters by name.
+/// </summary>
 public static class NotifyPropertyChangedExtensions
 {
 	#region Methods

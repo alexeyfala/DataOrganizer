@@ -26,7 +26,7 @@ using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Documents.TextProcessing.Helpers;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Services;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.Views;
 using Microsoft.Extensions.Time.Testing;
 using System;

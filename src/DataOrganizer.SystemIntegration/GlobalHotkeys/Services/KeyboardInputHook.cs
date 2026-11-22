@@ -85,6 +85,9 @@ public sealed class KeyboardInputHook :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Registers the hook for its messages.
+	/// </summary>
 	public KeyboardInputHook(
 		IDispatcherAccessor dispatcher,
 		IGlobalHookRunner hookRunner,

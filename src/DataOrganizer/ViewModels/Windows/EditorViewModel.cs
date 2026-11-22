@@ -34,6 +34,7 @@ using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Messages;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -467,6 +468,9 @@ public sealed partial class EditorViewModel :
 		if (result.Variant == ImportMode.Replace)
 		{
 			IsRightSideSheetOpened = false;
+
+			// The replaced objects may have been shown.
+			HideAllFileContentsCommand.NotifyCanExecuteChanged();
 		}
 
 		AddHierarchy(result.Imported.Items);
@@ -563,7 +567,7 @@ public sealed partial class EditorViewModel :
 		_logger.LogInformation("Adding an object using a dialog");
 
 		if (await _dialogService
-			.ShowEntityCreationAsync()
+			.ShowEntityCreationAsync(parent?.Name)
 			.ConfigureAwait(true) is not { } result)
 		{
 			return;
@@ -711,7 +715,7 @@ public sealed partial class EditorViewModel :
 		};
 
 		if (!await _confirmationPrompt
-			.RequestYesNoAsync($@"{action} ""{toBeDeleted.Name}""?")
+			.RequestYesNoAsync($"{action} {QuoteBuilder.Build(toBeDeleted.Name)}?")
 			.ConfigureAwait(true))
 		{
 			return;
@@ -754,8 +758,8 @@ public sealed partial class EditorViewModel :
 		IReadOnlySet<Guid> ids = _checkMarks.GetCheckedWithParents(Hierarchy);
 
 		return ids.Count > 0
-			? _dataExchange.ExportPartAsync(ids)
-			: _dataExchange.ExportDataAsync();
+			? _dataExchange.ExportPartAsync(Hierarchy, ids)
+			: _dataExchange.ExportDataAsync(Hierarchy);
 	}
 
 	/// <summary>
@@ -1079,6 +1083,9 @@ public sealed partial class EditorViewModel :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Builds the rows of the tree, filters them by the search and keeps their expanded and selected states.
+	/// </summary>
 	public EditorViewModel(
 		EditingFilesViewModel editingFiles,
 		IAppSettingsStore settingsStore,
@@ -1371,6 +1378,9 @@ public sealed partial class EditorViewModel :
 		}
 
 		UpdateHierarchySummary();
+
+		// The deleted object may have been the last one shown.
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
 		return true;
 	}
@@ -1737,7 +1747,7 @@ public sealed partial class EditorViewModel :
 		string action = items.Any(HoldsOpenedFile) ? Strings.CloseTheFilesAndDelete : Strings.Delete;
 
 		if (!await _confirmationPrompt
-			.RequestYesNoAsync($@"{action} ""{items.GetCount().AsString()}""?")
+			.RequestYesNoAsync($"{action} {QuoteBuilder.Build(items.GetCount().AsString())}?")
 			.ConfigureAwait(true))
 		{
 			return;
@@ -1757,6 +1767,9 @@ public sealed partial class EditorViewModel :
 		}
 
 		UpdateHierarchySummary();
+
+		// The deleted objects may have been the last ones shown.
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>

@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using DataOrganizer.UnitTests.TestHelpers;
 using Material.Styles.Controls;
 using System;
 using System.Linq;

@@ -29,6 +29,9 @@ internal sealed class DocumentTabTemplate : IDataTemplate, IViewCache
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DocumentTabTemplate" /> class.
+	/// </summary>
 	public DocumentTabTemplate(IEmbeddedEditorFactory editorFactory, IViewFactory viewFactory)
 	{
 		_editorFactory = editorFactory;

@@ -8,6 +8,7 @@ using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.Controls.Text;
+using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 using System.Reactive.Linq;
 

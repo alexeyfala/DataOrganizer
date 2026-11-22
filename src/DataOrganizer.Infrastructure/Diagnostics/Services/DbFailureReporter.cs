@@ -26,6 +26,9 @@ public sealed class DbFailureReporter : IDbFailureReporter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DbFailureReporter" /> class.
+	/// </summary>
 	public DbFailureReporter(ILogger logger, INotificationService notification)
 	{
 		_logger = logger;

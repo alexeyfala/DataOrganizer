@@ -29,6 +29,9 @@ public sealed class FileTextReader : IFileTextReader
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileTextReader" /> class.
+	/// </summary>
 	public FileTextReader(
 		IEditorStateStore editorStateStore,
 		IFileContentsReader fileContentsReader,

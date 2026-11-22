@@ -1,7 +1,10 @@
 using DataOrganizer.Database.Repository.Interfaces.Database;
+using DataOrganizer.Documents.FileContents.Helpers;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using Serilog;
@@ -29,6 +32,9 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ContentCopier" /> class.
+	/// </summary>
 	public ContentCopier(
 		ICopyHistoryRecorder copyHistory,
 		IDbAccess dbAccess,
@@ -59,12 +65,15 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 				.ExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
-				_notification.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}");
+				_notification.ShowErrorSnackbar($"{QuoteBuilder.Build(file.Name)} {Strings.DoesNotExist}");
 
 				return false;
 			}
 
-			if (!await CopyTextAsync(file, Strings.CopyContent, token).ConfigureAwait(true))
+			if (!await CopyTextAsync(
+				file,
+				ObjectHeaderBuilder.Build(Strings.CopyContent, file.Name),
+				token).ConfigureAwait(true))
 			{
 				return false;
 			}
@@ -82,7 +91,7 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 		{
 			_logger.LogException(ex, breakInDebugger: false);
 
-			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
+			_notification.ShowErrorSnackbar(FileContentsMessages.FailedToLoad(file.Name));
 
 			return false;
 		}
@@ -91,20 +100,19 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 	/// <inheritdoc />
 	protected override void ReportDamaged(FileDto file)
 	{
-		_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
+		_notification.ShowErrorSnackbar(FileContentsMessages.FailedToLoad(file.Name));
 	}
 
 	/// <inheritdoc />
 	protected override void ReportEmpty(FileDto file)
 	{
-		_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+		_notification.ShowInformationSnackbar(FileContentsMessages.Empty(file.Name));
 	}
 
 	/// <inheritdoc />
 	protected override void ReportNotText(FileDto file)
 	{
-		_notification.ShowWarningSnackbar($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+		_notification.ShowWarningSnackbar(FileContentsMessages.NotText(file.Name));
 	}
 	#endregion
-
 }

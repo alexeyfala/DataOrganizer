@@ -29,6 +29,9 @@ public sealed class CommentFoldingStrategy : ILineFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CommentFoldingStrategy" /> class.
+	/// </summary>
 	public CommentFoldingStrategy(SyntaxFoldingRules rules)
 	{
 		_rules = rules;

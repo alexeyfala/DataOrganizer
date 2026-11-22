@@ -9,6 +9,9 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.Hierarchy.Extensions;
 
+/// <summary>
+/// Searches, filters and flattens the hierarchy of explorer objects.
+/// </summary>
 public static class HierarchyExtensions
 {
 	#region Methods
@@ -262,11 +265,29 @@ public static class HierarchyExtensions
 	/// </summary>
 	public static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
+		return Count(hierarchy.Flatten());
+	}
+
+	/// <summary>
+	/// Counts the files and folders of the hierarchy whose identifiers are in <paramref name="ids" />.
+	/// </summary>
+	public static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy, IReadOnlySet<Guid> ids)
+	{
+		return Count(hierarchy.FilterBy(x => ids.Contains(x.Id)));
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Counts the files and folders among <paramref name="items" />, their children left out.
+	/// </summary>
+	private static HierarchyCounts Count(IEnumerable<ExplorerItemDtoBase> items)
+	{
 		uint files = default;
 
 		uint folders = default;
 
-		foreach (ExplorerItemDtoBase item in hierarchy.Flatten())
+		foreach (ExplorerItemDtoBase item in items)
 		{
 			if (item.Kind == EntityKind.File || item.Kind == EntityKind.Dataset)
 			{
@@ -284,9 +305,7 @@ public static class HierarchyExtensions
 			Folders = folders
 		};
 	}
-	#endregion
 
-	#region Helpers
 	/// <summary>
 	/// Returns the children of <paramref name="item" />: those of a folder, none of a file.
 	/// </summary>

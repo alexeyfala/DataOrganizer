@@ -23,6 +23,9 @@ internal sealed class SensitiveTextBlockAutomationPeer : ControlAutomationPeer
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Reports a change of the name when the block turns sensitive or back, or when its plain text changes.
+	/// </summary>
 	public SensitiveTextBlockAutomationPeer(SensitiveTextBlock owner)
 		: base(owner)
 	{

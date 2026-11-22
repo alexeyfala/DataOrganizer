@@ -35,6 +35,9 @@ public sealed class ClipboardLogSeeder : IClipboardLogSeeder
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ClipboardLogSeeder" /> class.
+	/// </summary>
 	public ClipboardLogSeeder(
 		IClipboardLogMerger clipboardLog,
 		IDispatcherAccessor dispatcher,

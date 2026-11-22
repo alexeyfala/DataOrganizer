@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
@@ -7,7 +9,6 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
-using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
@@ -140,21 +141,26 @@ internal class SettingsViewTests
 	public void Opens_On_The_Category_Kept_For_The_Session()
 	{
 		// Arrange
-		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
-
-		settingsStore
-			.Settings
-			.Returns(SettingsFactory.CreateSettings());
-
 		SettingsSessionState sessionState = new() { LastCategoryIndex = 2 };
 
-		SettingsViewModel viewModel = new(
-			Substitute.For<IDialogHostCloser>(),
-			new SettingsSession(
-				settingsStore,
-				Substitute.For<IAppThemeService>(),
-				Substitute.For<ISettingsApplier>()),
-			sessionState);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(SettingsFactory.CreateSettings());
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<ISettingsSessionState>(sessionState);
+
+			builder
+				.RegisterType<SettingsSession>()
+				.As<ISettingsDraft>();
+		});
+
+		SettingsViewModel viewModel = mock.Create<SettingsViewModel>();
 
 		SettingsView sut = new(viewModel);
 

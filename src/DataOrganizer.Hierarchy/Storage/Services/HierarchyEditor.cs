@@ -8,6 +8,7 @@ using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using MapsterMapper;
 using Serilog;
@@ -43,6 +44,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="HierarchyEditor" /> class.
+	/// </summary>
 	public HierarchyEditor(
 		IDbAccess dbAccess,
 		IDbFailureReporter dbFailureReporter,
@@ -91,7 +95,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		};
 
 		// Stryker disable once String : wording of a message
-		string errorText = $@"{Strings.FailedToAdd} ""{name}""";
+		string errorText = $"{Strings.FailedToAdd} {QuoteBuilder.Build(name)}";
 
 		ExplorerItemBase entity;
 
@@ -130,7 +134,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			GetCollectionToAdd(parent, hierarchy).Add(dto);
 
 			// Stryker disable once String : wording of a message
-			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
+			string successText = $"{QuoteBuilder.Build(dto.Name)} {Strings.HasBeenAdded}";
 
 			_notification.ShowInformationSnackbar(successText);
 
@@ -162,7 +166,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		}
 
 		// Stryker disable once String : wording of a message
-		ShowDeleted($@"""{dto.Name}"" {Strings.HasBeenDeleted}");
+		ShowDeleted($"{QuoteBuilder.Build(dto.Name)} {Strings.HasBeenDeleted}");
 
 		return true;
 	}
@@ -195,7 +199,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		}
 
 		// Stryker disable once String : wording of a message
-		ShowDeleted($@"""{deleted.GetCount().AsString()}"" {Strings.HaveBeenDeleted}");
+		ShowDeleted($"{QuoteBuilder.Build(deleted.GetCount().AsString())} {Strings.HaveBeenDeleted}");
 
 		return deleted;
 	}
@@ -209,7 +213,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		if (newName.Equals(dto.Name, StringComparison.Ordinal))
 		{
 			// Stryker disable once String : wording of a message
-			string warningText = $@"{Strings.IdenticalNames} ""{newName}""";
+			string warningText = $"{Strings.IdenticalNames} {QuoteBuilder.Build(newName)}";
 
 			_notification.ShowWarningSnackbar(warningText);
 
@@ -223,7 +227,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			.LocalDateTime;
 
 		// Stryker disable once String : wording of a message
-		string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
+		string errorText = $"{Strings.FailedToRename} {QuoteBuilder.Build(dto.Name)} {Strings.To} {QuoteBuilder.Build(newName)}";
 
 		bool result;
 
@@ -250,7 +254,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		}
 
 		// Stryker disable once String : wording of a message
-		string successText = $@"""{dto.Name}"" {Strings.RenamedTo} ""{newName}""";
+		string successText = $"{QuoteBuilder.Build(dto.Name)} {Strings.RenamedTo} {QuoteBuilder.Build(newName)}";
 
 		_notification.ShowInformationSnackbar(successText);
 
@@ -296,7 +300,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		CancellationToken token)
 	{
 		// Stryker disable once String : wording of a message
-		string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
+		string errorText = $"{Strings.FailedToDelete} {QuoteBuilder.Build(dto.Name)}";
 
 		bool result;
 

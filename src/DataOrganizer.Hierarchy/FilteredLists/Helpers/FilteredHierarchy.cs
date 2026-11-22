@@ -45,6 +45,9 @@ public sealed class FilteredHierarchy : IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Applies each search of <paramref name="queries" /> to the hierarchy on the thread it was created on.
+	/// </summary>
 	public FilteredHierarchy(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IObservable<string?> queries)

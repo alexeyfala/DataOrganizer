@@ -38,6 +38,9 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Claims the lowest free instance slot for this run of the application.
+	/// </summary>
 	public InstanceRegistry(IFileSystem fileSystem)
 	{
 		_fileSystem = fileSystem;

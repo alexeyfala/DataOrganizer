@@ -40,6 +40,9 @@ public sealed class FoldingText : IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Finds where each line of the text starts and ends.
+	/// </summary>
 	public FoldingText(string text)
 	{
 		_text = text;

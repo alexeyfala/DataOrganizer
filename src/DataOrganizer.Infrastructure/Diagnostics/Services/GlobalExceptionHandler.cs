@@ -41,6 +41,9 @@ public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="GlobalExceptionHandler" /> class.
+	/// </summary>
 	public GlobalExceptionHandler(ILogger logger, IPlatform platform)
 	{
 		_logger = logger;

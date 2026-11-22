@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Dialogs;
 
+/// <inheritdoc cref="IFileSystemPicker" />
 public sealed class FileSystemPicker : IFileSystemPicker
 {
 	#region Data
@@ -17,6 +18,9 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileSystemPicker" /> class.
+	/// </summary>
 	public FileSystemPicker(IWindowFinder windowFinder) => _windowFinder = windowFinder;
 	#endregion
 

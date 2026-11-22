@@ -2,6 +2,9 @@ using Avalonia.Controls;
 
 namespace DataOrganizer.Extensions.Views;
 
+/// <summary>
+/// Brings a minimized window back and activates it.
+/// </summary>
 internal static class WindowExtensions
 {
 	#region Methods

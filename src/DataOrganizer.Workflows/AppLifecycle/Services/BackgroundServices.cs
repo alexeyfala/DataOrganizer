@@ -45,6 +45,9 @@ public sealed class BackgroundServices : IAutoLockControl, IBackgroundServices, 
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="BackgroundServices" /> class.
+	/// </summary>
 	public BackgroundServices(
 		IAppSettingsStore settingsStore,
 		IAutoLockService autoLock,

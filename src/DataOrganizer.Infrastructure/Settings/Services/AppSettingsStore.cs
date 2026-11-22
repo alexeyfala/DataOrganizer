@@ -22,6 +22,9 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Loads the settings from their file.
+	/// </summary>
 	public AppSettingsStore(IAppEnvironment appEnvironment, IJsonFileStore jsonFileStore)
 	{
 		_appEnvironment = appEnvironment;

@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Models;
 using DataOrganizer.Database.Repository.Services;
@@ -38,7 +40,9 @@ internal class FolderRepositoryTests
 			.Context
 			.SaveChangesAsync();
 
-		FolderRepository sut = new(database.Context);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(database.Context));
+
+		FolderRepository sut = mock.Create<FolderRepository>();
 
 		// Act
 		List<Guid> result = await CollectAsync(sut.GetFolderSubtreeIdsAsync(root.Id));
@@ -74,7 +78,9 @@ internal class FolderRepositoryTests
 			.Context
 			.SaveChangesAsync();
 
-		FolderRepository sut = new(database.Context);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(database.Context));
+
+		FolderRepository sut = mock.Create<FolderRepository>();
 
 		// Act
 		List<Guid> result = await CollectAsync(sut.GetFolderSubtreeIdsAsync(root.Id));

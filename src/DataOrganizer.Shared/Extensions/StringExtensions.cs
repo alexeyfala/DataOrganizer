@@ -3,6 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Checks strings for the formats of a color and of a URI, quotes them where needed and truncates them.
+/// </summary>
 public static partial class StringExtensions
 {
 	#region Methods

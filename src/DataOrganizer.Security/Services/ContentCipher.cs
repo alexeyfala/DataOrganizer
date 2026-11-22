@@ -19,6 +19,9 @@ public sealed class ContentCipher : IContentCipher
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ContentCipher" /> class.
+	/// </summary>
 	public ContentCipher(ILogger logger, ISessionKeyStore sessionKeyStore)
 	{
 		_logger = logger;

@@ -2,6 +2,9 @@ using DataOrganizer.Infrastructure.AppInstance.Services;
 
 namespace DataOrganizer.Infrastructure.AppInstance.Extensions;
 
+/// <summary>
+/// Appends the arguments that <see cref="CommandLineOptions" /> knows to an array of command line arguments.
+/// </summary>
 public static class CommandLineOptionsExtensions
 {
 	#region Methods

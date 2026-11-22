@@ -16,6 +16,9 @@ public sealed class UiTimer : IUiTimer
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="UiTimer" /> class.
+	/// </summary>
 	public UiTimer(IDispatcherAccessor dispatcher, TimeProvider timeProvider)
 	{
 		_dispatcher = dispatcher;

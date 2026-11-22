@@ -4,6 +4,9 @@ using System;
 
 namespace DataOrganizer.Documents.Editor.Extensions;
 
+/// <summary>
+/// Gives the caption and the characters of each line break style.
+/// </summary>
 public static class LineEndingExtensions
 {
 	#region Methods

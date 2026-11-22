@@ -1,15 +1,13 @@
+using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Enums;
-using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using NSubstitute;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;
@@ -30,9 +28,9 @@ internal class YesNoCancelBoxViewTests
 	public async Task Escape_Answers_With_The_Button_That_Handles_It([Values] YesNoCancelButtons variant)
 	{
 		// Arrange
-		YesNoCancelBoxViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>());
+		using AutoMock mock = AutoMock.GetLoose();
+
+		YesNoCancelBoxViewModel viewModel = mock.Create<YesNoCancelBoxViewModel>();
 
 		// The view carries the buttons on its own; a dialog host would only add a registry shared
 		// with every other test.

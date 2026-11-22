@@ -35,6 +35,9 @@ public closed partial class DatasetRecordBase : ObservableObject
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Names <see cref="Type" /> after the type of the record.
+	/// </summary>
 	protected DatasetRecordBase() => Type = GetType().Name;
 	#endregion
 

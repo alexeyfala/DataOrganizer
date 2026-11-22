@@ -30,6 +30,9 @@ public sealed class BackedUpWriter : IBackedUpWriter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="BackedUpWriter" /> class.
+	/// </summary>
 	public BackedUpWriter(
 		IDbBackupService dbBackupService,
 		IDbFailureReporter dbFailureReporter,

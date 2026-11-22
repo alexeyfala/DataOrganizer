@@ -3,6 +3,9 @@ using System;
 
 namespace DataOrganizer.Windows;
 
+/// <summary>
+/// Window of the notepad with its tabs of text.
+/// </summary>
 public sealed partial class NotepadWindow : AppWindowBase
 {
 	#region Properties
@@ -14,6 +17,9 @@ public sealed partial class NotepadWindow : AppWindowBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Loads the markup and starts tracking the placement of the window.
+	/// </summary>
 	public NotepadWindow()
 	{
 		InitializeComponent();
@@ -21,6 +27,9 @@ public sealed partial class NotepadWindow : AppWindowBase
 		Placement = WindowPlacementTracker.Attach(this);
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NotepadWindow" /> class.
+	/// </summary>
 	public NotepadWindow(NotepadViewModel viewModel) : this() => DataContext = ViewModel = viewModel;
 	#endregion
 

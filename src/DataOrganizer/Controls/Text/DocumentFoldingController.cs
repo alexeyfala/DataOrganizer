@@ -65,6 +65,9 @@ internal sealed class DocumentFoldingController
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Catches the folding chords in the editor and shows the tip of a folded block while the pointer rests on its box.
+	/// </summary>
 	public DocumentFoldingController(DocumentTextEditor editor)
 	{
 		_editor = editor;

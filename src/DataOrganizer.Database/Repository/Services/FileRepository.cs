@@ -12,9 +12,13 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Database.Repository.Services;
 
+/// <inheritdoc cref="IFileRepository" />
 public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileRepository" /> class.
+	/// </summary>
 	public FileRepository(SqliteDbContext context) : base(context)
 	{
 	}

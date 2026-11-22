@@ -1014,25 +1014,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1091,6 +1077,10 @@ internal class DatasetEditorViewModelTests
 				.As<IFileContentsReader>();
 
 			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
+			builder
 				.RegisterType<SystemTextJsonSerializer>()
 				.As<IJsonSerializer>();
 		});
@@ -1124,23 +1114,6 @@ internal class DatasetEditorViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -1190,6 +1163,10 @@ internal class DatasetEditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -1477,24 +1454,6 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder.RegisterInstance(jsonSerializer);
 		});
 
@@ -2726,16 +2685,6 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
@@ -2745,10 +2694,6 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(serializer);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -2820,16 +2765,6 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
@@ -2839,10 +2774,6 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(serializer);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -2918,16 +2849,6 @@ internal class DatasetEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			dbAccess
 				.UpdateFileContentsAsync(default, default!, default, default)
 				.ReturnsForAnyArgs(true);
@@ -2941,10 +2862,6 @@ internal class DatasetEditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(serializer);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<FileContentsWriter>()
@@ -3774,25 +3691,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -3842,25 +3745,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -4018,25 +3907,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()
@@ -4087,25 +3962,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			builder.RegisterInstance(dbAccess);
 
 			builder
 				.RegisterType<EditorStateStore>()
 				.As<IEditorStateStore>();
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder
 				.RegisterType<SystemTextJsonSerializer>()

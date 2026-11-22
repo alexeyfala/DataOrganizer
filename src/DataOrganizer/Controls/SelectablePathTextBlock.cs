@@ -43,6 +43,9 @@ internal sealed class SelectablePathTextBlock : SelectableTextBlock
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Takes over the copy to the clipboard, which leaves the break marks out of the path.
+	/// </summary>
 	public SelectablePathTextBlock() => AddHandler(CopyingToClipboardEvent, SelectablePathTextBlock_CopyingToClipboard);
 	#endregion
 

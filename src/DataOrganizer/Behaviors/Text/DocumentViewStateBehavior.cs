@@ -68,6 +68,9 @@ internal sealed class DocumentViewStateBehavior :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Follows <see cref="ViewState" /> to bring back a state set from outside.
+	/// </summary>
 	public DocumentViewStateBehavior()
 	{
 		this

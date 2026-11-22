@@ -15,6 +15,9 @@ public sealed class WindowSettingsStore : IWindowSettingsStore
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="WindowSettingsStore" /> class.
+	/// </summary>
 	public WindowSettingsStore(IAppEnvironment appEnvironment, IJsonFileStore jsonFileStore)
 	{
 		_appEnvironment = appEnvironment;

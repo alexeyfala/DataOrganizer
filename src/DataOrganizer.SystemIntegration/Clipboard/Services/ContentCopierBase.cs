@@ -18,6 +18,9 @@ public abstract class ContentCopierBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ContentCopierBase" /> class.
+	/// </summary>
 	protected ContentCopierBase(IFileTextCopier fileTextCopier) => _fileTextCopier = fileTextCopier;
 	#endregion
 

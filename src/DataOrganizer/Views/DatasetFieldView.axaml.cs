@@ -298,6 +298,9 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DatasetFieldView" /> class.
+	/// </summary>
 	public DatasetFieldView() => InitializeComponent();
 	#endregion
 

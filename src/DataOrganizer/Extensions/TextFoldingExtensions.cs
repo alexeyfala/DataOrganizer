@@ -3,6 +3,9 @@ using DataOrganizer.Documents.TextProcessing.Dto;
 
 namespace DataOrganizer.Extensions;
 
+/// <summary>
+/// Converts the folded blocks of a text to the blocks of the editor engine.
+/// </summary>
 internal static class TextFoldingExtensions
 {
 	#region Methods

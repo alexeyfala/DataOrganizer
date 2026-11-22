@@ -17,6 +17,9 @@ public sealed class NoteCipher : INoteCipher
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NoteCipher" /> class.
+	/// </summary>
 	public NoteCipher(IContentCipher contentCipher) => _contentCipher = contentCipher;
 	#endregion
 

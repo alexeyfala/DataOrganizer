@@ -20,6 +20,9 @@ public sealed class JsonExchangeFormat : SerializedExchangeFormatBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="JsonExchangeFormat" /> class.
+	/// </summary>
 	public JsonExchangeFormat(
 		IDbAccess dbAccess,
 		IFileSystem fileSystem,

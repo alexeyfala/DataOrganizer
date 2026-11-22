@@ -8,6 +8,7 @@ using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Favorites.Messages;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.UnitTests.Threading.Fakes;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -65,6 +66,39 @@ internal class HotkeyContentCopierTests
 		steps
 			.Should()
 			.Equal("activate", "favorites");
+	}
+
+	/// <summary>
+	/// <see cref="HotkeyContentCopier.CopyAsync" />: the text is copied under a header that names the file, the header a
+	/// password prompt shows.
+	/// </summary>
+	[Test]
+	public async Task CopyAsync_Heads_The_Prompt_With_The_File()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		IFileTextCopier fileTextCopier = Substitute.For<IFileTextCopier>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileTextCopier);
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+		});
+
+		HotkeyContentCopier sut = mock.Create<HotkeyContentCopier>();
+
+		// Act
+		await sut.CopyAsync(file);
+
+		// Assert
+		await fileTextCopier.Received(1).CopyAsync(
+			file,
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(file.Name))),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

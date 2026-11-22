@@ -5,15 +5,12 @@
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:clipboard="using:DataOrganizer.SystemIntegration.Clipboard.Interfaces"
 	xmlns:controls="using:DataOrganizer.Controls"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:security="using:DataOrganizer.Behaviors.Security"
 	x:DataType="dialogs:KeyValueInputViewModel"
-	Theme="{StaticResource DialogTheme}"
-	mc:Ignorable="d">
+	Theme="{StaticResource DialogTheme}">
 
 	<UserControl.Styles>
 		<Style Selector="TextBox.revealPasswordButton">

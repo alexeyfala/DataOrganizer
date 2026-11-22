@@ -9,6 +9,9 @@ namespace DataOrganizer.Windows;
 internal sealed class AppWindowAutomationPeer : WindowAutomationPeer
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AppWindowAutomationPeer" /> class.
+	/// </summary>
 	public AppWindowAutomationPeer(AppWindowBase owner) : base(owner)
 	{
 	}

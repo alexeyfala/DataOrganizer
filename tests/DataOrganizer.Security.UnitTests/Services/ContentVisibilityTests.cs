@@ -10,6 +10,7 @@ using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
 using DataOrganizer.Security.UnitTests.Factories;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -98,6 +99,96 @@ internal class ContentVisibilityTests
 		sessionKeyStore
 			.DidNotReceive()
 			.Lock(file.Id);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.DiscardUnusedKey" />: an object taken out of a keeper keeps the key of the keeper
+	/// while anything else under it is shown.
+	/// </summary>
+	[Test]
+	public void DiscardUnusedKey_Keeps_The_Key_While_Another_Object_Is_Shown()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
+
+		FileDto removed = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		removed.Parent = keeper;
+
+		keeper
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted));
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardUnusedKey(removed);
+
+		// Assert
+		sessionKeyStore
+			.DidNotReceive()
+			.Lock(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.DiscardUnusedKey" />: an object outside any keeper drops no key.
+	/// </summary>
+	[Test]
+	public void DiscardUnusedKey_Leaves_The_Keys_For_An_Object_Outside_A_Keeper()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardUnusedKey(file);
+
+		// Assert
+		sessionKeyStore
+			.DidNotReceive()
+			.Lock(Arg.Any<Guid>());
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.DiscardUnusedKey" />: an object taken out of a keeper drops the key of the keeper
+	/// once nothing under it is shown.
+	/// </summary>
+	[Test]
+	public void DiscardUnusedKey_Locks_The_Keeper_Once_Nothing_Under_It_Is_Shown()
+	{
+		// Arrange
+		FolderDto keeper = ItemDtoFactory.CreateKeeperDto();
+
+		FileDto removed = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		removed.Parent = keeper;
+
+		keeper
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted));
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardUnusedKey(removed);
+
+		// Assert
+		sessionKeyStore
+			.Received(1)
+			.Lock(keeper.Id);
 	}
 
 	/// <summary>
@@ -292,6 +383,57 @@ internal class ContentVisibilityTests
 		folder.GetAllChildren()
 			.Should()
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: the password of the keeper is asked for under a header that
+	/// names the file.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsAsync_Heads_The_Prompt_With_The_File()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// A cancelled prompt stops the flow right after it.
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		await sut.ShowFileContentsAsync(file);
+
+		// Assert
+		await unlocker.Received(1).RequestDekAsync(
+			folder,
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(file.Name))),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -559,6 +701,49 @@ internal class ContentVisibilityTests
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Decrypted);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: the password of the keeper is asked for under a header
+	/// that names the folder.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContentsAsync_Heads_The_Prompt_With_The_Folder()
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
+
+		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// A cancelled prompt stops the flow right after it.
+			unlocker
+				.RequestDekAsync(
+					Arg.Any<IPasswordKeeper>(),
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>(),
+					Arg.Any<string>())
+				.Returns((PinnedBuffer?)null);
+
+			builder.RegisterInstance(unlocker);
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		await sut.ShowFolderContentsAsync(folder);
+
+		// Assert
+		await unlocker.Received(1).RequestDekAsync(
+			folder,
+			Arg.Is<string>(x => x.EndsWith(QuoteBuilder.Build(folder.Name))),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>());
 	}
 
 	/// <summary>

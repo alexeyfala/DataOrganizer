@@ -14,6 +14,9 @@ internal sealed class ViewFactory : IViewFactory
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ViewFactory" /> class.
+	/// </summary>
 	public ViewFactory(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
 	#endregion
 

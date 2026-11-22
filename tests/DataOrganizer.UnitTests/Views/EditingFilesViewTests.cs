@@ -16,7 +16,7 @@ using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataOrganizer.Workflows.AppLifecycle.Services;

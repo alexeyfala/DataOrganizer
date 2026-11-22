@@ -23,6 +23,9 @@ public sealed class CheckMarks : ICheckMarks
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CheckMarks" /> class.
+	/// </summary>
 	public CheckMarks(IMessenger messenger, ISessionTreeState treeState)
 	{
 		_messenger = messenger;

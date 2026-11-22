@@ -228,6 +228,9 @@ internal sealed partial class ChoiceSelector : UserControl
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Loads the markup and hooks the flyout, the keys, the taps and the search of the choices.
+	/// </summary>
 	public ChoiceSelector()
 	{
 		InitializeComponent();

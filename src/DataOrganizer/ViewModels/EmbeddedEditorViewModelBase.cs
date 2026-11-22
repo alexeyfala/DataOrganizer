@@ -153,6 +153,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Registers the editor for its messages.
+	/// </summary>
 	protected EmbeddedEditorViewModelBase(
 		IDbFailureReporter dbFailureReporter,
 		IEditorStateStore editorStateStore,

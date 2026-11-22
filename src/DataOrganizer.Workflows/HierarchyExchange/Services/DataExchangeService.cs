@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Extensions;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
@@ -74,6 +75,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DataExchangeService" /> class.
+	/// </summary>
 	public DataExchangeService(
 		IBackedUpWriter backedUpWriter,
 		IDbAccess dbAccess,
@@ -119,18 +123,23 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task ExportDataAsync(CancellationToken token = default)
+	public Task ExportDataAsync(IEnumerable<ExplorerItemDtoBase> hierarchy, CancellationToken token = default)
 	{
 		return ExportAsync(
 			_formats,
+			hierarchy.GetCount(),
 			(format, filePath) => format.ExportAsync(filePath, token));
 	}
 
 	/// <inheritdoc />
-	public Task ExportPartAsync(IReadOnlySet<Guid> ids, CancellationToken token = default)
+	public Task ExportPartAsync(
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IReadOnlySet<Guid> ids,
+		CancellationToken token = default)
 	{
 		return ExportAsync(
 			[.. _formats.OfType<IPartialExportFormat>()],
+			hierarchy.GetCount(ids),
 			(format, filePath) => format.ExportPartAsync(
 				filePath,
 				ids,
@@ -356,10 +365,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Asks for a file of one of <paramref name="formats" /> and writes it with <paramref name="export" />.
+	/// Asks for a file of one of <paramref name="formats" />, showing the <paramref name="counts" /> of the exported objects,
+	/// and writes it with <paramref name="export" />.
 	/// </summary>
-	private async Task ExportAsync<TFormat>(TFormat[] formats, Func<TFormat, string, Task> export)
-		where TFormat : class, IExchangeFormat
+	private async Task ExportAsync<TFormat>(
+		TFormat[] formats,
+		HierarchyCounts counts,
+		Func<TFormat, string, Task> export) where TFormat : class, IExchangeFormat
 	{
 		FileSaveParameters parameters = new()
 		{
@@ -367,7 +379,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			FileTypes = [.. formats.Select(CreateFileType)],
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppInfo.AppName,
-			Title = Strings.SaveAs
+			Title = $"{Strings.SaveAs} — {counts.AsString()}"
 		};
 
 		if (await _picker

@@ -25,6 +25,9 @@ public sealed class AtomicFileWriter : IAtomicFileWriter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AtomicFileWriter" /> class.
+	/// </summary>
 	public AtomicFileWriter(IFileSystem fileSystem) => _fileSystem = fileSystem;
 	#endregion
 

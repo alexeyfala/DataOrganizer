@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
+/// <inheritdoc cref="IClipboardAccessor" />
 public sealed class ClipboardAccessor : IClipboardAccessor
 {
 	#region Data
@@ -61,6 +62,9 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ClipboardAccessor" /> class.
+	/// </summary>
 	public ClipboardAccessor(
 		IAvaloniaClipboard clipboard,
 		ILogger logger,

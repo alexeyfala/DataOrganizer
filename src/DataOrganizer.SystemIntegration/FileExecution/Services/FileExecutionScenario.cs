@@ -30,6 +30,9 @@ public sealed class FileExecutionScenario : IFileExecutionScenario
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileExecutionScenario" /> class.
+	/// </summary>
 	public FileExecutionScenario(
 		IConfirmationPrompt confirmationPrompt,
 		IExecutingFiles executingFiles,

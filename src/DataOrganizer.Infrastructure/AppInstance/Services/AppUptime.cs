@@ -22,6 +22,9 @@ public sealed class AppUptime : IAppUptime
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Starts counting the uptime from now.
+	/// </summary>
 	public AppUptime(TimeProvider timeProvider)
 	{
 		_timeProvider = timeProvider;

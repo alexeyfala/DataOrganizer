@@ -13,6 +13,9 @@ namespace DataOrganizer.Database.Repository.Services;
 public sealed class ExplorerItemRepository : RepositoryBase<ExplorerItemBase>, IExplorerItemRepository
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ExplorerItemRepository" /> class.
+	/// </summary>
 	public ExplorerItemRepository(SqliteDbContext context) : base(context)
 	{
 	}

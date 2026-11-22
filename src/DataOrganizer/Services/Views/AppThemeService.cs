@@ -12,6 +12,7 @@ using System;
 
 namespace DataOrganizer.Services.Views;
 
+/// <inheritdoc cref="IAppThemeService" />
 public sealed class AppThemeService : IAppThemeService
 {
 	#region Data
@@ -26,6 +27,9 @@ public sealed class AppThemeService : IAppThemeService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AppThemeService" /> class.
+	/// </summary>
 	public AppThemeService(
 		Application app,
 		IAppSettingsStore store,

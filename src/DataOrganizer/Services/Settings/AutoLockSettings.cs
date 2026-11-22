@@ -12,6 +12,9 @@ public sealed class AutoLockSettings : IAutoLockSettings
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AutoLockSettings" /> class.
+	/// </summary>
 	public AutoLockSettings(IAppSettingsStore settingsStore) => _settingsStore = settingsStore;
 	#endregion
 

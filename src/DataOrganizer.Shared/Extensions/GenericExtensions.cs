@@ -8,6 +8,10 @@ using System.Reflection;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Copies and lists the properties of objects through reflection, compares values with the default of their type and
+/// wraps them into sequences.
+/// </summary>
 public static class GenericExtensions
 {
 	#region Methods

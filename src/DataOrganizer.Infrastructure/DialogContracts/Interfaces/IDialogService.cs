@@ -13,9 +13,10 @@ public interface IDialogService
 {
 	#region Methods
 	/// <summary>
-	/// Displays the entity creation dialog.
+	/// Displays the entity creation dialog, headed by the folder the object goes to, or by the main list when
+	/// <paramref name="folderName" /> is <c>null</c>.
 	/// </summary>
-	Task<EntityCreationResult?> ShowEntityCreationAsync(CancellationToken token = default);
+	Task<EntityCreationResult?> ShowEntityCreationAsync(string? folderName, CancellationToken token = default);
 
 	/// <summary>
 	/// Shows a properties dialog.

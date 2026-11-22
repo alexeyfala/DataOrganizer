@@ -22,6 +22,9 @@ public abstract class RepositoryBase<T> where T : class
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="RepositoryBase{T}" /> class.
+	/// </summary>
 	protected RepositoryBase(DbContext context) => _context = context;
 	#endregion
 

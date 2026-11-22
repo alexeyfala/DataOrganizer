@@ -32,6 +32,9 @@ public abstract class SerializedExchangeFormatBase : IPartialExportFormat
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SerializedExchangeFormatBase" /> class.
+	/// </summary>
 	protected SerializedExchangeFormatBase(IDbAccess dbAccess, IFileSystem fileSystem)
 	{
 		_dbAccess = dbAccess;

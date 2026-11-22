@@ -16,6 +16,9 @@ public sealed class UnreadableHotkeysFinder : IUnreadableHotkeysFinder
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="UnreadableHotkeysFinder" /> class.
+	/// </summary>
 	public UnreadableHotkeysFinder(ILogger logger) => _logger = logger;
 	#endregion
 

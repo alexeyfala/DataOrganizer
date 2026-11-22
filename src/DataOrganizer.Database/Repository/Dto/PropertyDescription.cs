@@ -21,6 +21,9 @@ public sealed class PropertyDescription
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="PropertyDescription" /> class.
+	/// </summary>
 	public PropertyDescription(string name, object? value)
 	{
 		Name = name;

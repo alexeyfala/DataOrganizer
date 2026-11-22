@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Shared.Services;
 
+/// <summary>
+/// Reads and writes Json through <see cref="JsonSerializer" />.
+/// </summary>
 [ExcludeFromCodeCoverage(Justification = "A thin wrapper over System.Text.Json")]
 public sealed class SystemTextJsonSerializer : IJsonSerializer
 {

@@ -42,8 +42,8 @@ using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.ViewModels.Windows;
@@ -298,7 +298,7 @@ internal class EditorWindowTests
 				.Returns(Substitute.For<ExplorerItemBase>());
 
 			dialogService
-				.ShowEntityCreationAsync(Arg.Any<CancellationToken>())
+				.ShowEntityCreationAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>())
 				.Returns(answer.Task);
 
 			mapper

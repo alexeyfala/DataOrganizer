@@ -38,6 +38,9 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SessionKeyStore" /> class.
+	/// </summary>
 	public SessionKeyStore(IDekCipher dekCipher, ISessionDekWrapper sessionDekWrapper)
 	{
 		_dekCipher = dekCipher;

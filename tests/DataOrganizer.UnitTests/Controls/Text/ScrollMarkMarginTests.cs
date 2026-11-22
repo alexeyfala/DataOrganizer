@@ -17,7 +17,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Controls.Text;
 using DataOrganizer.Messages.Documents;
 using DataOrganizer.Shared.Constants;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

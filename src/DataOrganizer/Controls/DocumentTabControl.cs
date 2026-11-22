@@ -165,6 +165,9 @@ internal sealed class DocumentTabControl : TabControl
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the commands that close tabs, binds Control+Tab and handles the menu and the presses of the tabs.
+	/// </summary>
 	public DocumentTabControl()
 	{
 		CloseAllTabsCommand = new RelayCommand(CloseAllTabs);

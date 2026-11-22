@@ -16,6 +16,9 @@ namespace DataOrganizer.Workflows.HierarchyExchange.Services;
 public sealed class ImportScenario : IImportScenario
 {
 	#region Data
+	/// <inheritdoc cref="IAutoLockControl" />
+	private readonly IAutoLockControl _autoLockControl;
+
 	/// <inheritdoc cref="IContentKeys" />
 	private readonly IContentKeys _contentKeys;
 
@@ -33,13 +36,19 @@ public sealed class ImportScenario : IImportScenario
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ImportScenario" /> class.
+	/// </summary>
 	public ImportScenario(
+		IAutoLockControl autoLockControl,
 		IContentKeys contentKeys,
 		ICopyHistoryRecorder copyHistoryRecorder,
 		IDataExchangeService dataExchange,
 		IOpenFilesCloser openFilesCloser,
 		ISessionTreeState sessionTreeState)
 	{
+		_autoLockControl = autoLockControl;
+
 		_contentKeys = contentKeys;
 
 		_copyHistoryRecorder = copyHistoryRecorder;
@@ -77,6 +86,9 @@ public sealed class ImportScenario : IImportScenario
 			_copyHistoryRecorder.Clear();
 
 			_contentKeys.DiscardAllKeys();
+
+			// The replaced objects took their shown contents with them.
+			_autoLockControl.RefreshAutoLock();
 
 			_sessionTreeState.Clear();
 		}

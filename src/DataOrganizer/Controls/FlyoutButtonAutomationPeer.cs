@@ -8,6 +8,9 @@ namespace DataOrganizer.Controls;
 internal sealed class FlyoutButtonAutomationPeer : ButtonAutomationPeer
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FlyoutButtonAutomationPeer" /> class.
+	/// </summary>
 	public FlyoutButtonAutomationPeer(FlyoutButton owner)
 		: base(owner)
 	{

@@ -11,6 +11,9 @@ namespace DataOrganizer.Controls.Text;
 internal sealed class ConsoleLogViewer : TextEditorBase
 {
 	#region Constructors
+	/// <summary>
+	/// Colors the short name of each log level with the brush of the level.
+	/// </summary>
 	public ConsoleLogViewer()
 	{
 		foreach (LogEventLevel level in Enum.GetValues<LogEventLevel>())

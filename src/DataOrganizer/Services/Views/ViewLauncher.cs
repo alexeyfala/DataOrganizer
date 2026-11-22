@@ -63,6 +63,9 @@ public class ViewLauncher :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ViewLauncher" /> class.
+	/// </summary>
 	public ViewLauncher(
 		IAppEnvironment appEnvironment,
 		IClipboardHistoryUnlocker clipboardHistoryUnlocker,

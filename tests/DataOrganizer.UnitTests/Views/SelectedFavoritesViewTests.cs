@@ -16,6 +16,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using Microsoft.Extensions.Time.Testing;
@@ -38,7 +39,7 @@ internal class SelectedFavoritesViewTests
 	public void CategoriesList_Shows_The_Categories()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose();
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 
@@ -67,8 +68,6 @@ internal class SelectedFavoritesViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(Application.Current!);
-
 			// The search typed here waits for its pause, which does not come here.
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -127,9 +126,6 @@ internal class SelectedFavoritesViewTests
 			builder
 				.RegisterType<ContentCopier>()
 				.As<IContentCopier>();
-
-			// The running headless application, since Application cannot be substituted.
-			builder.RegisterInstance(Application.Current!);
 		});
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
@@ -197,8 +193,6 @@ internal class SelectedFavoritesViewTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(Application.Current!);
-
 			// The search typed here waits for its pause, which does not come here.
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -229,7 +223,7 @@ internal class SelectedFavoritesViewTests
 	public void FavoritesList_Shows_The_Favorites()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose();
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 
@@ -254,7 +248,7 @@ internal class SelectedFavoritesViewTests
 	public void NavigationColumnWidth_Follows_The_Navigation_Column()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose();
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 
@@ -279,7 +273,7 @@ internal class SelectedFavoritesViewTests
 	public void NavigationColumnWidth_Reaches_The_Navigation_Column()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose();
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 
@@ -304,7 +298,7 @@ internal class SelectedFavoritesViewTests
 	public void Resize_Narrows_The_Navigation_Column()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(Application.Current!));
+		using AutoMock mock = AutoMock.GetLoose();
 
 		SelectedFavoritesViewModel viewModel = mock.Create<SelectedFavoritesViewModel>();
 

@@ -21,6 +21,9 @@ public sealed class ConfirmUpdateMessage : AsyncRequestMessage<bool>
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ConfirmUpdateMessage" /> class.
+	/// </summary>
 	public ConfirmUpdateMessage(string text, CancellationToken token)
 	{
 		Text = text;

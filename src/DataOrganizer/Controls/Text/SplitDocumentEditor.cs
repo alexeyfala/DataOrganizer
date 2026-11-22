@@ -295,6 +295,9 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Builds the grid of the primary editor and the splitter, and follows the split switch and share.
+	/// </summary>
 	public SplitDocumentEditor()
 	{
 		PrimaryEditor = CreateEditor(PrimaryEditorName, PrimaryRow);

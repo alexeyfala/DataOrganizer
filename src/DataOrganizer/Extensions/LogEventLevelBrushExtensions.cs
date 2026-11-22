@@ -3,6 +3,9 @@ using Serilog.Events;
 
 namespace DataOrganizer.Extensions;
 
+/// <summary>
+/// Gives the brush of each level of the log.
+/// </summary>
 internal static class LogEventLevelBrushExtensions
 {
 	#region Methods

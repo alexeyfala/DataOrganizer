@@ -5,6 +5,7 @@ using DataOrganizer.Documents.Notes.Helpers;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Enums;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Interfaces.Views;
@@ -30,6 +31,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Dialogs;
 
+/// <summary>
+/// Shows the dialogs and the prompts of the application in the dialog hosts of its windows.
+/// </summary>
 public sealed class DialogService :
 	IAppPickerPrompt,
 	IConfirmationPrompt,
@@ -54,6 +58,9 @@ public sealed class DialogService :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DialogService" /> class.
+	/// </summary>
 	public DialogService(
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
@@ -257,9 +264,15 @@ public sealed class DialogService :
 	}
 
 	/// <inheritdoc />
-	public async Task<EntityCreationResult?> ShowEntityCreationAsync(CancellationToken token = default)
+	public async Task<EntityCreationResult?> ShowEntityCreationAsync(
+		string? folderName,
+		CancellationToken token = default)
 	{
 		EntityCreationViewModel viewModel = _viewFactory.CreateViewModel<EntityCreationViewModel>();
+
+		viewModel.Header = folderName is null
+			? Strings.AddToMainList
+			: ObjectHeaderBuilder.Build(Strings.AddToFolder, folderName);
 
 		Task dialogClosed = ShowDialog<EntityCreationView>(viewModel);
 

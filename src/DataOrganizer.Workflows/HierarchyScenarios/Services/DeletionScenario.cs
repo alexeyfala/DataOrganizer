@@ -1,4 +1,5 @@
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Extensions;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Security.Interfaces;
@@ -16,6 +17,9 @@ namespace DataOrganizer.Workflows.HierarchyScenarios.Services;
 public sealed class DeletionScenario : IDeletionScenario
 {
 	#region Data
+	/// <inheritdoc cref="IAutoLockControl" />
+	private readonly IAutoLockControl _autoLockControl;
+
 	/// <inheritdoc cref="IContentKeys" />
 	private readonly IContentKeys _contentKeys;
 
@@ -30,12 +34,18 @@ public sealed class DeletionScenario : IDeletionScenario
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DeletionScenario" /> class.
+	/// </summary>
 	public DeletionScenario(
+		IAutoLockControl autoLockControl,
 		IContentKeys contentKeys,
 		ICopyHistoryRecorder copyHistoryRecorder,
 		IHierarchyEditor hierarchyEditor,
 		IOpenFilesCloser openFilesCloser)
 	{
+		_autoLockControl = autoLockControl;
+
 		_contentKeys = contentKeys;
 
 		_copyHistoryRecorder = copyHistoryRecorder;
@@ -53,14 +63,17 @@ public sealed class DeletionScenario : IDeletionScenario
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
+		// The open files and the countdown belong to the UI, so the deletion goes on in the context of the caller.
 		if (!await _hierarchyEditor
 			.DeleteAsync(item, hierarchy, token)
-			.ConfigureAwait(false))
+			.ConfigureAwait(true))
 		{
 			return false;
 		}
 
 		ForgetDeleted(item);
+
+		RefreshAutoLockAfter([item]);
 
 		return true;
 	}
@@ -71,14 +84,17 @@ public sealed class DeletionScenario : IDeletionScenario
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
+		// The open files and the countdown belong to the UI, so the deletion goes on in the context of the caller.
 		IReadOnlyList<ExplorerItemDtoBase> deleted = await _hierarchyEditor
 			.DeleteManyAsync(items, hierarchy, token)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		foreach (ExplorerItemDtoBase item in deleted)
 		{
 			ForgetDeleted(item);
 		}
+
+		RefreshAutoLockAfter(deleted);
 
 		return deleted;
 	}
@@ -86,7 +102,8 @@ public sealed class DeletionScenario : IDeletionScenario
 
 	#region Helpers
 	/// <summary>
-	/// Closes the files of a deleted object, takes them out of the copy history and forgets the keys of a deleted folder.
+	/// Closes the files of a deleted object, takes them out of the copy history, forgets the keys of a deleted folder and
+	/// the key of a keeper that has nothing shown left.
 	/// </summary>
 	private void ForgetDeleted(ExplorerItemDtoBase item)
 	{
@@ -104,12 +121,27 @@ public sealed class DeletionScenario : IDeletionScenario
 			_copyHistoryRecorder.Remove(deletedFile);
 		}
 
-		if (item is not FolderDto deletedFolder)
+		if (item is FolderDto deletedFolder)
+		{
+			_contentKeys.DiscardKeys(deletedFolder);
+		}
+
+		// The object still knows its parents, so the keeper above it is found.
+		_contentKeys.DiscardUnusedKey(item);
+	}
+
+	/// <summary>
+	/// Brings the auto-lock countdown in line with the shown contents once deleted objects took some of them away.
+	/// </summary>
+	private void RefreshAutoLockAfter(IEnumerable<ExplorerItemDtoBase> deleted)
+	{
+		// A refresh starts the countdown over while other contents stay shown, so hidden objects never trigger it.
+		if (!deleted.ContainsBy(static x => x.EncryptionStatus == EncryptionStatus.Decrypted))
 		{
 			return;
 		}
 
-		_contentKeys.DiscardKeys(deletedFolder);
+		_autoLockControl.RefreshAutoLock();
 	}
 	#endregion
 }

@@ -31,6 +31,9 @@ internal sealed class MaxSizeSwitchPanel : Panel
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Clips the children to the panel and updates them when they or the selected index change.
+	/// </summary>
 	public MaxSizeSwitchPanel()
 	{
 		// Keeps the children placed outside the panel bounds invisible.

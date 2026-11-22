@@ -21,6 +21,9 @@ public sealed class FileTextCopier : IFileTextCopier
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileTextCopier" /> class.
+	/// </summary>
 	public FileTextCopier(IClipboardTextWriter clipboardWriter, IFileTextReader fileTextReader)
 	{
 		_clipboardWriter = clipboardWriter;

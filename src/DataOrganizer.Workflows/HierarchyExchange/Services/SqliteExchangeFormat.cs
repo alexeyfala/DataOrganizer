@@ -21,6 +21,9 @@ public sealed class SqliteExchangeFormat : IExchangeFormat
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SqliteExchangeFormat" /> class.
+	/// </summary>
 	public SqliteExchangeFormat(IDbBackupService dbBackupService, IDbImporter dbImporter)
 	{
 		_dbBackupService = dbBackupService;

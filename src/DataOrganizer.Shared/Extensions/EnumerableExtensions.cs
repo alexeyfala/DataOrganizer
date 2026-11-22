@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Shared.Extensions;
 
+/// <summary>
+/// Walks, iterates, joins and orders sequences, and turns a missing sequence into an empty one.
+/// </summary>
 public static class EnumerableExtensions
 {
 	#region Methods

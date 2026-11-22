@@ -3,6 +3,7 @@ using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Extensions;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Properties;
 using SharpHook.Data;
 using System;
@@ -11,6 +12,10 @@ using System.Linq;
 
 namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 
+/// <summary>
+/// Converts hotkeys between <see cref="KeyStroke" /> and <see cref="HotkeyDto" />, presents them as text and finds the
+/// files whose hotkeys could not be read.
+/// </summary>
 public static class HotkeyExtensions
 {
 	#region Methods
@@ -79,11 +84,7 @@ public static class HotkeyExtensions
 		{
 			builder.Append(Environment.NewLine);
 
-			builder.Append('"');
-
-			builder.Append(files[i].Name);
-
-			builder.Append('"');
+			builder.Append(QuoteBuilder.Build(files[i].Name));
 		}
 
 		if (files.Length > maxNames)

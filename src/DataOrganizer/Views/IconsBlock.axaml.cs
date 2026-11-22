@@ -140,6 +140,9 @@ internal sealed partial class IconsBlock : UserControl
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="IconsBlock" /> class.
+	/// </summary>
 	public IconsBlock() => InitializeComponent();
 	#endregion
 }

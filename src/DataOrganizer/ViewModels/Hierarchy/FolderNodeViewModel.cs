@@ -31,6 +31,9 @@ public sealed class FolderNodeViewModel : ExplorerNodeViewModelBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Builds the rows of the children of the folder and shows those that the filter lets through.
+	/// </summary>
 	public FolderNodeViewModel(
 		FolderDto model,
 		IObservable<HierarchyFilter> filter,

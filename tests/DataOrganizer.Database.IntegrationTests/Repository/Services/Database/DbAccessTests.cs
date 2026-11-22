@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Database.Entities.Models;
-using DataOrganizer.Database.IntegrationTests.Repository.Fixtures;
+using DataOrganizer.Database.IntegrationTests.Repository.TestHelpers;
 using DataOrganizer.Database.Repository.DbContexts;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Enums;

@@ -19,6 +19,9 @@ public sealed class CompositeFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CompositeFoldingStrategy" /> class.
+	/// </summary>
 	public CompositeFoldingStrategy(params ILineFoldingStrategy[] strategies)
 	{
 		_strategies = strategies;

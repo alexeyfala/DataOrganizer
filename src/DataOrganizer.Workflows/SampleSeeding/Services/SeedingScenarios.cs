@@ -32,6 +32,9 @@ public sealed class SeedingScenarios : ISeedingScenarios
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SeedingScenarios" /> class.
+	/// </summary>
 	public SeedingScenarios(
 		IClipboardLogSeeder clipboardLogSeeder,
 		ILogger logger,

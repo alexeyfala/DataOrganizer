@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Models;
 using DataOrganizer.Database.Repository.Enums;
@@ -31,7 +33,9 @@ internal class FileRepositoryTests
 			.Context
 			.SaveChangesAsync();
 
-		FileRepository sut = new(database.Context);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(database.Context));
+
+		FileRepository sut = mock.Create<FileRepository>();
 
 		// Act
 		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState);
@@ -70,7 +74,9 @@ internal class FileRepositoryTests
 			.Context
 			.SaveChangesAsync();
 
-		FileRepository sut = new(database.Context);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(database.Context));
+
+		FileRepository sut = mock.Create<FileRepository>();
 
 		// Act
 		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Contents);
@@ -107,7 +113,9 @@ internal class FileRepositoryTests
 			.Context
 			.SaveChangesAsync();
 
-		FileRepository sut = new(database.Context);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(database.Context));
+
+		FileRepository sut = mock.Create<FileRepository>();
 
 		// Act
 		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.EditorState);
@@ -146,7 +154,9 @@ internal class FileRepositoryTests
 			.Context
 			.SaveChangesAsync();
 
-		FileRepository sut = new(database.Context);
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(database.Context));
+
+		FileRepository sut = mock.Create<FileRepository>();
 
 		// Act
 		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.None);

@@ -3,6 +3,9 @@ using DataOrganizer.Documents.Editor.Enums;
 
 namespace DataOrganizer.Extensions;
 
+/// <summary>
+/// Finds the line break style of a text document.
+/// </summary>
 internal static class TextDocumentExtensions
 {
 	#region Methods

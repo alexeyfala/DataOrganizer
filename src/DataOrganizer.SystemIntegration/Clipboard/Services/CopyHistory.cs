@@ -39,6 +39,9 @@ public sealed class CopyHistory : ICopyHistory, ICopyHistoryRecorder, ICopyHisto
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates an empty history with a read-only view of its items.
+	/// </summary>
 	public CopyHistory(IMessenger messenger, IWindowSettingsStore windowSettings)
 	{
 		_messenger = messenger;

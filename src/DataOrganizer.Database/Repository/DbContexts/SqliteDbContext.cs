@@ -20,11 +20,17 @@ public class SqliteDbContext : DbContext
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SqliteDbContext" /> class.
+	/// </summary>
 	public SqliteDbContext(DbContextOptions<SqliteDbContext> options) : base(options)
 	{
 		// When used in DI, a constructor with these arguments is required.
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SqliteDbContext" /> class.
+	/// </summary>
 	public SqliteDbContext()
 	{
 		// To be able to create migrations.

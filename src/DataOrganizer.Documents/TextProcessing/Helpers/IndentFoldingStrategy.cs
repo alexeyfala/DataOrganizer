@@ -49,6 +49,9 @@ public sealed class IndentFoldingStrategy : ILineFoldingStrategy
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Creates the strategy for a tab of the given width, which must be positive.
+	/// </summary>
 	public IndentFoldingStrategy(SyntaxFoldingRules rules, int tabSize)
 	{
 		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(tabSize);

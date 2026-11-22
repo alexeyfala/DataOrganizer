@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Database.IntegrationTests.Repository.Fixtures;
+using DataOrganizer.Database.IntegrationTests.Repository.TestHelpers;
 using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Database.Repository.Services.Database;
 using Microsoft.Data.Sqlite;

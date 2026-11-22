@@ -12,6 +12,9 @@ using System.Diagnostics;
 
 namespace DataOrganizer.Database.Repository.Extensions;
 
+/// <summary>
+/// Registers the database layer in the service container.
+/// </summary>
 public static class RepositoryServiceCollectionExtensions
 {
 	#region Methods

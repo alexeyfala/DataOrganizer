@@ -55,6 +55,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="WindowsAppPickerService" /> class.
+	/// </summary>
 	[ExcludeFromCodeCoverage(Justification = "Reads the Windows registry and shell, runs only on Windows")]
 	public WindowsAppPickerService(
 		IAppPickerPrompt appPickerPrompt,

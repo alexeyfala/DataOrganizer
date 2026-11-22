@@ -12,7 +12,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UnitTests.Controls;
 

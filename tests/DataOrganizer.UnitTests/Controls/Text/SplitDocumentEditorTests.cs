@@ -14,7 +14,7 @@ using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 using DataOrganizer.Controls.Text;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;

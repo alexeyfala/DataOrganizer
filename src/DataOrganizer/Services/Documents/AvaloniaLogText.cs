@@ -4,6 +4,9 @@ using DataOrganizer.Interfaces.Documents;
 
 namespace DataOrganizer.Services.Documents;
 
+/// <summary>
+/// Text of the log held in an AvaloniaEdit <see cref="TextDocument" /> that keeps no undo history.
+/// </summary>
 public sealed class AvaloniaLogText : ILogText, ITextDocumentHolder
 {
 	#region Properties

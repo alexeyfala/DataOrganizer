@@ -11,7 +11,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Controls;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using Material.Icons;
 using NSubstitute;
 using System;

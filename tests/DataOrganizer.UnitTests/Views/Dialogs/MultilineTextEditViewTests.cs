@@ -1,14 +1,12 @@
+using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
-using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
-using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Dialogs;
-using NSubstitute;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;
@@ -24,12 +22,11 @@ internal class MultilineTextEditViewTests
 	public void IsSensitive_Reaches_The_Copy_Behavior([Values] bool isSensitive)
 	{
 		// Arrange
-		MultilineTextEditViewModel viewModel = new(
-			Substitute.For<IDialogCloser>(),
-			Substitute.For<ITaskExceptionHandler>())
-		{
-			IsSensitive = isSensitive
-		};
+		using AutoMock mock = AutoMock.GetLoose();
+
+		MultilineTextEditViewModel viewModel = mock.Create<MultilineTextEditViewModel>();
+
+		viewModel.IsSensitive = isSensitive;
 
 		MultilineTextEditView view = new(viewModel);
 

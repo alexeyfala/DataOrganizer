@@ -54,6 +54,8 @@ dotnet_search_reference_assemblies = true
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = false
 file_header_template = unset
+# The build reports an orphaned using only with this severity and the XML documentation written.
+dotnet_diagnostic.IDE0005.severity = warning
 
 # this. and Me. preferences
 dotnet_style_qualification_for_event = false

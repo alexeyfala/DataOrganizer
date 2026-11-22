@@ -10,6 +10,9 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.Extensions;
 
+/// <summary>
+/// Finds the rows of objects in the tree and merges what the rows at any depth report.
+/// </summary>
 internal static class ExplorerNodeExtensions
 {
 	#region Methods

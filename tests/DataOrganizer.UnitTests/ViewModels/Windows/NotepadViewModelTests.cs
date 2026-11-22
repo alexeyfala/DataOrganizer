@@ -19,7 +19,7 @@ using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.UnitTests.Threading.Fakes;
-using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using Microsoft.Extensions.Time.Testing;
@@ -2384,6 +2384,10 @@ internal class NotepadViewModelTests
 				.As<INotepadTexts>();
 
 			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+
+			builder
 				.RegisterType<DocumentTextFactory>()
 				.As<IDocumentTextFactory>();
 		});
@@ -2436,6 +2440,10 @@ internal class NotepadViewModelTests
 			builder
 				.RegisterType<NotepadTexts>()
 				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
 
 			builder
 				.RegisterType<DocumentTextFactory>()

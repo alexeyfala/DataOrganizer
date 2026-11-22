@@ -2,6 +2,7 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.UnitTests.TestHelpers;
 using Material.Styles.Assists;
 
 namespace DataOrganizer.UnitTests.Guards;

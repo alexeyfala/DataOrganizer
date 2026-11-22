@@ -109,6 +109,9 @@ public sealed class AppController :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Registers the controller for its messages.
+	/// </summary>
 	public AppController(
 		IAppEnvironment appEnvironment,
 		IAppProcess appProcess,

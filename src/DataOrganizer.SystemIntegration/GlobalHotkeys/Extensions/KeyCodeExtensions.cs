@@ -2,6 +2,9 @@ using SharpHook.Data;
 
 namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 
+/// <summary>
+/// Tells the modifier and lock keys apart from the other keys.
+/// </summary>
 public static class KeyCodeExtensions
 {
 	#region Methods

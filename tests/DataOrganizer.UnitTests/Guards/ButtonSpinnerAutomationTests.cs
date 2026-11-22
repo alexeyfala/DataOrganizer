@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;

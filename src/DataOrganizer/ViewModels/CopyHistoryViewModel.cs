@@ -85,6 +85,9 @@ public sealed partial class CopyHistoryViewModel :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Fills the list with the files of the copy history, selects the file chosen last and registers for messages.
+	/// </summary>
 	public CopyHistoryViewModel(
 		IContentCopier contentCopier,
 		ICopyHistory copyHistory,

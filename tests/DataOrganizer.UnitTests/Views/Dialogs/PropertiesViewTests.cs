@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
@@ -27,10 +29,14 @@ internal class PropertiesViewTests
 		// Arrange
 		IDialogHostCloser dialogHostCloser = Substitute.For<IDialogHostCloser>();
 
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogHostCloser));
+
+		PropertiesViewModel viewModel = mock.Create<PropertiesViewModel>();
+
 		// The view carries the button on its own; a dialog host would only add a registry shared with every other test.
 		Window window = new()
 		{
-			Content = new PropertiesView(new PropertiesViewModel(dialogHostCloser))
+			Content = new PropertiesView(viewModel)
 		};
 
 		window.Show();

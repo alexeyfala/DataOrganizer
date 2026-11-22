@@ -73,6 +73,9 @@ public sealed class ContentsWriteQueue
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ContentsWriteQueue" /> class.
+	/// </summary>
 	public ContentsWriteQueue(Func<byte[], Task<bool>> write) => _write = write;
 	#endregion
 

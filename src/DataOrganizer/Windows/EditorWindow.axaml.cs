@@ -4,6 +4,9 @@ using DataOrganizer.ViewModels.Windows;
 
 namespace DataOrganizer.Windows;
 
+/// <summary>
+/// Main window that edits the hierarchy of folders and files.
+/// </summary>
 public sealed partial class EditorWindow : AppWindowBase, IMainWindow
 {
 	#region Properties
@@ -18,6 +21,9 @@ public sealed partial class EditorWindow : AppWindowBase, IMainWindow
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Loads the markup and starts tracking the placement of the window.
+	/// </summary>
 	public EditorWindow()
 	{
 		InitializeComponent();
@@ -25,6 +31,9 @@ public sealed partial class EditorWindow : AppWindowBase, IMainWindow
 		Placement = WindowPlacementTracker.Attach(this);
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EditorWindow" /> class.
+	/// </summary>
 	public EditorWindow(EditorViewModel viewModel) : this() => DataContext = ViewModel = viewModel;
 	#endregion
 

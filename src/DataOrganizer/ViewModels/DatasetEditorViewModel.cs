@@ -13,6 +13,7 @@ using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.Shared.Threading.Enums;
@@ -455,6 +456,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DatasetEditorViewModel" /> class.
+	/// </summary>
 	public DatasetEditorViewModel(
 		IClipboardTextWriter clipboardWriter,
 		IConfirmationPrompt confirmationPrompt,
@@ -817,7 +821,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		CancellationToken token = default)
 	{
 		if (!await _confirmationPrompt
-			.RequestYesNoAsync($@"{Strings.Delete} ""{questionText}""?", token: token)
+			.RequestYesNoAsync($"{Strings.Delete} {QuoteBuilder.Build(questionText)}?", token: token)
 			.ConfigureAwait(false))
 		{
 			return;

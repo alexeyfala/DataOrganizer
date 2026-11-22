@@ -42,6 +42,9 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ExecutionSandbox" /> class.
+	/// </summary>
 	public ExecutionSandbox(
 		IAppEnvironment appEnvironment,
 		IFileEraser fileEraser,

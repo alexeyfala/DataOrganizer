@@ -15,6 +15,9 @@ public sealed class ClipboardTextWriter : IClipboardTextWriter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ClipboardTextWriter" /> class.
+	/// </summary>
 	public ClipboardTextWriter(IClipboardAccessor clipboard, IClipboardAutoClear autoClear)
 	{
 		_clipboard = clipboard;

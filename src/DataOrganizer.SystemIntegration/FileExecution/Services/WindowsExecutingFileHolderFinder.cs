@@ -61,6 +61,9 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="WindowsExecutingFileHolderFinder" /> class.
+	/// </summary>
 	[ExcludeFromCodeCoverage(Justification = "Asks the Windows Restart Manager, runs only on Windows")]
 	public WindowsExecutingFileHolderFinder(ILogger logger, IProcessFinder processFinder)
 	{

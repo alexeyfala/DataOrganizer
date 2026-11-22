@@ -15,6 +15,9 @@ public sealed class TestDatabase : IDisposable
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Opens an in-memory SQLite database and creates its schema.
+	/// </summary>
 	public TestDatabase()
 	{
 		_connection = new SqliteConnection("DataSource=:memory:");

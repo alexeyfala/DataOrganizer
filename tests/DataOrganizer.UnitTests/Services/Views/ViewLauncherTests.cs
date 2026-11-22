@@ -20,26 +20,20 @@ using DataOrganizer.Documents.Editor.Services;
 using DataOrganizer.Documents.Notepad.Dto;
 using DataOrganizer.Documents.Notepad.Interfaces;
 using DataOrganizer.Documents.Notepad.Services;
-using DataOrganizer.Documents.TextProcessing.Interfaces;
 using DataOrganizer.Helpers.Views;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Favorites.Dto;
 using DataOrganizer.Hierarchy.Interfaces;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
-using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Messages;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Services;
-using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
-using DataOrganizer.Infrastructure.FileSystemOperations.Interfaces;
-using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Infrastructure.WindowContracts.Enums;
-using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Views;
@@ -57,6 +51,7 @@ using DataOrganizer.SystemIntegration.FileExecution.Services;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
@@ -91,17 +86,16 @@ internal class ViewLauncherTests
 			WindowState = WindowState.Minimized
 		};
 
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -164,17 +158,16 @@ internal class ViewLauncherTests
 			Width = 400.0
 		};
 
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -225,17 +218,16 @@ internal class ViewLauncherTests
 			WindowState = WindowState.Maximized
 		};
 
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -277,17 +269,16 @@ internal class ViewLauncherTests
 	public void CenterNotepadWindow_Centers_The_Notepad_On_The_Screen_Of_The_Owner()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()))
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel)
 		{
 			Height = 300.0,
 			Width = 400.0
@@ -341,17 +332,16 @@ internal class ViewLauncherTests
 		// Arrange
 		PixelPoint position = new(5, 5);
 
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()))
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel)
 		{
 			Position = position,
 			WindowState = WindowState.Maximized
@@ -404,12 +394,24 @@ internal class ViewLauncherTests
 		// Arrange
 		bool isClosed = false;
 
-		ConsoleWindow console = new(new ConsoleViewModel(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
+
+		ConsoleWindow console = new(viewModel);
 
 		console.Closed += (_, _) => isClosed = true;
 
@@ -457,12 +459,24 @@ internal class ViewLauncherTests
 
 		bool isClosed = false;
 
-		ConsoleWindow console = new(new ConsoleViewModel(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
+
+		ConsoleWindow console = new(viewModel);
 
 		console.Closing += (_, e) => e.Cancel = !canClose;
 
@@ -521,15 +535,26 @@ internal class ViewLauncherTests
 		// Arrange
 		bool isClosed = false;
 
-		ConsoleWindow console = new(new ConsoleViewModel(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText())
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
-			IsSaved = true
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
 		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
+
+		viewModel.IsSaved = true;
+
+		ConsoleWindow console = new(viewModel);
 
 		console.Closed += (_, _) => isClosed = true;
 
@@ -578,17 +603,16 @@ internal class ViewLauncherTests
 		// Arrange
 		bool isClosed = false;
 
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel);
 
 		notepad.Closed += (_, _) => isClosed = true;
 
@@ -4072,17 +4096,16 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Applies_Saved_Settings()
 	{
 		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -4164,17 +4187,16 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Centers_A_Window_Saved_Off_The_Screens()
 	{
 		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		Window owner = new();
 
@@ -4245,17 +4267,16 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Disposes_The_View_Model_When_The_Window_Closes()
 	{
 		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -4300,17 +4321,16 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Opens_A_New_Notepad()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -4359,17 +4379,16 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Opens_Centered_With_The_Default_Size_For_The_First_Launch()
 	{
 		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		Window owner = new();
 
@@ -4431,10 +4450,8 @@ internal class ViewLauncherTests
 		// Arrange
 		NotepadWindow? window = null;
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
-			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
-
 			NotepadViewSettings settings = new()
 			{
 				SelectedTabNumber = 1,
@@ -4470,23 +4487,30 @@ internal class ViewLauncherTests
 				.ReadSettings()
 				.Returns(settings);
 
-			NotepadViewModel viewModel = new(
-				Substitute.For<IConfirmationPrompt>(),
-				Substitute.For<IDocumentEncodingSwitcher>(),
-				new DocumentTextFactory(),
-				Substitute.For<IMainWindowActivator>(),
-				Substitute.For<INotepadSessionState>(),
-				store,
-				new NotepadTexts(
-					Substitute.For<IDispatcherAccessor>(),
-					store,
-					Substitute.For<INotificationService>(),
-					new TypingPauseFactory(
-						Substitute.For<IDispatcherAccessor>(),
-						TimeProvider.System)),
-				Substitute.For<ISyntaxRegistry>(),
-				Substitute.For<ITaskExceptionHandler>(),
-				Substitute.For<ITextInputPrompt>());
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -4537,33 +4561,38 @@ internal class ViewLauncherTests
 		// Arrange
 		NotepadWindow? window = null;
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
 		{
-			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
-
 			INotepadStore store = Substitute.For<INotepadStore>();
 
 			store
 				.Read(1)
 				.Returns(Encoding.UTF8.GetBytes("Text"));
 
-			NotepadViewModel viewModel = new(
-				Substitute.For<IConfirmationPrompt>(),
-				Substitute.For<IDocumentEncodingSwitcher>(),
-				new DocumentTextFactory(),
-				Substitute.For<IMainWindowActivator>(),
-				Substitute.For<INotepadSessionState>(),
-				store,
-				new NotepadTexts(
-					Substitute.For<IDispatcherAccessor>(),
-					store,
-					Substitute.For<INotificationService>(),
-					new TypingPauseFactory(
-						Substitute.For<IDispatcherAccessor>(),
-						TimeProvider.System)),
-				Substitute.For<ISyntaxRegistry>(),
-				Substitute.For<ITaskExceptionHandler>(),
-				Substitute.For<ITextInputPrompt>());
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+
+			builder
+				.RegisterType<NotepadTexts>()
+				.As<INotepadTexts>();
+
+			builder
+				.RegisterType<TypingPauseFactory>()
+				.As<ITypingPauseFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IWindowFinder windowFinder = Substitute.For<IWindowFinder>();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -4607,17 +4636,16 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Restores_The_Open_Notepad()
 	{
 		// Arrange
-		NotepadWindow notepad = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()))
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel)
 		{
 			WindowState = WindowState.Minimized
 		};
@@ -4676,17 +4704,16 @@ internal class ViewLauncherTests
 	public void ShowNotepadWindow_Restores_The_Saved_State(WindowShowState saved, WindowState expected)
 	{
 		// Arrange
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -4757,17 +4784,16 @@ internal class ViewLauncherTests
 		// Arrange
 		NotepadWindowSettings? captured = null;
 
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -4846,17 +4872,16 @@ internal class ViewLauncherTests
 
 		IWindowSettingsStore windowSettings = Substitute.For<IWindowSettingsStore>();
 
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -4912,17 +4937,16 @@ internal class ViewLauncherTests
 		// Arrange
 		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -4975,17 +4999,16 @@ internal class ViewLauncherTests
 		// Arrange
 		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
 
-		NotepadWindow window = new(new NotepadViewModel(
-			Substitute.For<IConfirmationPrompt>(),
-			Substitute.For<IDocumentEncodingSwitcher>(),
-			new DocumentTextFactory(),
-			Substitute.For<IMainWindowActivator>(),
-			Substitute.For<INotepadSessionState>(),
-			Substitute.For<INotepadStore>(),
-			Substitute.For<INotepadTexts>(),
-			Substitute.For<ISyntaxRegistry>(),
-			Substitute.For<ITaskExceptionHandler>(),
-			Substitute.For<ITextInputPrompt>()));
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow window = new(viewModel);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -5041,7 +5064,9 @@ internal class ViewLauncherTests
 		// Arrange
 		string databaseFilePath = TestPath.Combine("Database", "DataOrganizer.sqlite");
 
-		NoticeViewModel viewModel = new(Substitute.For<IDirectoryAccessor>());
+		using AutoMock viewModelMock = AutoMock.GetLoose();
+
+		NoticeViewModel viewModel = viewModelMock.Create<NoticeViewModel>();
 
 		NoticeWindow window = new(viewModel);
 

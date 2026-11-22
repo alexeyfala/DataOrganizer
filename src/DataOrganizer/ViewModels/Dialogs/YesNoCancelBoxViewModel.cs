@@ -107,6 +107,9 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="YesNoCancelBoxViewModel" /> class.
+	/// </summary>
 	public YesNoCancelBoxViewModel(
 		IDialogCloser dialogCloser,
 		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)

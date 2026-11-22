@@ -22,6 +22,9 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="EntityPropertyWriter" /> class.
+	/// </summary>
 	public EntityPropertyWriter(
 		IDbAccess dbAccess,
 		ILogger logger)

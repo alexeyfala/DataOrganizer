@@ -97,6 +97,9 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DocumentEditorViewModel" /> class.
+	/// </summary>
 	public DocumentEditorViewModel(IDocumentText document) => Document = document;
 	#endregion
 

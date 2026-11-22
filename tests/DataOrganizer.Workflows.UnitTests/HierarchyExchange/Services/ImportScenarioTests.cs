@@ -401,6 +401,54 @@ internal class ImportScenarioTests
 	}
 
 	/// <summary>
+	/// <see cref="ImportScenario.ImportAsync" />: an import that replaces the tree brings the auto-lock in line with
+	/// the shown contents it took away, and one that appends leaves the countdown as it runs.
+	/// </summary>
+	[Test]
+	public async Task ImportAsync_Refreshes_The_Auto_Lock_Only_On_Replacement([Values] bool isReplacement)
+	{
+		// Arrange
+		Collection<ExplorerItemDtoBase> hierarchy = [ItemDtoFactory.CreateFolderDto()];
+
+		IAutoLockControl autoLockControl = Substitute.For<IAutoLockControl>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ImportDataResult imported = new(
+				ItemDtoFactory.CreateLoadedHierarchy([]),
+				isReplacement ? ImportMode.Replace : ImportMode.Append);
+
+			IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+			IOpenFilesCloser openFilesCloser = Substitute.For<IOpenFilesCloser>();
+
+			dataExchange
+				.ImportDataAsync(hierarchy)
+				.Returns(imported);
+
+			openFilesCloser
+				.TryCloseAsync(Arg.Any<IReadOnlyCollection<FileDto>>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(autoLockControl);
+
+			builder.RegisterInstance(dataExchange);
+
+			builder.RegisterInstance(openFilesCloser);
+		});
+
+		ImportScenario sut = mock.Create<ImportScenario>();
+
+		// Act
+		await sut.ImportAsync(hierarchy);
+
+		// Assert
+		autoLockControl
+			.Received(isReplacement ? 1 : 0)
+			.RefreshAutoLock();
+	}
+
+	/// <summary>
 	/// <see cref="ImportScenario.ImportAsync" />: the stored tree state of the imported objects is kept for their rows.
 	/// </summary>
 	[Test]

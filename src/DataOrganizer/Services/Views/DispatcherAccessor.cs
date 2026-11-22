@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Views;
 
+/// <inheritdoc cref="IDispatcherAccessor" />
 public sealed class DispatcherAccessor : IDispatcherAccessor
 {
 	#region Data
@@ -14,6 +15,9 @@ public sealed class DispatcherAccessor : IDispatcherAccessor
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DispatcherAccessor" /> class.
+	/// </summary>
 	public DispatcherAccessor(IDispatcher dispatcher) => _dispatcher = dispatcher;
 	#endregion
 

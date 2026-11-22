@@ -188,6 +188,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Sets up the searches of the categories and of the favorites, which bring back the ones chosen last.
+	/// </summary>
 	public SelectedFavoritesViewModel(
 		IContentCopier contentCopier,
 		IMessenger messenger,

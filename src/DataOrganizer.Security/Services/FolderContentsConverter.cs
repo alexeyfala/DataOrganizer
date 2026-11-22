@@ -34,6 +34,9 @@ public sealed class FolderContentsConverter : IFolderContentsConverter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FolderContentsConverter" /> class.
+	/// </summary>
 	public FolderContentsConverter(
 		IDbAccess dbAccess,
 		IDekCipher encryption,

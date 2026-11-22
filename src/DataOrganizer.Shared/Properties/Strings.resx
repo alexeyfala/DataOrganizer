@@ -148,6 +148,9 @@
   <data name="AddToFolder" xml:space="preserve">
     <value>Add To Folder</value>
   </data>
+  <data name="AddToMainList" xml:space="preserve">
+    <value>Add To Main List</value>
+  </data>
   <data name="CollapseAll" xml:space="preserve">
     <value>Collapse All</value>
   </data>
@@ -891,5 +894,8 @@
   </data>
   <data name="HaveBeenDeleted" xml:space="preserve">
     <value>have been deleted</value>
+  </data>
+  <data name="QuotedFormat" xml:space="preserve">
+    <value>"{0}"</value>
   </data>
 </root>

@@ -15,6 +15,9 @@ public sealed class KeeperDekWriter : IKeeperDekWriter
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="KeeperDekWriter" /> class.
+	/// </summary>
 	public KeeperDekWriter(IDbAccess dbAccess) => _dbAccess = dbAccess;
 	#endregion
 

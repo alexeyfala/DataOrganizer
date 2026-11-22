@@ -11,6 +11,9 @@ namespace DataOrganizer.Database.Repository.Converters;
 public sealed class EventMaskNameConverter : ValueConverter<EventMask, string>
 {
 	#region Constructors
+	/// <summary>
+	/// Sets up the conversion of a mask to its name and back.
+	/// </summary>
 	public EventMaskNameConverter() : base(x => x.ToString(), x => Read(x))
 	{
 	}

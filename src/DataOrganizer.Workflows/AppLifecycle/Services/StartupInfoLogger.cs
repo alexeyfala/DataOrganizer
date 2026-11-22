@@ -33,6 +33,9 @@ public sealed class StartupInfoLogger : IStartupInfoLogger
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="StartupInfoLogger" /> class.
+	/// </summary>
 	public StartupInfoLogger(
 		IAppSettingsStore settingsStore,
 		ICommandLineOptions options,

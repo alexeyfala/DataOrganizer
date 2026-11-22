@@ -4,6 +4,9 @@ using System.Reflection;
 
 namespace DataOrganizer.Extensions;
 
+/// <summary>
+/// Sets the value of the property that a property expression points to.
+/// </summary>
 public static class ExpressionExtensions
 {
 	#region Methods

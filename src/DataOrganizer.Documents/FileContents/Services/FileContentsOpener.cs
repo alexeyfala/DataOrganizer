@@ -1,6 +1,7 @@
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Documents.FileContents.Dto;
 using DataOrganizer.Documents.FileContents.Enums;
+using DataOrganizer.Documents.FileContents.Helpers;
 using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
@@ -30,6 +31,9 @@ public sealed class FileContentsOpener : IFileContentsOpener
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileContentsOpener" /> class.
+	/// </summary>
 	public FileContentsOpener(
 		IDbFailureReporter dbFailureReporter,
 		IFileContentsReader fileContentsReader,
@@ -54,8 +58,7 @@ public sealed class FileContentsOpener : IFileContentsOpener
 		string? fileName,
 		EntityKind kind)
 	{
-		// Stryker disable once String : the text only goes to the failure reporter, which the run ignores
-		string failureText = $@"{Strings.FailedToLoadFileContents} ""{fileName}""";
+		string failureText = FileContentsMessages.FailedToLoad(fileName);
 
 		FileContentsReading reading;
 

@@ -10,8 +10,14 @@ namespace DataOrganizer.Views;
 internal sealed partial class NotepadTabView : UserControl, IDisposable
 {
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NotepadTabView" /> class.
+	/// </summary>
 	public NotepadTabView() => InitializeComponent();
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="NotepadTabView" /> class.
+	/// </summary>
 	public NotepadTabView(NotepadTabViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 

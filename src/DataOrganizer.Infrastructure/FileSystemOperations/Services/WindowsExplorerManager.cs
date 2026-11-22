@@ -34,6 +34,9 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="WindowsExplorerManager" /> class.
+	/// </summary>
 	public WindowsExplorerManager(IProcessLauncher processLauncher) => _processLauncher = processLauncher;
 	#endregion
 

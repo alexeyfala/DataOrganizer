@@ -29,6 +29,9 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="KeeperUnlocker" /> class.
+	/// </summary>
 	public KeeperUnlocker(
 		IDekRewrapper dekRewrapper,
 		IEncryptionFailureReporter failureReporter,

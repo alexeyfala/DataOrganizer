@@ -15,6 +15,7 @@ using DataOrganizer.Behaviors;
 using DataOrganizer.Documents.DatasetRecords.Dto;
 using DataOrganizer.Documents.DatasetRecords.Models;
 using DataOrganizer.UnitTests.Factories;
+using DataOrganizer.UnitTests.TestHelpers;
 using Microsoft.Extensions.Time.Testing;
 using System;
 using System.Collections.ObjectModel;

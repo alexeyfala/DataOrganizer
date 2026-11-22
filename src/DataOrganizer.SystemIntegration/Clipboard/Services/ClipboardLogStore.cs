@@ -94,6 +94,10 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Takes the folder of the clipboard history and the paths of its history and key files from the environment of the
+	/// instance.
+	/// </summary>
 	public ClipboardLogStore(
 		IAppEnvironment appEnvironment,
 		IAtomicFileWriter atomicFileWriter,

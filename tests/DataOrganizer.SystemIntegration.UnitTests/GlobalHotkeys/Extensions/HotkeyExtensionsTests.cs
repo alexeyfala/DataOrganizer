@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
 using SharpHook.Data;
@@ -188,11 +189,11 @@ internal class HotkeyExtensionsTests
 		// Assert
 		result
 			.Should()
-			.Contain($@"""{files[2].Name}""");
+			.Contain(QuoteBuilder.Build(files[2].Name));
 
 		result
 			.Should()
-			.NotContain($@"""{files[3].Name}""");
+			.NotContain(QuoteBuilder.Build(files[3].Name));
 
 		string[] lines = result.Split(Environment.NewLine);
 
@@ -231,7 +232,7 @@ internal class HotkeyExtensionsTests
 
 		result
 			.Should()
-			.ContainAll(files.Select(static x => $@"{Environment.NewLine}""{x.Name}"""));
+			.ContainAll(files.Select(static x => $"{Environment.NewLine}{QuoteBuilder.Build(x.Name)}"));
 	}
 
 	/// <summary>

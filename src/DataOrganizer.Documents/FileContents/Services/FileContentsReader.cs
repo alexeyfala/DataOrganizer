@@ -39,6 +39,9 @@ public sealed class FileContentsReader : IFileContentsReader
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="FileContentsReader" /> class.
+	/// </summary>
 	public FileContentsReader(
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,

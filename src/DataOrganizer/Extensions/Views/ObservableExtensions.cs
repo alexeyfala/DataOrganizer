@@ -5,6 +5,9 @@ using System.Threading;
 
 namespace DataOrganizer.Extensions.Views;
 
+/// <summary>
+/// Delays the values of an observable sequence.
+/// </summary>
 internal static class ObservableExtensions
 {
 	#region Methods

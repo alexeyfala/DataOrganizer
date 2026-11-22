@@ -17,6 +17,9 @@ internal sealed class ScopeViewFactory : IViewFactory
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ScopeViewFactory" /> class.
+	/// </summary>
 	public ScopeViewFactory(ILifetimeScope scope) => _scope = scope;
 	#endregion
 

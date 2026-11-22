@@ -5,10 +5,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Helpers.Views;
-using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Services;
-using DataOrganizer.Infrastructure.FileSystemOperations.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
@@ -16,6 +16,7 @@ using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Documents;
 using DataOrganizer.Services.Views;
+using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.UnitTests.Threading.Fakes;
 using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
@@ -35,12 +36,22 @@ internal class ConsoleWindowHostTests
 	public void ConfigureAndShowAsync_Applies_Saved_Settings()
 	{
 		// Arrange
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText());
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -121,12 +132,22 @@ internal class ConsoleWindowHostTests
 	public void ConfigureAndShowAsync_Centers_A_Window_Saved_Off_The_Screens()
 	{
 		// Arrange
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText());
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -189,12 +210,22 @@ internal class ConsoleWindowHostTests
 		// Arrange
 		bool isMainWindowClosed = false;
 
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText());
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -255,12 +286,22 @@ internal class ConsoleWindowHostTests
 	public void ConfigureAndShowAsync_Opens_A_Window_Saved_Minimized_In_The_Normal_State()
 	{
 		// Arrange
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText());
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -321,12 +362,22 @@ internal class ConsoleWindowHostTests
 	public void ConfigureAndShowAsync_Opens_Centered_With_The_Default_Size_For_The_First_Launch()
 	{
 		// Arrange
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText());
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -372,12 +423,22 @@ internal class ConsoleWindowHostTests
 	public void ConfigureAndShowAsync_Saves_The_Settings_When_The_Window_Closes()
 	{
 		// Arrange
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText());
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
 
 		ConsoleWindow consoleWindow = new(viewModel);
 
@@ -449,12 +510,22 @@ internal class ConsoleWindowHostTests
 	public void ConfigureAndShowAsync_Saves_The_State_Of_A_Window_Closed_Maximized()
 	{
 		// Arrange
-		ConsoleViewModel viewModel = new(
-			Substitute.For<IAppEnvironment>(),
-			new ConsoleLog(),
-			Substitute.For<IDirectoryAccessor>(),
-			new InlineDispatcherAccessor(),
-			new AvaloniaLogText());
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<ConsoleLog>()
+				.As<IConsoleLog>();
+
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder
+				.RegisterType<AvaloniaLogText>()
+				.As<ILogText>();
+		});
+
+		ConsoleViewModel viewModel = viewModelMock.Create<ConsoleViewModel>();
 
 		ConsoleWindow consoleWindow = new(viewModel);
 

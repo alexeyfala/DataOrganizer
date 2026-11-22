@@ -55,8 +55,8 @@ using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
 using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.Fakes;
+using DataOrganizer.UnitTests.TestHelpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Hierarchy;
 using DataOrganizer.ViewModels.Windows;
@@ -253,6 +253,41 @@ internal class EditorViewModelTests
 		checkMarks
 			.Received(isAdded ? 1 : 0)
 			.Refresh(parent);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.AddCommand" />: the dialog is headed by the folder the object goes to, or by the main
+	/// list when the command is given no folder.
+	/// </summary>
+	[Test]
+	public async Task AddCommand_Heads_The_Dialog_With_The_Target_Folder([Values] bool toFolder)
+	{
+		// Arrange
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogService);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.AddCommand
+			.ExecuteAsync(toFolder ? folder : null);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.ShowEntityCreationAsync(toFolder ? folder.Name : null, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -1278,6 +1313,50 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a deletion refreshes the command that hides everything, as the deleted
+	/// object may be the last one shown.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Refreshes_The_Hide_All_Command()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		bool isRefreshed = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			deletion
+				.DeleteAsync(
+					file,
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		_ = await sut.DeleteAsync(file);
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DeleteAsync" />: every file of a deleted folder's subtree leaves the copy history.
 	/// </summary>
 	[Test]
@@ -1530,6 +1609,76 @@ internal class EditorViewModelTests
 		checkMarks
 			.Received(1)
 			.Refresh(folder);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteCommand" />: in the multiple selection mode a deletion refreshes the command that
+	/// hides everything, as the deleted objects may be the last ones shown.
+	/// </summary>
+	[Test]
+	public async Task DeleteCommand_In_The_Multiple_Selection_Refreshes_The_Hide_All_Command()
+	{
+		// Arrange
+		bool isRefreshed = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			FileDto file = ItemDtoFactory.CreateFileDto();
+
+			WorkSession session = new()
+			{
+				IsMultipleSelection = true
+			};
+
+			session
+				.Hierarchy
+				.Add(file);
+
+			ICheckMarks checkMarks = Substitute.For<ICheckMarks>();
+
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			IDeletionScenario deletion = Substitute.For<IDeletionScenario>();
+
+			checkMarks
+				.GetTopmostChecked(session.Hierarchy)
+				.Returns([file]);
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			deletion
+				.DeleteManyAsync(
+					Arg.Any<IReadOnlyList<ExplorerItemDtoBase>>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
+					Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(checkMarks);
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(deletion);
+
+			builder
+				.RegisterInstance(session)
+				.AsImplementedInterfaces();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		await sut
+			.DeleteCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -2098,6 +2247,10 @@ internal class EditorViewModelTests
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
 
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
+
 			builder.RegisterInstance(engine);
 
 			builder
@@ -2152,6 +2305,10 @@ internal class EditorViewModelTests
 			builder
 				.RegisterType<FileContentsReader>()
 				.As<IFileContentsReader>();
+
+			builder
+				.RegisterType<FileContentsOpener>()
+				.As<IFileContentsOpener>();
 
 			builder.RegisterInstance(protectionScenarios);
 
@@ -2452,24 +2609,6 @@ internal class EditorViewModelTests
 				.ExecuteAsync(Arg.Any<ExecuteFileParameters>())
 				.Returns(true);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
-
 			builder.RegisterInstance(engine);
 
 			builder
@@ -2702,29 +2841,11 @@ internal class EditorViewModelTests
 				.RequestYesCancelAsync(Arg.Any<string>())
 				.Returns(isConfirmed);
 
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = RandomValues.CreateBytes(10),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			engine
 				.ExecuteAsync(Arg.Any<ExecuteFileParameters>())
 				.Returns(true);
 
 			builder.RegisterInstance(confirmationPrompt);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
 
@@ -2766,29 +2887,11 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ValidatedContents contents = new()
-			{
-				Contents = RandomValues.CreateBytes(10),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(contents);
-
 			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
 
 			engine
 				.ExecuteAsync(Arg.Do<ExecuteFileParameters>(x => parameters = x))
 				.Returns(true);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder
-				.RegisterType<FileContentsReader>()
-				.As<IFileContentsReader>();
 
 			builder.RegisterInstance(engine);
 
@@ -2977,11 +3080,11 @@ internal class EditorViewModelTests
 		// Assert
 		await dataExchange
 			.Received(hasChecked ? 1 : 0)
-			.ExportPartAsync(ids, Arg.Any<CancellationToken>());
+			.ExportPartAsync(sut.Hierarchy, ids, Arg.Any<CancellationToken>());
 
 		await dataExchange
 			.Received(hasChecked ? 0 : 1)
-			.ExportDataAsync(Arg.Any<CancellationToken>());
+			.ExportDataAsync(sut.Hierarchy, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -3971,6 +4074,47 @@ internal class EditorViewModelTests
 		await dataExchange
 			.Received(1)
 			.ImportDataAsync(Arg.Any<IReadOnlyCollection<ExplorerItemDtoBase>>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that replaces the tree refreshes the command that hides everything,
+	/// as the replaced objects may have been shown.
+	/// </summary>
+	[Test]
+	public async Task Import_Refreshes_The_Hide_All_Command_On_Replacement()
+	{
+		// Arrange
+		bool isRefreshed = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IImportScenario import = Substitute.For<IImportScenario>();
+
+			import
+				.ImportAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
+				.Returns(new ImportDataResult(
+					LoadedHierarchy.Empty,
+					ImportMode.Replace));
+
+			builder.RegisterInstance(import);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.HideAllFileContentsCommand.CanExecuteChanged += (_, _) => isRefreshed = true;
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		isRefreshed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

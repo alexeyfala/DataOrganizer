@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Documents.FileContents.Helpers;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Favorites.Messages;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Shared.Extensions;
@@ -40,6 +42,9 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="HotkeyContentCopier" /> class.
+	/// </summary>
 	public HotkeyContentCopier(
 		ICopyHistoryRecorder copyHistory,
 		IDispatcherAccessor dispatcher,
@@ -74,7 +79,10 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 		}
 
 		// Stryker disable once String : wording of the description
-		if (!await CopyTextAsync(file, $"{Strings.CopyContent}: {file.Name}", token).ConfigureAwait(false))
+		if (!await CopyTextAsync(
+			file,
+			ObjectHeaderBuilder.Build(Strings.CopyContent, file.Name),
+			token).ConfigureAwait(false))
 		{
 			return;
 		}
@@ -103,7 +111,7 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 	{
 		_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
 
-		_notification.ShowToast($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+		_notification.ShowToast(FileContentsMessages.NotText(file.Name));
 	}
 	#endregion
 

@@ -85,6 +85,9 @@ public sealed partial class HotkeysEditorViewModel :
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Registers for messages, rebuilds the preview with each change of the keys and starts the global hook.
+	/// </summary>
 	public HotkeysEditorViewModel(
 		IDialogHostCloser dialogHostCloser,
 		IGlobalHookRunner hookRunner,

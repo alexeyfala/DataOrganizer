@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -59,7 +60,7 @@ internal partial class ResourceKeyConsistencyTests
 
 		unresolved
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 	#endregion
 

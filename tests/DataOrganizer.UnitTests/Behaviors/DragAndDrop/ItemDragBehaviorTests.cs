@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.DragAndDrop;
+using DataOrganizer.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UnitTests.Behaviors.DragAndDrop;
 
