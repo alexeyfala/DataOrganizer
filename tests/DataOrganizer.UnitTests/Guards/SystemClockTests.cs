@@ -50,7 +50,7 @@ internal partial class SystemClockTests
 		reads
 			.Except(Exceptions)
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -66,7 +66,7 @@ internal partial class SystemClockTests
 		Exceptions
 			.Except(reads)
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 	#endregion
 

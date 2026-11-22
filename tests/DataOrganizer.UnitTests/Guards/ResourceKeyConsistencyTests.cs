@@ -59,7 +59,7 @@ internal partial class ResourceKeyConsistencyTests
 
 		unresolved
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 	#endregion
 

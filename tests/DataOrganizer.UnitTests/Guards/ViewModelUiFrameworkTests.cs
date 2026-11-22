@@ -49,7 +49,7 @@ internal class ViewModelUiFrameworkTests
 		// Assert
 		violations
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 	#endregion
 }

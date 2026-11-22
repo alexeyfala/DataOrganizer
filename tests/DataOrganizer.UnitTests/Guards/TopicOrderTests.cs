@@ -71,7 +71,7 @@ internal class TopicOrderTests
 		// Assert
 		violations
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 	#endregion
 

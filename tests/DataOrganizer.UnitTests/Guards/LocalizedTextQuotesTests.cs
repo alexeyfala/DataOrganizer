@@ -37,7 +37,7 @@ internal partial class LocalizedTextQuotesTests
 		// Assert
 		quoted
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -52,7 +52,7 @@ internal partial class LocalizedTextQuotesTests
 		// Assert
 		quoted
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -67,7 +67,7 @@ internal partial class LocalizedTextQuotesTests
 		// Assert
 		quoted
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 	#endregion
 

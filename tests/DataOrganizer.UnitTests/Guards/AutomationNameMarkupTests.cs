@@ -129,7 +129,7 @@ internal partial class AutomationNameMarkupTests
 
 		unnamed
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -153,7 +153,7 @@ internal partial class AutomationNameMarkupTests
 
 		unnamed
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -177,7 +177,7 @@ internal partial class AutomationNameMarkupTests
 
 		unnamed
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -201,7 +201,7 @@ internal partial class AutomationNameMarkupTests
 
 		unnamed
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -229,7 +229,7 @@ internal partial class AutomationNameMarkupTests
 
 		unnamed
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 
 	/// <summary>
@@ -254,7 +254,7 @@ internal partial class AutomationNameMarkupTests
 
 		stateless
 			.Should()
-			.BeEmpty();
+			.HaveCount(0);
 	}
 	#endregion
 
