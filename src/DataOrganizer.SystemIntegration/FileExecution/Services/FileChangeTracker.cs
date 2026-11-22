@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Documents.FileContents.Dto;
 using DataOrganizer.Documents.FileContents.Enums;
+using DataOrganizer.Documents.FileContents.Helpers;
 using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
@@ -138,8 +139,7 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogException(ex);
 
-			// Stryker disable once String : wording of a message
-			PublishFailure(parameters, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+			PublishFailure(parameters, FileContentsMessages.FailedToLoad(parameters.FileName));
 		}
 	}
 	#endregion
@@ -182,8 +182,7 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogWarning($@"File ""{parameters.FileName}"" cannot be opened: {ex.Message}");
 
-			// Stryker disable once String : wording of a message
-			return MissFile(parameters, mayMiss, $@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+			return MissFile(parameters, mayMiss, FileContentsMessages.FailedToLoad(parameters.FileName));
 		}
 
 		byte[] currentHash;

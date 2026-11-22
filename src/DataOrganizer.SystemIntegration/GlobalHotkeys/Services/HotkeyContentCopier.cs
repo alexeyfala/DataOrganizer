@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Documents.FileContents.Helpers;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Favorites.Messages;
@@ -107,7 +108,7 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 	{
 		_logger.LogWarning($@"{Strings.NonTextFileContents} of file ""{file.Id}""");
 
-		_notification.ShowToast($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+		_notification.ShowToast(FileContentsMessages.NotText(file.Name));
 	}
 	#endregion
 

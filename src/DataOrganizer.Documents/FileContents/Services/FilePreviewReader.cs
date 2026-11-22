@@ -69,7 +69,7 @@ public sealed class FilePreviewReader : IFilePreviewReader
 			() => _logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}"""),
 			// A preview is rendered on demand, so contents that are not text only reach the log.
 			() => _logger.LogDebug($@"{Strings.NonTextFileContents} of file ""{file.Id}"""),
-			() => _notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""")))
+			() => _notification.ShowInformationSnackbar(FileContentsMessages.Empty(file.Name))))
 		{
 			return null;
 		}

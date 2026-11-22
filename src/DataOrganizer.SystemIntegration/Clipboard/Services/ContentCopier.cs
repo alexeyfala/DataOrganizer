@@ -1,4 +1,5 @@
 using DataOrganizer.Database.Repository.Interfaces.Database;
+using DataOrganizer.Documents.FileContents.Helpers;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
@@ -86,7 +87,7 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 		{
 			_logger.LogException(ex, breakInDebugger: false);
 
-			_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
+			_notification.ShowErrorSnackbar(FileContentsMessages.FailedToLoad(file.Name));
 
 			return false;
 		}
@@ -95,20 +96,19 @@ public sealed class ContentCopier : ContentCopierBase, IContentCopier
 	/// <inheritdoc />
 	protected override void ReportDamaged(FileDto file)
 	{
-		_notification.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
+		_notification.ShowErrorSnackbar(FileContentsMessages.FailedToLoad(file.Name));
 	}
 
 	/// <inheritdoc />
 	protected override void ReportEmpty(FileDto file)
 	{
-		_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+		_notification.ShowInformationSnackbar(FileContentsMessages.Empty(file.Name));
 	}
 
 	/// <inheritdoc />
 	protected override void ReportNotText(FileDto file)
 	{
-		_notification.ShowWarningSnackbar($@"{Strings.NonTextFileContents}: ""{file.Name}""");
+		_notification.ShowWarningSnackbar(FileContentsMessages.NotText(file.Name));
 	}
 	#endregion
-
 }
