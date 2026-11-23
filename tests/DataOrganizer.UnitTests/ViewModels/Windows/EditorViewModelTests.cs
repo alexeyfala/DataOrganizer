@@ -601,8 +601,9 @@ internal class EditorViewModelTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder
-				.RegisterInstance(new WeakReferenceMessenger())
-				.As<IMessenger>();
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<OpenFilesCloser>()
@@ -1082,8 +1083,9 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(executionEngine);
 
 			builder
-				.RegisterInstance(new WeakReferenceMessenger())
-				.As<IMessenger>();
+				.RegisterType<WeakReferenceMessenger>()
+				.As<IMessenger>()
+				.SingleInstance();
 
 			builder
 				.RegisterType<ExecutingFiles>()
@@ -6782,6 +6784,11 @@ internal class EditorViewModelTests
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
+			// The hook is a lazy singleton that an earlier window has already used.
+			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
+
+			_ = lazyHook.Value;
+
 			hotkeysPrompt
 				.EditHotkeysAsync(Arg.Any<IEnumerable<KeyStroke>>())
 				.Returns(new EditingHotkeysResult(IsSaved: false, NewHotkeys: []));
@@ -6795,11 +6802,6 @@ internal class EditorViewModelTests
 				.Returns(SettingsFactory.CreateSettings(trackHotkeys: true));
 
 			builder.RegisterInstance(hotkeysPrompt);
-
-			// The hook is a lazy singleton that an earlier window has already used.
-			Lazy<IKeyboardInputHook> lazyHook = new(() => hook);
-
-			_ = lazyHook.Value;
 
 			builder.RegisterInstance(lazyHook);
 

@@ -180,7 +180,7 @@ internal class LazyMenuFlyoutTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		window.FocusManager?.GetFocusedElement()
+		window.FocusManager.GetFocusedElement()
 			.Should()
 			.NotBeSameAs(target);
 	}

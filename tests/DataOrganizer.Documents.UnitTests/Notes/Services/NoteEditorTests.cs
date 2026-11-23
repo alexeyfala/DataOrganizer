@@ -509,9 +509,9 @@ internal class NoteEditorTests
 			RandomString.Create(20));
 
 		// Assert
-		replaced.Should().AllSatisfy(x => x
+		replaced
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 	}
 	#endregion
 }

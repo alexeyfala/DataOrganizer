@@ -1300,7 +1300,7 @@ internal class SplitDocumentEditorTests
 	}
 
 	/// <summary>
-	/// The splitter between the halves takes the double line theme.
+	/// <see cref="SplitDocumentEditor" />: the splitter between the halves takes the double line theme.
 	/// </summary>
 	[AvaloniaTest]
 	public void Splitter_Takes_The_Double_Line_Theme()

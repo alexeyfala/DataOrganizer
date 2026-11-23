@@ -19,7 +19,12 @@ internal class UpdatePromptRelayTests
 	public async Task ConfirmUpdateAsync_Declines_Without_A_Window_To_Answer()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<IMessenger>(new StrongReferenceMessenger()));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<StrongReferenceMessenger>()
+				.As<IMessenger>();
+		});
 
 		UpdatePromptRelay sut = mock.Create<UpdatePromptRelay>();
 

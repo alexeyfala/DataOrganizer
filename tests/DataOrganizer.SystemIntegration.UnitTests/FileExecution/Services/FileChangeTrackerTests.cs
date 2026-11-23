@@ -940,7 +940,9 @@ internal class FileChangeTrackerTests
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
-			builder.RegisterInstance<TimeProvider>(new FakeTimeProvider());
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();

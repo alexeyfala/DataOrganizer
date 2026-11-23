@@ -1048,13 +1048,13 @@ internal class FolderProtectionTests
 		await sut.DecryptFolderAsync(folder, files);
 
 		// Assert
-		decryptedContents.Should().AllSatisfy(x => x
+		decryptedContents
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 
-		decryptedNote.Should().AllSatisfy(x => x
+		decryptedNote
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 	}
 
 	/// <summary>
@@ -1571,9 +1571,9 @@ internal class FolderProtectionTests
 		await sut.EncryptFolderAsync(folder, files);
 
 		// Assert
-		loaded[0].Contents.Should().AllSatisfy(x => x
+		loaded[0].Contents
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 	}
 	#endregion
 }

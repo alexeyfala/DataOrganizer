@@ -12,6 +12,11 @@ internal sealed record ContainerRegistration
 	public required string? Implementation { get; init; }
 
 	/// <summary>
+	/// Whether the container gives every consumer the same instance.
+	/// </summary>
+	public required bool IsSingleInstance { get; init; }
+
+	/// <summary>
 	/// Services the registration provides, or <c>null</c> when the source does not show them.
 	/// </summary>
 	public required string[]? Services { get; init; }

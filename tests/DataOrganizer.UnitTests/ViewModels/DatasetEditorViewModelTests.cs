@@ -1377,6 +1377,8 @@ internal class DatasetEditorViewModelTests
 		// Arrange
 		bool? isUiThread = null;
 
+		TaskCompletionSource answer = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1401,15 +1403,10 @@ internal class DatasetEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(contents);
 
-			// The store answers on a thread of the pool, as a read from the database may.
+			// The store answers on a thread of the pool, as a read from the database may, once the test lets it.
 			editorStateStore
 				.ReadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-				.Returns(_ => Task.Run<string?>(async () =>
-				{
-					await Task.Delay(10);
-
-					return state;
-				}));
+				.Returns(_ => answer.Task.ContinueWith<string?>(_ => state, TaskScheduler.Default));
 
 			builder.RegisterInstance(dbAccess);
 
@@ -1435,7 +1432,11 @@ internal class DatasetEditorViewModelTests
 			.Subscribe(_ => isUiThread = Dispatcher.UIThread.CheckAccess());
 
 		// Act
-		await sut.ContainerLoaded();
+		Task loading = sut.ContainerLoaded();
+
+		answer.SetResult();
+
+		await loading;
 
 		// Assert
 		isUiThread
@@ -3434,7 +3435,34 @@ internal class DatasetEditorViewModelTests
 	public async Task SortAscendingCommand_Sorts_The_Group_Once_Confirmed([Values] bool isConfirmed)
 	{
 		// Arrange
-		using AutoMock mock = CreateSortMock(isConfirmed);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(isConfirmed);
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -3463,7 +3491,34 @@ internal class DatasetEditorViewModelTests
 		string[] expected)
 	{
 		// Arrange
-		using AutoMock mock = CreateSortMock(isConfirmed: true);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -3660,7 +3715,34 @@ internal class DatasetEditorViewModelTests
 	public async Task SortDescendingCommand_Sorts_The_Group_Descending()
 	{
 		// Arrange
-		using AutoMock mock = CreateSortMock(isConfirmed: true);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
+
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
+
+			confirmationPrompt
+				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(RandomValues.CreateBytes(10));
+
+			builder.RegisterInstance(confirmationPrompt);
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+
+			builder
+				.RegisterType<FileContentsWriter>()
+				.As<IFileContentsWriter>();
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -4015,41 +4097,6 @@ internal class DatasetEditorViewModelTests
 		}));
 
 		return group;
-	}
-
-	/// <summary>
-	/// Creates a mock whose dataset can be sorted and saved, and whose user answers the question of a sort.
-	/// </summary>
-	private static AutoMock CreateSortMock(bool isConfirmed)
-	{
-		return AutoMock.GetLoose(builder =>
-		{
-			IConfirmationPrompt confirmationPrompt = Substitute.For<IConfirmationPrompt>();
-
-			confirmationPrompt
-				.RequestYesNoAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(isConfirmed);
-
-			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
-
-			serializer
-				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(RandomValues.CreateBytes(10));
-
-			builder.RegisterInstance(confirmationPrompt);
-
-			builder.RegisterInstance(serializer);
-
-			builder.RegisterInstance(Substitute.For<IDbAccess>());
-
-			builder
-				.RegisterType<FileContentsWriter>()
-				.As<IFileContentsWriter>();
-
-			builder
-				.RegisterType<FakeTimeProvider>()
-				.As<TimeProvider>();
-		});
 	}
 
 	/// <summary>

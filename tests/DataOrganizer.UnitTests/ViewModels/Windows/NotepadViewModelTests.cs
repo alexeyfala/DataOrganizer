@@ -1417,7 +1417,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[0].Editor.Encoding = Encoding.Unicode.WebName;
 
 		// Assert
-		written[^1].Tabs[0].EditorState?.Encoding
+		written[^1].Tabs[0].EditorState!.Value.Encoding
 			.Should()
 			.Be(Encoding.Unicode.WebName);
 	}
@@ -2569,7 +2569,7 @@ internal class NotepadViewModelTests
 		sut.Tabs[0].Editor.WordWrap = true;
 
 		// Assert
-		written[^1].Tabs[0].EditorState?.WordWrap
+		written[^1].Tabs[0].EditorState!.Value.WordWrap
 			.Should()
 			.BeTrue();
 	}

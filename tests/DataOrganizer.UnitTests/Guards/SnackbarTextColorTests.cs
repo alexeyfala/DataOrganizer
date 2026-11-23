@@ -217,16 +217,9 @@ internal class SnackbarTextColorTests
 	{
 		Application application = Application.Current!;
 
-		application
-			.TryGetResource(key, application.ActualThemeVariant, out object? resource)
-			.Should()
-			.BeTrue();
+		_ = application.TryGetResource(key, application.ActualThemeVariant, out object? resource);
 
-		return resource
-			.Should()
-			.BeAssignableTo<ISolidColorBrush>()
-			.Which
-			.Color;
+		return ((ISolidColorBrush)resource!).Color;
 	}
 	#endregion
 }

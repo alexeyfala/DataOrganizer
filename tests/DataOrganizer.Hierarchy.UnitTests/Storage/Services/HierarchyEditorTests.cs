@@ -181,17 +181,17 @@ internal class HierarchyEditorTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+			IMapper mapper = Substitute.For<IMapper>();
+
 			dbAccess
 				.AddEntityAsync(Arg.Any<AddEntityParameters>())
 				.Returns(Substitute.For<ExplorerItemBase>());
 
-			builder.RegisterInstance(dbAccess);
-
-			IMapper mapper = Substitute.For<IMapper>();
-
 			mapper
 				.Map<ExplorerItemBase, ExplorerItemDtoBase>(Arg.Any<ExplorerItemBase>())
 				.Returns(Substitute.For<ExplorerItemDtoBase>());
+
+			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(mapper);
 		});
