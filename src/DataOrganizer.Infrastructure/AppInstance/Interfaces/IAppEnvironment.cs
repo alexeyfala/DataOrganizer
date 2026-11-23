@@ -1,7 +1,3 @@
-using DataOrganizer.Shared.Common;
-using System;
-using System.IO;
-
 namespace DataOrganizer.Infrastructure.AppInstance.Interfaces;
 
 /// <summary>
@@ -37,20 +33,6 @@ public interface IAppEnvironment
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Returns the path to the application directory.
-	/// </summary>
-	static string GetAppDataDirectoryPath()
-	{
-		string appDirectory = AppInfo.IsDebug
-			? AppInfo.AppName + "_Debug"
-			: AppInfo.AppName;
-
-		return Path.Combine(
-			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			appDirectory);
-	}
-
 	/// <summary>
 	/// Returns the name of the application based on the number of running instances.
 	/// </summary>

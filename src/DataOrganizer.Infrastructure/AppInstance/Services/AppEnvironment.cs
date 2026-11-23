@@ -1,3 +1,4 @@
+using DataOrganizer.Infrastructure.AppInstance.Helpers;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Shared.Common;
 using System.IO;
@@ -42,7 +43,7 @@ public sealed class AppEnvironment : IAppEnvironment
 		_appCount = instanceRegistry.InstanceNumber;
 
 		AppDataDirectoryPath = Path.Combine(
-			IAppEnvironment.GetAppDataDirectoryPath(),
+			AppDataDirectory.GetPath(),
 			_appCount == 1 ? directoryName : $"{directoryName} ({_appCount})");
 
 		ClipboardHistoryDirectoryPath = Path.Combine(

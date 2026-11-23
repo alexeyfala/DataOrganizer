@@ -236,7 +236,7 @@ public sealed class KeyboardInputHook :
 
 			_lastStrokeTimestamp = timestamp;
 
-			if (InputStack.Count == IKeyboardInputHook.MaxHotkeys)
+			if (InputStack.Count == HotkeyLimits.MaxHotkeys)
 			{
 				InputStack.RemoveAt(0);
 			}

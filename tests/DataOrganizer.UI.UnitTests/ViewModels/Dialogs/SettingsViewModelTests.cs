@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Helpers;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
@@ -509,7 +510,7 @@ internal class SettingsViewModelTests
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
-		AppSettings defaults = IAppSettingsStore.CreateDefaultSettings();
+		AppSettings defaults = AppSettingsDefaults.Create();
 
 		// Act
 		sut

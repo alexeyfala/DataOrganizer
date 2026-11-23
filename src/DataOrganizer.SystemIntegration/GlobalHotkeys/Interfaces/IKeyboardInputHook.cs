@@ -10,11 +10,6 @@ public interface IKeyboardInputHook
 {
 	#region Properties
 	/// <summary>
-	/// Maximum number of hotkeys.
-	/// </summary>
-	static int MaxHotkeys { get; } = 8;
-
-	/// <summary>
 	/// <c>True</c> when the hook is running.
 	/// </summary>
 	bool IsRunning { get; }

@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using DataOrganizer.Infrastructure.AppInstance.Helpers;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Services;
 using DataOrganizer.Shared.Common;
 using NSubstitute;
-using System;
 using System.IO;
 
 namespace DataOrganizer.Infrastructure.UnitTests.AppInstance.Services;
@@ -73,7 +73,7 @@ internal class AppEnvironmentTests
 		AppEnvironment sut = mock.Create<AppEnvironment>();
 
 		// Assert
-		string root = IAppEnvironment.GetAppDataDirectoryPath();
+		string root = AppDataDirectory.GetPath();
 
 		sut.AppDataDirectoryPath
 			.Should()
@@ -118,7 +118,7 @@ internal class AppEnvironmentTests
 		AppEnvironment sut = mock.Create<AppEnvironment>();
 
 		// Assert
-		string root = IAppEnvironment.GetAppDataDirectoryPath();
+		string root = AppDataDirectory.GetPath();
 
 		sut.AppDataDirectoryPath
 			.Should()
@@ -127,26 +127,6 @@ internal class AppEnvironmentTests
 		sut.DatabaseDirectoryPath
 			.Should()
 			.Be(Path.Combine(root, $"{DefaultDirectoryName} (2)", DatabaseDirectoryName));
-	}
-
-	/// <summary>
-	/// <see cref="IAppEnvironment.GetAppDataDirectoryPath" />: the data lie in the local application data of the user, and
-	/// a Debug build keeps its own apart from those of the installed app.
-	/// </summary>
-	[Test]
-	public void GetAppDataDirectoryPath_Keeps_The_Data_Of_A_Debug_Build_Apart()
-	{
-		// Act
-		string path = IAppEnvironment.GetAppDataDirectoryPath();
-
-		// Assert
-		Path.GetDirectoryName(path)
-			.Should()
-			.Be(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-		Path.GetFileName(path)
-			.Should()
-			.Be(AppInfo.IsDebug ? "DataOrganizer_Debug" : "DataOrganizer");
 	}
 
 	/// <summary>

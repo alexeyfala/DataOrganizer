@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.AppInstance.Helpers;
 using DataOrganizer.Infrastructure.AppInstance.Services;
 using System;
 using System.Globalization;
@@ -29,7 +29,7 @@ internal class InstanceRegistryTests
 	/// Lock file of the first slot.
 	/// </summary>
 	private static readonly string FirstSlotPath = Path.Combine(
-		IAppEnvironment.GetAppDataDirectoryPath(),
+		AppDataDirectory.GetPath(),
 		LocksDirectoryName,
 		"1.lock");
 	#endregion

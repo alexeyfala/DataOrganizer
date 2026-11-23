@@ -6,6 +6,7 @@ using Avalonia.Styling;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Helpers;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.UI.Services.Views;
 using Material.Colors;
@@ -33,7 +34,7 @@ internal class AppThemeServiceTests
 	public void ApplyFromSettings_Applies_The_Theme_Of_The_Settings()
 	{
 		// Arrange
-		AppSettings settings = IAppSettingsStore.CreateDefaultSettings();
+		AppSettings settings = AppSettingsDefaults.Create();
 
 		settings.Theme = ThemeMode.Light;
 

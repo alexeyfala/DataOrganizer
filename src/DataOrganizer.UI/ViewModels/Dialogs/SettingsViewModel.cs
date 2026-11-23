@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Helpers;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using System;
 using System.Globalization;
@@ -23,7 +24,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Sequence of application languages.
 	/// </summary>
-	public static CultureInfo[] Languages { get; } = IAppSettingsStore.Languages;
+	public static CultureInfo[] Languages { get; } = AppSettingsDefaults.Languages;
 
 	/// <summary>
 	/// The sequence of the primary colors of the application.
@@ -354,7 +355,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// </summary>
 	private AppSettings CreateDefaults()
 	{
-		AppSettings defaults = IAppSettingsStore.CreateDefaultSettings();
+		AppSettings defaults = AppSettingsDefaults.Create();
 
 		defaults.LastNotifiedVersion = CurrentSettings.LastNotifiedVersion;
 

@@ -22,6 +22,7 @@ using DataOrganizer.Shared.UnitTests.Threading.Fakes;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Helpers;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Messages;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
@@ -107,6 +108,7 @@ internal class KeyboardInputHookTests
 		// Act
 		sut.Dispose();
 
+		// Assert
 		hook.IsDisposed
 			.Should()
 			.BeFalse();
@@ -914,7 +916,7 @@ internal class KeyboardInputHookTests
 				KeyCode.VcH,
 				KeyCode.VcI,
 				KeyCode.VcJ
-			}.Take(IKeyboardInputHook.MaxHotkeys + 1)
+			}.Take(HotkeyLimits.MaxHotkeys + 1)
 		];
 
 		// The clock stands still, so no pause breaks the input.

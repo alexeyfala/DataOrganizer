@@ -1,3 +1,4 @@
+using DataOrganizer.Infrastructure.AppInstance.Helpers;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Shared.Constants;
 using System;
@@ -90,7 +91,7 @@ public sealed class InstanceRegistry : IDisposable, IInstanceRegistry
 		try
 		{
 			string directory = Path.Combine(
-				IAppEnvironment.GetAppDataDirectoryPath(),
+				AppDataDirectory.GetPath(),
 				LocksDirectoryName);
 
 			_fileSystem

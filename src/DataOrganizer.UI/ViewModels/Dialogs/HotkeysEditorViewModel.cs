@@ -7,6 +7,7 @@ using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.Shared.Properties;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
+using DataOrganizer.SystemIntegration.GlobalHotkeys.Helpers;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Messages;
 using DynamicData.Binding;
@@ -33,7 +34,7 @@ public sealed partial class HotkeysEditorViewModel :
 	/// <summary>
 	/// Maximum number of hotkeys.
 	/// </summary>
-	public static int MaxHotkeys { get; } = IKeyboardInputHook.MaxHotkeys;
+	public static int MaxHotkeys { get; } = HotkeyLimits.MaxHotkeys;
 
 	/// <summary>
 	/// Buffer of keys for which the mask is used.
