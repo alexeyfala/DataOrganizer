@@ -15,13 +15,14 @@
 		<SetupProductName Condition="'$(Configuration)' != 'Release'">$(AppDisplayName) (Debug)</SetupProductName>
 	</PropertyGroup>
 
-	<!-- C# settings and the assembly version every project shares; a project states only where it differs. -->
+	<!-- C# settings and the assembly and product version every project shares; a project states only where it differs. -->
 	<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
 		<TargetFramework>$(AppTargetFramework)</TargetFramework>
 		<Nullable>enable</Nullable>
 		<WarningsAsErrors>nullable</WarningsAsErrors>
-		<FileVersion>$(AppVersion)</FileVersion>
-		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
+		<Version>$(AppVersion)</Version>
+		<!-- Keeps the commit hash out of the product version. -->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
 
 	<!--

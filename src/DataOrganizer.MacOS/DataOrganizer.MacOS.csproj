@@ -10,8 +10,6 @@
 		<AssemblyName>$(AppName)</AssemblyName>
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
-		<!--To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute-->
-		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<TrimmerRootDescriptor Include="Roots.xml" />
