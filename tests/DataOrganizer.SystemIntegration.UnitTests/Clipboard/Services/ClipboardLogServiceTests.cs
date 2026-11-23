@@ -178,7 +178,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act
 		await sut.ClearAllAsync();
@@ -259,7 +259,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act
 		await sut.ClearAllAsync();
@@ -375,7 +375,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act
 		await sut.ClearEntriesAsync();
@@ -1398,7 +1398,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act (the entry was never added).
 		await sut.RemoveAsync(ClipboardEntryFactory.CreateTextEntry("absent", [9]));
@@ -1615,7 +1615,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act
 		await sut.RemoveAsync(pinned);
@@ -2003,7 +2003,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(target);
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act
 		await sut.RestoreAsync(target);
@@ -2087,7 +2087,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(top);
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act (the entry is already at index 0).
 		await sut.RestoreAsync(top);
@@ -2563,20 +2563,6 @@ internal class ClipboardLogServiceTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Records the kinds of every <see cref="ClipboardLogChangedMessage" /> sent on <paramref name="messenger" />.
-	/// </summary>
-	private static List<ClipboardLogChangeKind> Capture(IMessenger messenger)
-	{
-		List<ClipboardLogChangeKind> received = [];
-
-		messenger.Register<ClipboardLogChangedMessage>(
-			received,
-			static (recipient, message) => ((List<ClipboardLogChangeKind>)recipient).Add(message.Kind));
-
-		return received;
-	}
-
 	/// <summary>
 	/// Moves <paramref name="time" /> one poll interval on a pool thread, so the woken loop finishes its tick first.
 	/// </summary>

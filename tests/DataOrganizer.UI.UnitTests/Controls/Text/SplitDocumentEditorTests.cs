@@ -365,7 +365,7 @@ internal class SplitDocumentEditorTests
 	public void Document_Reaches_Both_Halves()
 	{
 		// Arrange
-		TextDocument document = CreateDocument(lineCount: 10);
+		TextDocument document = TextDocumentFactory.CreateDocument(lineCount: 10);
 
 		SplitDocumentEditor sut = new()
 		{
@@ -395,7 +395,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 100),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100),
 			FontSize = 14.0,
 			IsSplit = true
 		};
@@ -424,7 +424,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 100),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100),
 			FontSize = 14.0,
 			IsSplit = true
 		};
@@ -689,7 +689,7 @@ internal class SplitDocumentEditorTests
 
 		int[] foldedBlocks = secondaryEditor.GetBlockStarts(isFolded: true);
 
-		int[] shownLines = GetShownLines(secondaryEditor, count: 5);
+		int[] shownLines = secondaryEditor.GetShownLines(count: 5);
 
 		// Act
 		sut.IsSplit = false;
@@ -703,7 +703,7 @@ internal class SplitDocumentEditorTests
 			.Should()
 			.Equal(foldedBlocks);
 
-		int[] primaryShownLines = GetShownLines(primaryEditor, count: 5);
+		int[] primaryShownLines = primaryEditor.GetShownLines(count: 5);
 
 		primaryShownLines
 			.Should()
@@ -725,7 +725,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000),
 			IsSplit = true
 		};
 
@@ -785,7 +785,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000),
 			IsSplit = true
 		};
 
@@ -902,7 +902,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		SplitDocumentEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -980,11 +980,11 @@ internal class SplitDocumentEditorTests
 			.Should()
 			.Equal(primaryEditor.GetBlockStarts(isFolded: true));
 
-		int[] shownLines = GetShownLines(secondaryEditor, count: 5);
+		int[] shownLines = secondaryEditor.GetShownLines(count: 5);
 
 		shownLines
 			.Should()
-			.Equal(GetShownLines(primaryEditor, count: 5));
+			.Equal(primaryEditor.GetShownLines(count: 5));
 
 		// Every block is folded, so only the first line of each block shows.
 		shownLines
@@ -1375,16 +1375,6 @@ internal class SplitDocumentEditorTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates a document of numbered lines of the same length.
-	/// </summary>
-	private static TextDocument CreateDocument(int lineCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, lineCount)
-			.Select(static x => $"Line {x:D4}")));
-	}
-
-	/// <summary>
 	/// Returns the offsets of the occurrences that a half highlights in its visible lines.
 	/// </summary>
 	private static int[] FindOccurrenceOffsets(TextEditor editor)
@@ -1399,19 +1389,6 @@ internal class SplitDocumentEditorTests
 			.Single()
 			.FindOccurrences(textView)
 			.Select(static x => x.Offset)];
-	}
-
-	/// <summary>
-	/// Returns the numbers of the lines that start the first lines of the view of an editor, from its top.
-	/// </summary>
-	private static int[] GetShownLines(TextEditor editor, int count)
-	{
-		return [.. editor
-			.TextArea
-			.TextView
-			.VisualLines
-			.Take(count)
-			.Select(static x => x.FirstDocumentLine.LineNumber)];
 	}
 	#endregion
 }

@@ -23,6 +23,7 @@ using DataOrganizer.Shared.Constants;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -196,7 +197,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		if (hasBookmark)
@@ -222,7 +223,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		sut.Bookmarks.Toggle(1);
@@ -1446,7 +1447,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(sut);
@@ -1478,7 +1479,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		sut.Bookmarks.Toggle(3);
@@ -1509,7 +1510,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		if (hasBookmark)
@@ -1535,7 +1536,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
@@ -2355,7 +2356,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		sut.Bookmarks.Toggle(3);
@@ -2386,7 +2387,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		if (hasBookmark)
@@ -2412,7 +2413,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
@@ -3238,7 +3239,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
@@ -3274,7 +3275,7 @@ internal class DocumentTextEditorTests
 		// Arrange
 		DocumentTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		if (isBookmarked)
@@ -4063,16 +4064,6 @@ internal class DocumentTextEditorTests
 				});
 
 		return received;
-	}
-
-	/// <summary>
-	/// Creates a document of numbered lines.
-	/// </summary>
-	private static TextDocument CreateDocument(int lineCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, lineCount)
-			.Select(static x => $"Line {x:D4}")));
 	}
 
 	/// <summary>

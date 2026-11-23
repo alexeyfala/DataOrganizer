@@ -160,7 +160,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100),
 			IsSplit = true
 		};
 
@@ -266,7 +266,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000),
 			IsSplit = true
 		};
 
@@ -318,7 +318,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -402,7 +402,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -543,7 +543,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000),
 			IsSplit = true
 		};
 
@@ -596,7 +596,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -693,7 +693,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -931,7 +931,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100),
 			DocumentFontSize = 14.0
 		};
 
@@ -1227,7 +1227,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		Window window = HeadlessWindow.Show(sut);
@@ -1314,7 +1314,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		// Act
@@ -1336,7 +1336,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		// Act
@@ -1358,7 +1358,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.Show(sut);
@@ -1384,7 +1384,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.Show(sut);
@@ -1626,7 +1626,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100)
 		};
 
 		DocumentViewStateBehavior behavior = GetViewStateBehavior(sut);
@@ -1643,7 +1643,7 @@ internal class DocumentEditorViewTests
 
 		DocumentTextEditor other = new()
 		{
-			Document = CreateDocument(lineCount: 100)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100)
 		};
 
 		// Act
@@ -1742,7 +1742,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -1771,7 +1771,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100),
 			IsSplit = true
 		};
 
@@ -2326,7 +2326,7 @@ internal class DocumentEditorViewTests
 	public void ViewState_Clamps_A_Selection_Beyond_The_Document()
 	{
 		// Arrange
-		TextDocument document = CreateDocument(lineCount: 10);
+		TextDocument document = TextDocumentFactory.CreateDocument(lineCount: 10);
 
 		DocumentEditorView sut = new()
 		{
@@ -2381,7 +2381,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -2455,7 +2455,7 @@ internal class DocumentEditorViewTests
 			SelectionStart = 20
 		};
 
-		sut.Document = CreateDocument(lineCount: 1000);
+		sut.Document = TextDocumentFactory.CreateDocument(lineCount: 1000);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -2528,7 +2528,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -2565,7 +2565,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100),
 			IsSplit = true
 		};
 
@@ -2741,7 +2741,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -2792,7 +2792,7 @@ internal class DocumentEditorViewTests
 		Vector offset = new(0.0, 500.0);
 
 		// Act
-		sut.Document = CreateDocument(lineCount: 1000);
+		sut.Document = TextDocumentFactory.CreateDocument(lineCount: 1000);
 
 		sut.ViewState = new DocumentViewState
 		{
@@ -2859,11 +2859,11 @@ internal class DocumentEditorViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		int[] shownLines = GetShownLines(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor, count: 5);
+		int[] shownLines = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.GetShownLines(count: 5);
 
 		shownLines
 			.Should()
-			.Equal(GetShownLines(sourceEditor, count: 5));
+			.Equal(sourceEditor.GetShownLines(count: 5));
 
 		// Every block is folded, so only the first line of each block shows.
 		shownLines
@@ -2880,7 +2880,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 100)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100)
 		};
 
 		HeadlessWindow.Show(sut);
@@ -2933,7 +2933,7 @@ internal class DocumentEditorViewTests
 		HeadlessWindow.Show(sut);
 
 		// Act
-		sut.Document = CreateDocument(lineCount: 100);
+		sut.Document = TextDocumentFactory.CreateDocument(lineCount: 100);
 
 		sut.ViewState = new DocumentViewState
 		{
@@ -3021,7 +3021,7 @@ internal class DocumentEditorViewTests
 
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000),
 			ViewState = new DocumentViewState
 			{
 				CaretPosition = new()
@@ -3061,7 +3061,7 @@ internal class DocumentEditorViewTests
 
 		DocumentEditorView sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		Window window = HeadlessWindow.Show(sut);
@@ -3153,7 +3153,7 @@ internal class DocumentEditorViewTests
 
 		// Assert
 		// Either every block but the second one folds, or the second one alone.
-		GetShownLines(editor, count: 7)
+		editor.GetShownLines(count: 7)
 			.Should()
 			.Equal(isMostlyFolded ? [1, 5, 6, 7, 8, 9, 13] : [1, 2, 3, 4, 5, 9, 10]);
 	}
@@ -3185,16 +3185,6 @@ internal class DocumentEditorViewTests
 	/// Reports the view state of a view at once, through the behavior of its editor.
 	/// </summary>
 	private static void CaptureViewState(DocumentEditorView view) => GetViewStateBehavior(view).CaptureViewState();
-
-	/// <summary>
-	/// Creates a document of numbered lines of the same length.
-	/// </summary>
-	private static TextDocument CreateDocument(int lineCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, lineCount)
-			.Select(static x => $"Line {x:D4}")));
-	}
 
 	/// <summary>
 	/// Returns the commands of a text editor.
@@ -3252,19 +3242,6 @@ internal class DocumentEditorViewTests
 			.GetVisualDescendants()
 			.OfType<ScrollViewer>()
 			.First(static x => x.Name == ScrollViewerName);
-	}
-
-	/// <summary>
-	/// Returns the numbers of the lines that start the first lines of the view of an editor, from its top.
-	/// </summary>
-	private static int[] GetShownLines(TextEditor editor, int count)
-	{
-		return [.. editor
-			.TextArea
-			.TextView
-			.VisualLines
-			.Take(count)
-			.Select(static x => x.FirstDocumentLine.LineNumber)];
 	}
 
 	/// <summary>

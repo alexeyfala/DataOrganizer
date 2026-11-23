@@ -5,13 +5,13 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
-using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
@@ -36,7 +36,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(editor);
@@ -64,7 +64,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10),
 			IsReadOnly = isReadOnly
 		};
 
@@ -100,7 +100,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(editor);
@@ -139,7 +139,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10),
 			FontSize = 14.0
 		};
 
@@ -169,7 +169,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(editor);
@@ -196,7 +196,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(editor);
@@ -224,7 +224,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(editor);
@@ -258,7 +258,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		// Act
@@ -280,7 +280,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(editor);
@@ -306,7 +306,7 @@ internal class BookmarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(editor);
@@ -339,16 +339,6 @@ internal class BookmarkMarginTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates a document of numbered lines.
-	/// </summary>
-	private static TextDocument CreateDocument(int lineCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, lineCount)
-			.Select(static x => $"Line {x:D4}")));
-	}
-
 	/// <summary>
 	/// Returns the bounds, the opacity and the brush of each icon the margin paints.
 	/// </summary>

@@ -19,5 +19,15 @@ internal static class TextDocumentFactory
 			.Range(1, blockCount)
 			.Select(static x => $"Block {x:D4}\n    One\n    Two\n    Three")));
 	}
+
+	/// <summary>
+	/// Creates a document of numbered lines of the same length.
+	/// </summary>
+	public static TextDocument CreateDocument(int lineCount)
+	{
+		return new(string.Join('\n', Enumerable
+			.Range(1, lineCount)
+			.Select(static x => $"Line {x:D4}")));
+	}
 	#endregion
 }

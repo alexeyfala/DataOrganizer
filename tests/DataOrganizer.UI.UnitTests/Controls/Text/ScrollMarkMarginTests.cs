@@ -18,6 +18,7 @@ using DataOrganizer.Shared.Constants;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.UnitTests.TestHelpers.Fakes;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,11 +34,6 @@ internal class ScrollMarkMarginTests
 	/// Resource key of the brush of the bookmarks.
 	/// </summary>
 	private const string BookmarkBrushKey = "BookmarkBrush";
-
-	/// <summary>
-	/// Name of the scroll viewer in the template of the text editor.
-	/// </summary>
-	private const string ScrollViewerName = "PART_ScrollViewer";
 	#endregion
 
 	#region Methods
@@ -51,14 +47,14 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		TestTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(editor);
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
-		ScrollViewer scrollViewer = GetScrollViewer(editor);
+		ScrollViewer scrollViewer = editor.GetScrollViewer();
 
 		// The middle of the margin is the middle of the scroll bar track.
 		Point point = window.CenterOf(sut);
@@ -507,7 +503,7 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(editor);
@@ -516,7 +512,7 @@ internal class ScrollMarkMarginTests
 
 		LineBookmarks other = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		// Act
@@ -582,7 +578,7 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		TestTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(editor);
@@ -612,7 +608,7 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(editor);
@@ -687,7 +683,7 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		editor.Bookmarks.Toggle(500);
@@ -750,7 +746,7 @@ internal class ScrollMarkMarginTests
 		// Arrange
 		DocumentTextEditor editor = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(editor);
@@ -828,7 +824,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		Thumb thumb = GetScrollViewer(editor)
+		Thumb thumb = editor.GetScrollViewer()
 			.GetTemplateDescendants()
 			.OfType<ScrollBar>()
 			.First(static x => x.Orientation == Orientation.Vertical)
@@ -969,16 +965,6 @@ internal class ScrollMarkMarginTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates a document of numbered lines of the same length.
-	/// </summary>
-	private static TextDocument CreateDocument(int lineCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, lineCount)
-			.Select(static x => $"Line {x:D4}")));
-	}
-
-	/// <summary>
 	/// Returns the brush of the bookmarks.
 	/// </summary>
 	private static IBrush GetBookmarkBrush() => (IBrush)Application.Current!.FindResource(BookmarkBrushKey)!;
@@ -1009,17 +995,6 @@ internal class ScrollMarkMarginTests
 	/// Returns the runs of a text block.
 	/// </summary>
 	private static Run[] GetRuns(TextBlock textBlock) => [.. textBlock.Inlines!.OfType<Run>()];
-
-	/// <summary>
-	/// Returns the scroll viewer of the editor.
-	/// </summary>
-	private static ScrollViewer GetScrollViewer(TestTextEditor editor)
-	{
-		return editor
-			.GetVisualDescendants()
-			.OfType<ScrollViewer>()
-			.First(static x => x.Name == ScrollViewerName);
-	}
 
 	/// <summary>
 	/// Returns the bounds of the shapes painted in the color.

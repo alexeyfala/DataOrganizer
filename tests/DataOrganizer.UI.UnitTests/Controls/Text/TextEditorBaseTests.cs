@@ -15,6 +15,7 @@ using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.UnitTests.TestHelpers.Fakes;
 using NSubstitute;
 using System.Linq;
@@ -42,7 +43,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
@@ -233,7 +234,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(sut);
@@ -270,7 +271,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 10)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(sut);
@@ -293,7 +294,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 100),
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100),
 			FontSize = 14.0
 		};
 
@@ -342,7 +343,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 3)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
@@ -504,7 +505,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 100)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 100)
 		};
 
 		// Act
@@ -524,7 +525,7 @@ internal class TextEditorBaseTests
 			.Should()
 			.Be(sut.Bounds.Width);
 
-		ScrollViewer scrollViewer = GetScrollViewer(sut);
+		ScrollViewer scrollViewer = sut.GetScrollViewer();
 
 		double? right = scrollViewer.TranslatePoint(new(scrollViewer.Bounds.Width, 0.0), sut)?.X;
 
@@ -542,7 +543,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(sut);
@@ -557,7 +558,7 @@ internal class TextEditorBaseTests
 			.Should()
 			.Be(sut.LineCount);
 
-		ScrollViewer scrollViewer = GetScrollViewer(sut);
+		ScrollViewer scrollViewer = sut.GetScrollViewer();
 
 		scrollViewer.Offset.Y
 			.Should()
@@ -573,7 +574,7 @@ internal class TextEditorBaseTests
 		// Arrange
 		TestTextEditor sut = new()
 		{
-			Document = CreateDocument(lineCount: 1000)
+			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
 		HeadlessWindow.ShowInFluentTheme(sut);
@@ -592,7 +593,7 @@ internal class TextEditorBaseTests
 			.Should()
 			.Be(1);
 
-		GetScrollViewer(sut).Offset.Y
+		sut.GetScrollViewer().Offset.Y
 			.Should()
 			.Be(0.0);
 	}
@@ -661,7 +662,7 @@ internal class TextEditorBaseTests
 	public void SelectAllCommand_Selects_The_Whole_Text()
 	{
 		// Arrange
-		TextDocument document = CreateDocument(lineCount: 10);
+		TextDocument document = TextDocumentFactory.CreateDocument(lineCount: 10);
 
 		TestTextEditor sut = new()
 		{
@@ -742,27 +743,6 @@ internal class TextEditorBaseTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates a document of numbered lines of the same length.
-	/// </summary>
-	private static TextDocument CreateDocument(int lineCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, lineCount)
-			.Select(static x => $"Line {x:D4}")));
-	}
-
-	/// <summary>
-	/// Returns the scroll viewer of the editor.
-	/// </summary>
-	private static ScrollViewer GetScrollViewer(TestTextEditor editor)
-	{
-		return editor
-			.GetVisualDescendants()
-			.OfType<ScrollViewer>()
-			.First(static x => x.Name == ScrollViewerName);
-	}
-
 	/// <summary>
 	/// Lets the posted work run and paints a frame of the dirty controls.
 	/// </summary>
