@@ -121,7 +121,7 @@
     <Project Path="tests/DataOrganizer.Shared.UnitTests/DataOrganizer.Shared.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.SystemIntegration.UnitTests/DataOrganizer.SystemIntegration.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.TestSupport/DataOrganizer.TestSupport.csproj" />
-    <Project Path="tests/DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
+    <Project Path="tests/DataOrganizer.UI.UnitTests/DataOrganizer.UI.UnitTests.csproj" />
     <Project Path="tests/DataOrganizer.Workflows.UnitTests/DataOrganizer.Workflows.UnitTests.csproj" />
     <Project Path="tests/Setup.CustomActions.UnitTests/Setup.CustomActions.UnitTests.csproj" />
   </Folder>

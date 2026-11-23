@@ -42,7 +42,7 @@ internal partial class SystemClockTests
 	/// </summary>
 	private static readonly string[] TestExceptions =
 	[
-		"DataOrganizer.UnitTests/TestHelpers/DispatcherExtensions.cs reads Task.Delay"
+		"DataOrganizer.UI.UnitTests/TestHelpers/DispatcherExtensions.cs reads Task.Delay"
 	];
 
 	/// <summary>

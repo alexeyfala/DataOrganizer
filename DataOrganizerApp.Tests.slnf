@@ -24,7 +24,7 @@
       "tests\\DataOrganizer.Shared.UnitTests\\DataOrganizer.Shared.UnitTests.csproj",
       "tests\\DataOrganizer.SystemIntegration.UnitTests\\DataOrganizer.SystemIntegration.UnitTests.csproj",
       "tests\\DataOrganizer.TestSupport\\DataOrganizer.TestSupport.csproj",
-      "tests\\DataOrganizer.UnitTests\\DataOrganizer.UnitTests.csproj",
+      "tests\\DataOrganizer.UI.UnitTests\\DataOrganizer.UI.UnitTests.csproj",
       "tests\\DataOrganizer.Workflows.UnitTests\\DataOrganizer.Workflows.UnitTests.csproj",
       "tests\\Setup.CustomActions.UnitTests\\Setup.CustomActions.UnitTests.csproj"
     ]
