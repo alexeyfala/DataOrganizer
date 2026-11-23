@@ -9,6 +9,7 @@ using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.SystemIntegration.FileExecution.Dto;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
 using DataOrganizer.SystemIntegration.FileExecution.Services;
+using DataOrganizer.SystemIntegration.UnitTests.TestHelpers;
 using DataOrganizer.TestSupport.Common;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -808,7 +809,7 @@ internal class ExecutionEngineTests
 			// The file stays locked, so only the end of the wait stops it.
 			fileLockChecker
 				.WaitUntilUnlockedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(x =>
+				.ReturnsValueTask(x =>
 				{
 					TaskCompletionSource<bool> unlocked = new();
 
@@ -1604,7 +1605,7 @@ internal class ExecutionEngineTests
 			fileSystem
 				.File
 				.WriteAllBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
-				.Throws(new IOException());
+				.ThrowsAsync(new IOException());
 
 			builder.RegisterInstance(sandbox);
 

@@ -37,12 +37,11 @@ internal partial class SystemClockTests
 	};
 
 	/// <summary>
-	/// The waits on the system clock that stay in the tests, each as the file and the form it uses: a limit that only
-	/// guards against a hang, and a poll for work that runs on a clock the tests do not drive.
+	/// The waits on the system clock that stay in the tests, each as the file and the form it uses: a poll for work that
+	/// runs on a clock the tests do not drive.
 	/// </summary>
 	private static readonly string[] TestExceptions =
 	[
-		"DataOrganizer.Infrastructure.UnitTests/Diagnostics/Services/TaskExceptionHandlerTests.cs reads Task.Delay",
 		"DataOrganizer.UnitTests/TestHelpers/DispatcherExtensions.cs reads Task.Delay"
 	];
 

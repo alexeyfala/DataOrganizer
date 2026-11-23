@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Diagnostics.Services;
 using NSubstitute;
 using Serilog;
@@ -40,13 +39,11 @@ internal class TaskExceptionHandlerTests
 		// Act
 		sut.Watch(faulted);
 
-		// The continuation runs on the thread pool: the entry of the log ends the wait, the timeout only bounds a miss.
-		Task finished = await Task.WhenAny(logged.Task, Task.Delay(TimeSpan.FromSeconds(5)));
-
 		// Assert
-		finished
-			.Should()
-			.BeSameAs(logged.Task);
+		// The continuation runs on the thread pool: the entry of the log ends the wait, the timeout only fails a miss.
+		await logged
+			.Task
+			.WaitAsync(TimeSpan.FromSeconds(5));
 	}
 	#endregion
 }
