@@ -9,7 +9,7 @@ using System.IO.Abstractions;
 namespace DataOrganizer.Infrastructure.AppInstance.Services;
 
 /// <inheritdoc cref="IInstanceRegistry" />
-public sealed class InstanceRegistry : IInstanceRegistry
+public sealed class InstanceRegistry : IDisposable, IInstanceRegistry
 {
 	#region Properties
 	/// <inheritdoc />

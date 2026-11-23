@@ -10,7 +10,10 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.UI.Services;
 
-internal sealed partial class AvaloniaLogForwarder : IAvaloniaLogForwarder, ILogSink
+internal sealed partial class AvaloniaLogForwarder :
+	IAvaloniaLogForwarder,
+	IDisposable,
+	ILogSink
 {
 	#region Data
 	/// <summary>

@@ -1,11 +1,9 @@
-using System;
-
 namespace DataOrganizer.Infrastructure.AppInstance.Interfaces;
 
 /// <summary>
 /// Tracks concurrently running application instances and assigns each a distinct number.
 /// </summary>
-public interface IInstanceRegistry : IDisposable
+public interface IInstanceRegistry
 {
 	#region Properties
 	/// <summary>

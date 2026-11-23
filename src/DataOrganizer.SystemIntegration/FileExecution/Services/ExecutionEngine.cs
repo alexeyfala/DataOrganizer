@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.FileExecution.Services;
 
 /// <inheritdoc cref="IExecutionEngine" />
-public sealed class ExecutionEngine : IExecutionEngine
+public sealed class ExecutionEngine : IAsyncDisposable, IExecutionEngine
 {
 	#region Data
 	/// <inheritdoc cref="IAppResolver" />

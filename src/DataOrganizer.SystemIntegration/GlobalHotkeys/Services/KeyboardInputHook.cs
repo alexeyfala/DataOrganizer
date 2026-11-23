@@ -22,6 +22,7 @@ namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
 
 /// <inheritdoc cref="IKeyboardInputHook" />
 public sealed class KeyboardInputHook :
+	IDisposable,
 	IKeyboardInputHook,
 	IRecipient<GlobalKeyReleasedMessage>
 {

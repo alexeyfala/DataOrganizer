@@ -1,6 +1,5 @@
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.SystemIntegration.Clipboard.Enums;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ namespace DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 /// Coordinates on-disk persistence (encryption + storage) of the clipboard log. Listens to the
 /// service's change notifications and saves / erases accordingly.
 /// </summary>
-public interface IClipboardLogPersistenceCoordinator : IAsyncDisposable
+public interface IClipboardLogPersistenceCoordinator
 {
 	#region Properties
 	/// <summary>

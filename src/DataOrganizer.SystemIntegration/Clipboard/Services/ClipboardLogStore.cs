@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.Clipboard.Services;
 
 /// <inheritdoc cref="IClipboardLogStore" />
-public sealed class ClipboardLogStore : IClipboardLogStore
+public sealed class ClipboardLogStore : IClipboardLogStore, IDisposable
 {
 	#region Properties
 	/// <inheritdoc />
