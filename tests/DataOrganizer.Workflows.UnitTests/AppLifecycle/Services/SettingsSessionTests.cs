@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Workflows.UnitTests.AppLifecycle.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SettingsSession)}"" type")]
+[TestFixture(Description = $@"Tests of ""{nameof(SettingsSession)}"" type together with ""{nameof(BackgroundServices)}"" and ""{nameof(WorkSession)}""")]
 internal class SettingsSessionTests
 {
 	#region Methods

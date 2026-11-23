@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Documents.Editor.Dto;
 using DataOrganizer.Documents.TextProcessing.Dto;
+using DataOrganizer.Documents.TextProcessing.Helpers;
 using DataOrganizer.UI.Services;
 using System;
 using System.Collections.Generic;
@@ -459,6 +460,30 @@ internal class SyntaxRegistryTests
 		language
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SyntaxRegistry.FindScope" />: every language with a folding profile has a grammar.
+	/// </summary>
+	/// <remarks>
+	/// A language that a new version of the grammars renames only turns its profile off, so nothing but this test
+	/// catches it.
+	/// </remarks>
+	[Test]
+	public void FindScope_Finds_Every_Language_With_A_Folding_Profile()
+	{
+		// Arrange
+		SyntaxRegistry sut = SyntaxRegistry.Instance;
+
+		// Act
+		string[] missing = [.. SyntaxLanguageProfiles
+			.Languages
+			.Where(x => sut.FindScope(x) is null)];
+
+		// Assert
+		missing
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
