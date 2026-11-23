@@ -19,6 +19,7 @@ namespace DataOrganizer.SystemIntegration.Clipboard.Services;
 
 /// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 public sealed class ClipboardLogPersistenceCoordinator :
+	IAsyncDisposable,
 	IClipboardLogPersistenceCoordinator,
 	IRecipient<ClipboardLogChangedMessage>
 {

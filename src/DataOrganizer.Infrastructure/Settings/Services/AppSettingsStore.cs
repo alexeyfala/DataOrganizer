@@ -1,5 +1,6 @@
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Dto;
+using DataOrganizer.Infrastructure.Settings.Helpers;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Shared.Extensions;
 
@@ -57,7 +58,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	{
 		return _jsonFileStore.Read<AppSettings>(GetFilePath()) is { } settings && settings.IsNotDefault()
 			? settings
-			: IAppSettingsStore.CreateDefaultSettings();
+			: AppSettingsDefaults.Create();
 	}
 	#endregion
 }

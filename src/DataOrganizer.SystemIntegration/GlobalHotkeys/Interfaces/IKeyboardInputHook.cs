@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,14 +6,9 @@ namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 /// <summary>
 /// Monitors global keyboard input.
 /// </summary>
-public interface IKeyboardInputHook : IDisposable
+public interface IKeyboardInputHook
 {
 	#region Properties
-	/// <summary>
-	/// Maximum number of hotkeys.
-	/// </summary>
-	static int MaxHotkeys { get; } = 8;
-
 	/// <summary>
 	/// <c>True</c> when the hook is running.
 	/// </summary>

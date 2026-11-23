@@ -1,0 +1,206 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using Avalonia.Headless.NUnit;
+using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
+using Avalonia.VisualTree;
+using AwesomeAssertions;
+using DataOrganizer.UI.UnitTests.TestHelpers;
+using Material.Styles.Controls;
+using System;
+using System.Linq;
+
+namespace DataOrganizer.UI.UnitTests.Guards;
+
+[TestFixture(Description = "Guards that the copy of Material's side sheet theme still fits Material's side sheet")]
+internal class ScrollableSideSheetThemeTests
+{
+	#region Data
+	/// <summary>
+	/// Name of the template part that dims the content behind an opened sheet.
+	/// </summary>
+	private const string ScrimPartName = "PART_Scrim";
+
+	/// <summary>
+	/// Name of the template part that holds the sheet.
+	/// </summary>
+	private const string SheetPartName = "PART_SideSheet";
+
+	/// <summary>
+	/// Resource key of the theme under test.
+	/// </summary>
+	private const string ThemeKey = "ScrollableSideSheetTheme";
+
+	/// <summary>
+	/// Path of the resource file of the theme within the application.
+	/// </summary>
+	private const string ThemePath = "/Styling/SideSheetControlTheme.axaml";
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// A closed sheet moves out to the right, beyond the edge of the control.
+	/// </summary>
+	[AvaloniaTest]
+	public void Closed_Sheet_Moves_Out_Of_View()
+	{
+		// Arrange
+		SideSheet sut = new()
+		{
+			SideSheetOpened = false,
+			Theme = GetTheme()
+		};
+
+		// Act
+		HeadlessWindow.Show(sut);
+
+		// Assert
+		Border sheet = GetPart(sut, SheetPartName);
+
+		double? left = sheet.TranslatePoint(default, sut)?.X;
+
+		left
+			.Should()
+			.Be(sut.Bounds.Width);
+	}
+
+	/// <summary>
+	/// The content of an opened sheet gets the height of the sheet, so its scroll viewer scrolls a taller content.
+	/// </summary>
+	[AvaloniaTest]
+	public void Content_Scrolls_Within_The_Sheet()
+	{
+		// Arrange
+		ScrollViewer content = new()
+		{
+			Content = new Border
+			{
+				Height = 2000.0
+			}
+		};
+
+		SideSheet sut = new()
+		{
+			SideSheetContent = content,
+			SideSheetOpened = true,
+			Theme = GetTheme()
+		};
+
+		// Act
+		HeadlessWindow.Show(sut);
+
+		// Assert
+		content.Viewport.Height
+			.Should()
+			.BeLessThan(content.Extent.Height);
+	}
+
+	/// <summary>
+	/// The header and the content of a sheet are enabled only while it is opened, so a closed sheet out of view takes
+	/// neither the focus nor the keys.
+	/// </summary>
+	[AvaloniaTest]
+	public void Header_And_Content_Are_Enabled_Only_While_The_Sheet_Is_Opened([Values] bool isOpened)
+	{
+		// Arrange
+		Button headerButton = new();
+
+		Button contentButton = new();
+
+		SideSheet sut = new()
+		{
+			SideSheetContent = contentButton,
+			SideSheetHeader = "Header",
+			SideSheetHeaderTemplate = new FuncDataTemplate<string>((_, _) => headerButton),
+			SideSheetOpened = isOpened,
+			Theme = GetTheme()
+		};
+
+		// Act
+		HeadlessWindow.Show(sut);
+
+		// Assert
+		headerButton.IsEffectivelyEnabled
+			.Should()
+			.Be(isOpened);
+
+		contentButton.IsEffectivelyEnabled
+			.Should()
+			.Be(isOpened);
+	}
+
+	/// <summary>
+	/// An opened sheet stands at the right edge of the control, where the desktop variant of the theme docks it.
+	/// </summary>
+	[AvaloniaTest]
+	public void Opened_Sheet_Stands_At_The_Right_Edge()
+	{
+		// Arrange
+		SideSheet sut = new()
+		{
+			SideSheetOpened = true,
+			Theme = GetTheme()
+		};
+
+		// Act
+		HeadlessWindow.Show(sut);
+
+		// Assert
+		Border sheet = GetPart(sut, SheetPartName);
+
+		double? right = sheet.TranslatePoint(new(sheet.Bounds.Width, 0.0), sut)?.X;
+
+		right
+			.Should()
+			.Be(sut.Bounds.Width);
+	}
+
+	/// <summary>
+	/// The scrim stays hidden behind an opened sheet on the desktop, where it would dim the content and catch its clicks.
+	/// </summary>
+	[AvaloniaTest]
+	public void Scrim_Stays_Hidden_On_The_Desktop()
+	{
+		// Arrange
+		SideSheet sut = new()
+		{
+			SideSheetOpened = true,
+			Theme = GetTheme()
+		};
+
+		// Act
+		HeadlessWindow.Show(sut);
+
+		// Assert
+		GetPart(sut, ScrimPartName).IsVisible
+			.Should()
+			.BeFalse();
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Returns the part of the template of the sheet with the name.
+	/// </summary>
+	private static Border GetPart(SideSheet sheet, string name)
+	{
+		return sheet
+			.GetVisualDescendants()
+			.OfType<Border>()
+			.Single(x => x.Name == name);
+	}
+
+	/// <summary>
+	/// Returns the theme under test, read from its resource file.
+	/// </summary>
+	private static ControlTheme GetTheme()
+	{
+		Uri source = new($"avares://{typeof(App).Assembly.GetName().Name}{ThemePath}");
+
+		ResourceDictionary resources = (ResourceDictionary)AvaloniaXamlLoader.Load(source);
+
+		return (ControlTheme)resources[ThemeKey]!;
+	}
+	#endregion
+}

@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using System;
 using System.Linq;

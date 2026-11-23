@@ -69,7 +69,7 @@ path of the report of all projects.
 source generators — CommunityToolkit.Mvvm, `[GeneratedRegex]`, `[LibraryImport]` and Generator.Equals
 all work in the layer projects — but the Avalonia generator finds the `.axaml` files by metadata of
 each file, which Stryker does not pass on. It writes no `InitializeComponent`, and the mutated
-`DataOrganizer` fails to build with CS0103 before the first mutant is tested.
+`DataOrganizer.UI` fails to build with CS0103 before the first mutant is tested.
 
 ## Methods Stryker drops
 

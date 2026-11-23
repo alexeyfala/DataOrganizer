@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;

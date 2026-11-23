@@ -5,7 +5,7 @@ using DataOrganizer.Documents.Notes.Interfaces;
 using DataOrganizer.Documents.Notes.Services;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 

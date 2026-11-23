@@ -6,7 +6,7 @@ using DataOrganizer.Database.Repository.Exceptions;
 using DataOrganizer.Infrastructure.Diagnostics.Services;
 using DataOrganizer.Infrastructure.Notifications.Enums;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
-using DataOrganizer.Infrastructure.UnitTests.Diagnostics.Fakes;
+using DataOrganizer.Infrastructure.UnitTests.Diagnostics.TestHelpers.Fakes;
 using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 using System;

@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Services;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Constants;
 using DataOrganizer.TestSupport.Common;
 using NSec.Cryptography;

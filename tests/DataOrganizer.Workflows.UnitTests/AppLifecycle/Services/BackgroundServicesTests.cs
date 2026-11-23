@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using DataOrganizer.Hierarchy.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
-using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Infrastructure.UnitTests.Settings.TestHelpers.Factories;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;

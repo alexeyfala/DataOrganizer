@@ -6,7 +6,8 @@ using DataOrganizer.SystemIntegration.Clipboard.Enums;
 using DataOrganizer.SystemIntegration.Clipboard.Messages;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using System;
 using System.Collections.Generic;
@@ -247,7 +248,7 @@ internal class ClipboardHistoryTests
 		// The restored entry is gone by the time the next capture arrives.
 		sut.Entries.Clear();
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
@@ -286,7 +287,7 @@ internal class ClipboardHistoryTests
 
 		sut.MarkRestored(original, keepPosition: false);
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		bool built = false;
 
@@ -362,7 +363,7 @@ internal class ClipboardHistoryTests
 
 		sut.MarkRestored(original, keepPosition: false);
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		ClipboardTextEntry rebaselined = ClipboardEntryFactory.CreateTextEntry("rebased", [2]);
 
@@ -458,7 +459,7 @@ internal class ClipboardHistoryTests
 
 		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false, isRestored: false);
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act (same hash as the last observed payload).
 		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
@@ -486,7 +487,7 @@ internal class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
@@ -651,7 +652,7 @@ internal class ClipboardHistoryTests
 
 		sut.Entries.Add(target);
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act (the factory must not run — the entry already exists).
 		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
@@ -683,7 +684,7 @@ internal class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		List<ClipboardLogEntryCountChangedMessage> received = CaptureCountChanges(messenger);
+		List<ClipboardLogEntryCountChangedMessage> received = messenger.CaptureCountChanges();
 
 		// Act
 		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false, isRestored: false);
@@ -812,7 +813,7 @@ internal class ClipboardHistoryTests
 
 		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("D", [9]));
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act ("B" duplicates current "C" by hash [2] and is skipped).
 		sut.Merge([ClipboardEntryFactory.CreateTextEntry("A", [1]), ClipboardEntryFactory.CreateTextEntry("B", [2])]);
@@ -1084,7 +1085,7 @@ internal class ClipboardHistoryTests
 
 		sut.Entries.Add(entry);
 
-		List<ClipboardLogChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
 		// Act
 		sut.TogglePin(entry);
@@ -1135,32 +1136,5 @@ internal class ClipboardHistoryTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Records the kinds of every <see cref="ClipboardLogChangedMessage" /> sent on <paramref name="messenger" />.
-	/// </summary>
-	private static List<ClipboardLogChangeKind> Capture(IMessenger messenger)
-	{
-		List<ClipboardLogChangeKind> received = [];
-
-		messenger.Register<ClipboardLogChangedMessage>(
-			received,
-			static (recipient, message) => ((List<ClipboardLogChangeKind>)recipient).Add(message.Kind));
-
-		return received;
-	}
-
-	/// <summary>
-	/// Records every <see cref="ClipboardLogEntryCountChangedMessage" /> sent on <paramref name="messenger" />.
-	/// </summary>
-	private static List<ClipboardLogEntryCountChangedMessage> CaptureCountChanges(IMessenger messenger)
-	{
-		List<ClipboardLogEntryCountChangedMessage> received = [];
-
-		messenger.Register<ClipboardLogEntryCountChangedMessage>(
-			received,
-			static (recipient, message) => ((List<ClipboardLogEntryCountChangedMessage>)recipient).Add(message));
-
-		return received;
-	}
 	#endregion
 }

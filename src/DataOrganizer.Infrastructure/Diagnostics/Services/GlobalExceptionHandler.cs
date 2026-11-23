@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Infrastructure.Diagnostics.Services;
 
 /// <inheritdoc cref="IGlobalExceptionHandler" />
-public sealed class GlobalExceptionHandler : IGlobalExceptionHandler
+public sealed class GlobalExceptionHandler : IDisposable, IGlobalExceptionHandler
 {
 	#region Data
 	/// <inheritdoc cref="CompositeDisposable" />

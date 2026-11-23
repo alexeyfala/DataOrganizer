@@ -1,3 +1,4 @@
+using DataOrganizer.Infrastructure.AppInstance.Helpers;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Shared.Constants;
 using System;
@@ -9,7 +10,7 @@ using System.IO.Abstractions;
 namespace DataOrganizer.Infrastructure.AppInstance.Services;
 
 /// <inheritdoc cref="IInstanceRegistry" />
-public sealed class InstanceRegistry : IInstanceRegistry
+public sealed class InstanceRegistry : IDisposable, IInstanceRegistry
 {
 	#region Properties
 	/// <inheritdoc />
@@ -90,7 +91,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 		try
 		{
 			string directory = Path.Combine(
-				IAppEnvironment.GetAppDataDirectoryPath(),
+				AppDataDirectory.GetPath(),
 				LocksDirectoryName);
 
 			_fileSystem

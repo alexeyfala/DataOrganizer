@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.Security.Enums;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Services;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Constants;
 using System;
 using System.Collections.Generic;

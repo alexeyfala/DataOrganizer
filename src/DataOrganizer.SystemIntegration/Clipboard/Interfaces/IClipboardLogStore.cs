@@ -1,7 +1,6 @@
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.SystemIntegration.Clipboard.Dto;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ namespace DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 /// Encrypts the clipboard log to disk and decrypts it back, holding the data
 /// encryption key for the current session.
 /// </summary>
-public interface IClipboardLogStore : IDisposable
+public interface IClipboardLogStore
 {
 	#region Properties
 	/// <summary>

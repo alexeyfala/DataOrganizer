@@ -1,6 +1,7 @@
 using Baksteen.Extensions.DeepCopy;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.Infrastructure.Settings.Helpers;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,7 +65,7 @@ public sealed class SettingsSession : ISettingsCloseGuard, ISettingsCommit, ISet
 	/// <inheritdoc />
 	public AppSettings Begin()
 	{
-		_draft = _settingsStore.Settings.DeepCopy() ?? IAppSettingsStore.CreateDefaultSettings();
+		_draft = _settingsStore.Settings.DeepCopy() ?? AppSettingsDefaults.Create();
 
 		IsDiscarded = false;
 

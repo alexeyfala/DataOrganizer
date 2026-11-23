@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
@@ -11,7 +11,6 @@ using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
-using System.Security.Cryptography;
 
 namespace DataOrganizer.Security.UnitTests.Services;
 
@@ -138,7 +137,7 @@ internal class ContentCipherTests
 	/// instead of an exception, since the caller renders the content.
 	/// </summary>
 	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
+	[TestCaseSource(typeof(CipherFailures), nameof(CipherFailures.Session))]
 	public void TryDecrypt_Refuses_On_A_Failure(Exception failure)
 	{
 		// Arrange
@@ -209,7 +208,7 @@ internal class ContentCipherTests
 	/// <see cref="ContentCipher.TryEncrypt" />: a locked keeper ends with a refusal instead of an exception.
 	/// </summary>
 	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
+	[TestCaseSource(typeof(CipherFailures), nameof(CipherFailures.Session))]
 	public void TryEncrypt_Refuses_On_A_Failure(Exception failure)
 	{
 		// Arrange
@@ -240,13 +239,5 @@ internal class ContentCipherTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Failures an operation on the key of a session can end with.
-	/// </summary>
-	private static Exception[] SessionCipherFailures() =>
-	[
-		new AuthenticationTagMismatchException(),
-		new InvalidOperationException()
-	];
 	#endregion
 }

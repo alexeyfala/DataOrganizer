@@ -12,7 +12,7 @@ namespace DataOrganizer.Database.Repository.Interfaces.Database;
 /// <summary>
 /// Contains helper methods for <see cref="SqliteDbContext" />.
 /// </summary>
-public interface IDbContextService : IDisposable
+public interface IDbContextService
 {
 	#region Methods
 	/// <inheritdoc cref="DatabaseFacade.CanConnectAsync(CancellationToken)" />

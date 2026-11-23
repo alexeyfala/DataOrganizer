@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using Setup.CustomActions.Helpers;
 using Setup.CustomActions.Models;
-using Setup.CustomActions.UnitTests.Factories;
+using Setup.CustomActions.UnitTests.TestHelpers.Factories;
 using System.Collections.Generic;
 using WixToolset.Dtf.WindowsInstaller;
 

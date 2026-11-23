@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +6,7 @@ namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 /// <summary>
 /// Owns the process-wide global keyboard hook.
 /// </summary>
-public interface IGlobalHookRunner : IDisposable
+public interface IGlobalHookRunner
 {
 	#region Properties
 	/// <summary>

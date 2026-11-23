@@ -4,14 +4,12 @@
 		<TargetFramework>$(AppTargetFramework)-macos</TargetFramework>
 		<RuntimeIdentifier>osx-x64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
-		<ApplicationIcon>..\$(AppName)\Assets\Logo.ico</ApplicationIcon>
+		<ApplicationIcon>$(AppIconPath)</ApplicationIcon>
 		<ApplicationDisplayVersion>$(AppVersion)</ApplicationDisplayVersion>
 		<ApplicationVersion>$(AppVersion)</ApplicationVersion>
 		<AssemblyName>$(AppName)</AssemblyName>
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
-		<!--To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute-->
-		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<TrimmerRootDescriptor Include="Roots.xml" />
@@ -27,7 +25,7 @@
 		<BundleResource Include="..\..\LICENSE;..\..\NOTICE;..\..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
+		<ProjectReference Include="..\DataOrganizer.UI\DataOrganizer.UI.csproj" />
 	</ItemGroup>
 
 	<!-- Installer / disk-image naming (RuntimeIdentifier is fixed to osx-x64 above). -->

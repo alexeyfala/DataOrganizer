@@ -12,7 +12,7 @@ using DataOrganizer.Database.Repository.Services.Database;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Interfaces;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.FileSystemOperations.Interfaces;
 using DataOrganizer.Infrastructure.FileSystemOperations.Services;
 using DataOrganizer.Infrastructure.Notifications.Messages;
@@ -21,7 +21,7 @@ using DataOrganizer.Security.Enums;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.TestSupport.Common;
@@ -1048,13 +1048,13 @@ internal class FolderProtectionTests
 		await sut.DecryptFolderAsync(folder, files);
 
 		// Assert
-		decryptedContents.Should().AllSatisfy(x => x
+		decryptedContents
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 
-		decryptedNote.Should().AllSatisfy(x => x
+		decryptedNote
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 	}
 
 	/// <summary>
@@ -1571,9 +1571,9 @@ internal class FolderProtectionTests
 		await sut.EncryptFolderAsync(folder, files);
 
 		// Assert
-		loaded[0].Contents.Should().AllSatisfy(x => x
+		loaded[0].Contents
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 	}
 	#endregion
 }

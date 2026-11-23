@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Services;
 using DataOrganizer.SystemIntegration.Clipboard.Dto;

@@ -8,7 +8,7 @@ using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Services;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.Threading.Services;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;

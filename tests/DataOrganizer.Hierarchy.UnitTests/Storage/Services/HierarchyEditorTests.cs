@@ -12,8 +12,8 @@ using DataOrganizer.Database.Repository.Services.Database;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Storage.Services;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
-using DataOrganizer.Hierarchy.UnitTests.Fakes;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Fakes;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.TestSupport.Database;
@@ -181,17 +181,17 @@ internal class HierarchyEditorTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+			IMapper mapper = Substitute.For<IMapper>();
+
 			dbAccess
 				.AddEntityAsync(Arg.Any<AddEntityParameters>())
 				.Returns(Substitute.For<ExplorerItemBase>());
 
-			builder.RegisterInstance(dbAccess);
-
-			IMapper mapper = Substitute.For<IMapper>();
-
 			mapper
 				.Map<ExplorerItemBase, ExplorerItemDtoBase>(Arg.Any<ExplorerItemBase>())
 				.Returns(Substitute.For<ExplorerItemDtoBase>());
+
+			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(mapper);
 		});

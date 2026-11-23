@@ -15,7 +15,7 @@ namespace DataOrganizer.Database.Repository.Services.Database;
 
 /// <inheritdoc cref="IDbContextService" />
 [ExcludeFromCodeCoverage(Justification = "A thin wrapper over EF Core")]
-public sealed class DbContextService : IDbContextService
+public sealed class DbContextService : IDbContextService, IDisposable
 {
 	#region Data
 	/// <inheritdoc cref="SqliteDbContext" />

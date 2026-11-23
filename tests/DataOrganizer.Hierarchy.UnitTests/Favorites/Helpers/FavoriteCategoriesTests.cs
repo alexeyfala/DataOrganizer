@@ -3,7 +3,7 @@ using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Favorites.Dto;
 using DataOrganizer.Hierarchy.Favorites.Helpers;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Extensions;
 using System;
 using System.Collections.Generic;

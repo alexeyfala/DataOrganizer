@@ -12,7 +12,7 @@ using DataOrganizer.Database.Repository.Services;
 using DataOrganizer.Database.Repository.Services.Database;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Security.Dto;
 using DataOrganizer.Security.Enums;

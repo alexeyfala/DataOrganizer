@@ -1,11 +1,9 @@
-using System;
-
 namespace DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 
 /// <summary>
 /// Provides a means of detecting unhandled exceptions in an application.
 /// </summary>
-public interface IGlobalExceptionHandler : IDisposable
+public interface IGlobalExceptionHandler
 {
 	#region Methods
 	/// <summary>

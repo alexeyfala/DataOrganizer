@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
 
 /// <inheritdoc cref="IGlobalHookRunner" />
-public sealed class GlobalHookRunner : IGlobalHookRunner
+public sealed class GlobalHookRunner : IDisposable, IGlobalHookRunner
 {
 	#region Properties
 	/// <inheritdoc />
@@ -124,6 +124,7 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 
 		try
 		{
+			// The container disposes the hook again; SharpHook ignores a second disposal.
 			_hook.Dispose();
 		}
 		catch (HookException ex)

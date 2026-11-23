@@ -1,4 +1,5 @@
-using DataOrganizer.GuardTests.Dto;
+using DataOrganizer.GuardTests.TestHelpers.Dto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -18,32 +19,37 @@ internal static partial class ContainerSetupReader
 	{
 		string code = CodeText.WithoutCommentsAndLiterals(text);
 
-		Match[] methods = [.. MethodRegex().Matches(code).AsEnumerable()];
-
-		foreach (Match setup in SetupRegex().Matches(code))
+		foreach (TestMethod method in TestMethodReader.Read(filePath, text))
 		{
-			Match? method = methods.LastOrDefault(x => x.Index < setup.Index);
+			Match[] setups = [.. SetupRegex().Matches(method.Code).AsEnumerable()];
 
-			if (method is null)
+			(int Open, int Close)[] spans =
+			[
+				.. setups.Select(x => (x.Groups["open"].Index, CodeText.FindClosing(method.Code, x.Groups["open"].Index)))
+			];
+
+			string outside = WithoutSetups(method.Code, spans);
+
+			for (int i = 0; i < setups.Length; i++)
 			{
-				continue;
+				(int open, int close) = spans[i];
+
+				string lambda = method.Code[open..(close + 1)];
+
+				string builder = setups[i].Groups["builder"].Value;
+
+				yield return new ContainerSetup
+				{
+					Builder = builder,
+					BuiltTypes = [.. ReadBuiltTypes(method.Code, setups[i].Groups["mock"].Value)],
+					CodeAfter = outside[(close + 1)..],
+					CodeBefore = outside[..open],
+					FilePath = filePath,
+					Method = method.Name,
+					Registrations = [.. ReadRegistrations(lambda, builder, method.Code, code)],
+					Statements = [.. ReadStatements(lambda)]
+				};
 			}
-
-			int methodEnd = methods.FirstOrDefault(x => x.Index > setup.Index)?.Index ?? code.Length;
-
-			string methodCode = code[method.Index..methodEnd];
-
-			int open = setup.Groups["open"].Index;
-
-			string lambda = code[open..(FindClosing(code, open) + 1)];
-
-			yield return new ContainerSetup
-			{
-				BuiltTypes = [.. ReadBuiltTypes(methodCode, setup.Groups["mock"].Value)],
-				FilePath = filePath,
-				Method = method.Groups["name"].Value,
-				Registrations = [.. ReadRegistrations(lambda, setup.Groups["builder"].Value, methodCode, code)]
-			};
 		}
 	}
 	#endregion
@@ -74,54 +80,10 @@ internal static partial class ContainerSetupReader
 	private static partial Regex BuildRegex();
 
 	/// <summary>
-	/// Finds the closing parenthesis that matches the opening one at an index.
+	/// Matches what may follow the closing brace of a block that does not end its statement.
 	/// </summary>
-	private static int FindClosing(string text, int open)
-	{
-		int depth = 0;
-
-		for (int i = open; i < text.Length; i++)
-		{
-			depth += text[i] switch
-			{
-				'(' => 1,
-				')' => -1,
-				_ => 0
-			};
-
-			if (depth == 0)
-			{
-				return i;
-			}
-		}
-
-		return text.Length - 1;
-	}
-
-	/// <summary>
-	/// Finds the end of the statement that starts at an index: its semicolon, or the end of the enclosing block.
-	/// </summary>
-	private static int FindStatementEnd(string text, int start)
-	{
-		int depth = 0;
-
-		for (int i = start; i < text.Length; i++)
-		{
-			depth += text[i] switch
-			{
-				'(' or '{' => 1,
-				')' or '}' => -1,
-				_ => 0
-			};
-
-			if (depth < 0 || (depth == 0 && text[i] == ';'))
-			{
-				return i;
-			}
-		}
-
-		return text.Length;
-	}
+	[GeneratedRegex(@"\G\s*(?:[;),.]|else\b|catch\b|finally\b)")]
+	private static partial Regex ContinuationRegex();
 
 	/// <summary>
 	/// Matches a member of a variable.
@@ -134,12 +96,6 @@ internal static partial class ContainerSetupReader
 	/// </summary>
 	[GeneratedRegex(@"^\s*\w+\s*=>\s*(?<body>[\s\S]+?)\s*$")]
 	private static partial Regex LambdaRegex();
-
-	/// <summary>
-	/// Matches the header of a member of a class, with its name.
-	/// </summary>
-	[GeneratedRegex(@"^\t(?:public|private|internal|protected)\b[^\r\n]*?\b(?<name>\w+)\s*(?:<[^\r\n]*?>)?\s*\(", RegexOptions.Multiline)]
-	private static partial Regex MethodRegex();
 
 	/// <summary>
 	/// Matches an instance built with <c>new</c> and its type.
@@ -238,11 +194,11 @@ internal static partial class ContainerSetupReader
 
 			int open = registration.Groups["open"].Index;
 
-			int close = FindClosing(lambda, open);
+			int close = CodeText.FindClosing(lambda, open);
 
 			string argument = lambda[(open + 1)..close];
 
-			string chain = lambda[(close + 1)..FindStatementEnd(lambda, close + 1)];
+			string chain = lambda[(close + 1)..CodeText.FindStatementEnd(lambda, close + 1)];
 
 			string kind = registration.Groups["kind"].Value;
 
@@ -260,6 +216,7 @@ internal static partial class ContainerSetupReader
 			yield return new ContainerRegistration
 			{
 				Implementation = implementation,
+				IsSingleInstance = SingleInstanceRegex().IsMatch(chain),
 				Services = ReadServices(chain, provided),
 				Text = WhitespaceRegex().Replace($"{kind}{(generic is null ? string.Empty : $"<{generic}>")}({argument.Trim()})", " ")
 			};
@@ -296,6 +253,18 @@ internal static partial class ContainerSetupReader
 	}
 
 	/// <summary>
+	/// Reads the statements of a setup in their order: those of its block, or its expression alone.
+	/// </summary>
+	private static IEnumerable<string> ReadStatements(string lambda)
+	{
+		string body = lambda[(lambda.IndexOf("=>", StringComparison.Ordinal) + 2)..^1].Trim();
+
+		return body.StartsWith('{')
+			? SplitStatements(body[1..CodeText.FindClosing(body, 0)])
+			: [body];
+	}
+
+	/// <summary>
 	/// Matches a registration call on a builder.
 	/// </summary>
 	[GeneratedRegex(@"\b(?<builder>\w+)\s*\.\s*(?<kind>RegisterInstance|RegisterType|Register)\s*(?:<(?<generic>[^()]*?)>)?\s*(?<open>\()")]
@@ -306,6 +275,49 @@ internal static partial class ContainerSetupReader
 	/// </summary>
 	[GeneratedRegex(@"\b(?:AutoMock|var)\s+(?<mock>\w+)\s*=\s*AutoMock\s*\.\s*GetLoose\s*(?<open>\()\s*(?<builder>\w+)\s*=>")]
 	private static partial Regex SetupRegex();
+
+	/// <summary>
+	/// Matches a registration that gives every consumer the same instance.
+	/// </summary>
+	[GeneratedRegex(@"\.\s*SingleInstance\s*\(")]
+	private static partial Regex SingleInstanceRegex();
+
+	/// <summary>
+	/// Splits the code of a block into its statements; a block statement such as an <c>if</c> stays whole.
+	/// </summary>
+	private static IEnumerable<string> SplitStatements(string block)
+	{
+		int depth = 0;
+
+		int start = 0;
+
+		for (int i = 0; i < block.Length; i++)
+		{
+			depth += block[i] switch
+			{
+				'(' or '[' or '{' => 1,
+				')' or ']' or '}' => -1,
+				_ => 0
+			};
+
+			bool isEnd = depth == 0
+				&& (block[i] == ';' || (block[i] == '}' && !ContinuationRegex().IsMatch(block, i + 1)));
+
+			if (!isEnd)
+			{
+				continue;
+			}
+
+			string statement = block[start..(i + 1)].Trim();
+
+			start = i + 1;
+
+			if (statement.Length > 0)
+			{
+				yield return statement;
+			}
+		}
+	}
 
 	/// <summary>
 	/// Splits a list of type arguments into normalized type names.
@@ -329,5 +341,20 @@ internal static partial class ContainerSetupReader
 	/// </summary>
 	[GeneratedRegex(@"\s+")]
 	private static partial Regex WhitespaceRegex();
+
+	/// <summary>
+	/// Returns the code of a method with the spans of its setups replaced by spaces.
+	/// </summary>
+	private static string WithoutSetups(string code, (int Open, int Close)[] spans)
+	{
+		char[] characters = code.ToCharArray();
+
+		foreach ((int open, int close) in spans)
+		{
+			Array.Fill(characters, ' ', open, close - open + 1);
+		}
+
+		return new string(characters);
+	}
 	#endregion
 }

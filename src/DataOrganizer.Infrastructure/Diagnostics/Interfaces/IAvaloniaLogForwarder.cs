@@ -1,12 +1,10 @@
-using System;
-
 namespace DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 
 /// <summary>
 /// Passes the warnings and errors of Avalonia to the log of the application, with every value that may come from the
 /// data of the user left out.
 /// </summary>
-public interface IAvaloniaLogForwarder : IDisposable
+public interface IAvaloniaLogForwarder
 {
 	#region Methods
 	/// <summary>

@@ -22,6 +22,7 @@ namespace DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
 
 /// <inheritdoc cref="IKeyboardInputHook" />
 public sealed class KeyboardInputHook :
+	IDisposable,
 	IKeyboardInputHook,
 	IRecipient<GlobalKeyReleasedMessage>
 {
@@ -235,7 +236,7 @@ public sealed class KeyboardInputHook :
 
 			_lastStrokeTimestamp = timestamp;
 
-			if (InputStack.Count == IKeyboardInputHook.MaxHotkeys)
+			if (InputStack.Count == HotkeyLimits.MaxHotkeys)
 			{
 				InputStack.RemoveAt(0);
 			}

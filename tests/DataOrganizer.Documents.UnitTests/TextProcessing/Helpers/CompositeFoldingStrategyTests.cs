@@ -2,7 +2,7 @@ using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Documents.TextProcessing.Helpers;
-using DataOrganizer.Documents.UnitTests.TextProcessing.Fakes;
+using DataOrganizer.Documents.UnitTests.TextProcessing.TestHelpers.Fakes;
 using System.Collections.Generic;
 using System.Linq;
 

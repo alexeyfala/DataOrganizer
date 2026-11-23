@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Database.Repository.Interceptors;
+using DataOrganizer.Database.UnitTests.Repository.TestHelpers;
 using Microsoft.Data.Sqlite;
-using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Interceptors;
@@ -37,11 +37,11 @@ internal class SqlitePragmasTests
 		SqlitePragmas.Apply(connection);
 
 		// Assert
-		ReadPragma(connection, "secure_delete")
+		connection.ReadPragma("secure_delete")
 			.Should()
 			.Be(1L);
 
-		ReadPragma(connection, "temp_store")
+		connection.ReadPragma("temp_store")
 			.Should()
 			.Be(TempStoreMemory);
 	}
@@ -61,11 +61,11 @@ internal class SqlitePragmasTests
 		await SqlitePragmas.ApplyAsync(connection);
 
 		// Assert
-		ReadPragma(connection, "secure_delete")
+		connection.ReadPragma("secure_delete")
 			.Should()
 			.Be(1L);
 
-		ReadPragma(connection, "temp_store")
+		connection.ReadPragma("temp_store")
 			.Should()
 			.Be(TempStoreMemory);
 	}
@@ -88,27 +88,16 @@ internal class SqlitePragmasTests
 			.Should()
 			.Be(System.Data.ConnectionState.Open);
 
-		ReadPragma(connection, "secure_delete")
+		connection.ReadPragma("secure_delete")
 			.Should()
 			.Be(1L);
 
-		ReadPragma(connection, "temp_store")
+		connection.ReadPragma("temp_store")
 			.Should()
 			.Be(TempStoreMemory);
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Reads the current value of a pragma of the given connection.
-	/// </summary>
-	private static long ReadPragma(DbConnection connection, string name)
-	{
-		using DbCommand command = connection.CreateCommand();
-
-		command.CommandText = $"PRAGMA {name};";
-
-		return (long)command.ExecuteScalar()!;
-	}
 	#endregion
 }

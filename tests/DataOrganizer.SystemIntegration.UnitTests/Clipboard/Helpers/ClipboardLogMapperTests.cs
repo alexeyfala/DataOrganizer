@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.SystemIntegration.Clipboard.Dto;
 using DataOrganizer.SystemIntegration.Clipboard.Helpers;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -76,10 +76,13 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardLogEntryBase result = RoundTrip(entry);
+		List<ClipboardLogEntryBase> result = RoundTrip(entry);
 
 		// Assert
 		result
+			.Should()
+			.ContainSingle()
+			.Which
 			.Should()
 			.BeOfType<ClipboardUrlEntry>()
 			.Subject
@@ -129,10 +132,13 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardLogEntryBase result = RoundTrip(entry);
+		List<ClipboardLogEntryBase> result = RoundTrip(entry);
 
 		// Assert
 		ClipboardFilesEntry files = result
+			.Should()
+			.ContainSingle()
+			.Which
 			.Should()
 			.BeOfType<ClipboardFilesEntry>()
 			.Subject;
@@ -172,10 +178,13 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardLogEntryBase result = RoundTrip(entry);
+		List<ClipboardLogEntryBase> result = RoundTrip(entry);
 
 		// Assert
 		ClipboardImageEntry image = result
+			.Should()
+			.ContainSingle()
+			.Which
 			.Should()
 			.BeOfType<ClipboardImageEntry>()
 			.Subject;
@@ -207,10 +216,14 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardLogEntryBase result = RoundTrip(entry);
+		List<ClipboardLogEntryBase> result = RoundTrip(entry);
 
 		// Assert
-		result.IsPinned
+		result
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsPinned
 			.Should()
 			.BeTrue();
 	}
@@ -231,10 +244,13 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardLogEntryBase result = RoundTrip(entry);
+		List<ClipboardLogEntryBase> result = RoundTrip(entry);
 
 		// Assert
 		ClipboardTextEntry text = result
+			.Should()
+			.ContainSingle()
+			.Which
 			.Should()
 			.BeOfType<ClipboardTextEntry>()
 			.Subject;
@@ -274,10 +290,13 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardLogEntryBase result = RoundTrip(entry);
+		List<ClipboardLogEntryBase> result = RoundTrip(entry);
 
 		// Assert
 		ClipboardUrlEntry link = result
+			.Should()
+			.ContainSingle()
+			.Which
 			.Should()
 			.BeOfType<ClipboardUrlEntry>()
 			.Subject;
@@ -343,10 +362,13 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardLogEntryBase result = RoundTrip(entry);
+		List<ClipboardLogEntryBase> result = RoundTrip(entry);
 
 		// Assert
 		ClipboardUrlEntry url = result
+			.Should()
+			.ContainSingle()
+			.Which
 			.Should()
 			.BeOfType<ClipboardUrlEntry>()
 			.Subject;
@@ -396,15 +418,11 @@ internal class ClipboardLogMapperTests
 	/// <summary>
 	/// Maps an entry to its persisted form and back through the in-memory model (no JSON).
 	/// </summary>
-	private static ClipboardLogEntryBase RoundTrip(ClipboardLogEntryBase entry)
+	private static List<ClipboardLogEntryBase> RoundTrip(ClipboardLogEntryBase entry)
 	{
 		PersistedClipboardLog persisted = ClipboardLogMapper.ToPersisted([entry]);
 
-		return ClipboardLogMapper
-			.ToDomain(persisted)
-			.Should()
-			.ContainSingle()
-			.Subject;
+		return ClipboardLogMapper.ToDomain(persisted);
 	}
 	#endregion
 }

@@ -1,10 +1,10 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
+using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.TestHelpers.Factories;
 using SharpHook.Data;
-using System;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
@@ -24,9 +24,9 @@ internal class UnreadableHotkeysFinderTests
 
 		FolderDto subfolder = ItemDtoFactory.CreateFolderDto();
 
-		FileDto unreadableKey = CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
+		FileDto unreadableKey = HotkeyFactory.CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
 
-		FileDto unreadableMask = CreateFileWithHotkey(KeyCode.VcA, EventMask.None);
+		FileDto unreadableMask = HotkeyFactory.CreateFileWithHotkey(KeyCode.VcA, EventMask.None);
 
 		subfolder
 			.Children
@@ -38,7 +38,7 @@ internal class UnreadableHotkeysFinderTests
 
 		folder
 			.Children
-			.Add(CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl));
+			.Add(HotkeyFactory.CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl));
 
 		folder
 			.Children
@@ -63,25 +63,5 @@ internal class UnreadableHotkeysFinderTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates a file with one hotkey of the given key and mask.
-	/// </summary>
-	private static FileDto CreateFileWithHotkey(KeyCode code, EventMask mask)
-	{
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		file
-			.Hotkeys
-			.Add(new()
-			{
-				Code = code,
-				Id = Guid.NewGuid(),
-				Index = 0,
-				Mask = mask,
-				OwnerId = file.Id
-			});
-
-		return file;
-	}
 	#endregion
 }

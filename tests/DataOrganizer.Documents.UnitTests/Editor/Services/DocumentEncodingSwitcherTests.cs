@@ -7,7 +7,7 @@ using DataOrganizer.Documents.Editor.Services;
 using DataOrganizer.Infrastructure.Notifications.Constants;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Threading.Interfaces;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using NSubstitute;
 using System.Text;
 using System.Threading.Tasks;

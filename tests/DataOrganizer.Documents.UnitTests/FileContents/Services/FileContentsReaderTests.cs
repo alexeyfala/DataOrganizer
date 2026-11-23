@@ -8,10 +8,10 @@ using DataOrganizer.Documents.FileContents.Enums;
 using DataOrganizer.Documents.FileContents.Services;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -382,7 +382,7 @@ internal class FileContentsReaderTests
 	/// stay closed instead of throwing.
 	/// </summary>
 	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
+	[TestCaseSource(typeof(CipherFailures), nameof(CipherFailures.Session))]
 	public async Task ReadAsync_Keeps_The_File_Closed_When_The_Decryption_Fails(Exception failure)
 	{
 		// Arrange
@@ -840,7 +840,7 @@ internal class FileContentsReaderTests
 	/// open stay closed instead of throwing.
 	/// </summary>
 	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
+	[TestCaseSource(typeof(CipherFailures), nameof(CipherFailures.Session))]
 	public async Task ReadUnlockedAsync_Keeps_The_File_Closed_When_The_Decryption_Fails(Exception failure)
 	{
 		// Arrange
@@ -1024,13 +1024,5 @@ internal class FileContentsReaderTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Failures an operation on the key of a session can end with.
-	/// </summary>
-	private static Exception[] SessionCipherFailures() =>
-	[
-		new AuthenticationTagMismatchException(),
-		new InvalidOperationException()
-	];
 	#endregion
 }

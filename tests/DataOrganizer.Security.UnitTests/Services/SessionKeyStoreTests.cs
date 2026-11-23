@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

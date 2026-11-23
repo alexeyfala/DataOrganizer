@@ -132,7 +132,7 @@ public static class RepositoryFiles
 	/// </summary>
 	private static IEnumerable<string> EnumerateProjectFiles(string searchPattern)
 	{
-		string root = Path.Combine(LocateRoot(), SourceFolder, "DataOrganizer");
+		string root = Path.Combine(LocateRoot(), SourceFolder, "DataOrganizer.UI");
 
 		return Directory
 			.EnumerateFiles(root, searchPattern, SearchOption.AllDirectories)

@@ -11,7 +11,7 @@ using DataOrganizer.Database.Repository.Services.Database;
 using DataOrganizer.Documents.Notes.Interfaces;
 using DataOrganizer.Documents.Notes.Services;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.TestSupport.Database;
@@ -509,9 +509,9 @@ internal class NoteEditorTests
 			RandomString.Create(20));
 
 		// Assert
-		replaced.Should().AllSatisfy(x => x
+		replaced
 			.Should()
-			.Be(0));
+			.AllSatisfy(x => x.Should().Be(0));
 	}
 	#endregion
 }

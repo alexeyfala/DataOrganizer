@@ -12,8 +12,8 @@
       "src\\DataOrganizer.Security\\DataOrganizer.Security.csproj",
       "src\\DataOrganizer.Shared\\DataOrganizer.Shared.csproj",
       "src\\DataOrganizer.SystemIntegration\\DataOrganizer.SystemIntegration.csproj",
+      "src\\DataOrganizer.UI\\DataOrganizer.UI.csproj",
       "src\\DataOrganizer.Workflows\\DataOrganizer.Workflows.csproj",
-      "src\\DataOrganizer\\DataOrganizer.csproj",
       "tests\\DataOrganizer.Database.IntegrationTests\\DataOrganizer.Database.IntegrationTests.csproj",
       "tests\\DataOrganizer.Database.UnitTests\\DataOrganizer.Database.UnitTests.csproj",
       "tests\\DataOrganizer.Documents.UnitTests\\DataOrganizer.Documents.UnitTests.csproj",
@@ -24,7 +24,7 @@
       "tests\\DataOrganizer.Shared.UnitTests\\DataOrganizer.Shared.UnitTests.csproj",
       "tests\\DataOrganizer.SystemIntegration.UnitTests\\DataOrganizer.SystemIntegration.UnitTests.csproj",
       "tests\\DataOrganizer.TestSupport\\DataOrganizer.TestSupport.csproj",
-      "tests\\DataOrganizer.UnitTests\\DataOrganizer.UnitTests.csproj",
+      "tests\\DataOrganizer.UI.UnitTests\\DataOrganizer.UI.UnitTests.csproj",
       "tests\\DataOrganizer.Workflows.UnitTests\\DataOrganizer.Workflows.UnitTests.csproj",
       "tests\\Setup.CustomActions.UnitTests\\Setup.CustomActions.UnitTests.csproj"
     ]

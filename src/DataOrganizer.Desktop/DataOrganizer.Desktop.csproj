@@ -1,17 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<ApplicationIcon>..\$(AppName)\Assets\Logo.ico</ApplicationIcon>
+		<ApplicationIcon>$(AppIconPath)</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AssemblyName>$(AppName)</AssemblyName>
-		<!-- To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute -->
-		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<!-- ↓↓↓ You can add a suffix to version here. -->
-		<Version>$(AppVersion)</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -24,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
+		<ProjectReference Include="..\DataOrganizer.UI\DataOrganizer.UI.csproj" />
 	</ItemGroup>
 
 	<!-- Drop debug symbols of native dependencies from the published output. -->

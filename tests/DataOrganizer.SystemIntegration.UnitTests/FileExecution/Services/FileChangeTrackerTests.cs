@@ -9,7 +9,7 @@ using DataOrganizer.Documents.FileContents.Dto;
 using DataOrganizer.Documents.FileContents.Enums;
 using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Documents.FileContents.Services;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Security.Helpers;
@@ -940,7 +940,9 @@ internal class FileChangeTrackerTests
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
-			builder.RegisterInstance<TimeProvider>(new FakeTimeProvider());
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();

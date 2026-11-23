@@ -2,11 +2,11 @@ using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Interfaces;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
-using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Infrastructure.UnitTests.Settings.TestHelpers.Factories;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Workflows.UnitTests.AppLifecycle.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SettingsSession)}"" type")]
+[TestFixture(Description = $@"Tests of ""{nameof(SettingsSession)}"" type together with ""{nameof(BackgroundServices)}"" and ""{nameof(WorkSession)}""")]
 internal class SettingsSessionTests
 {
 	#region Methods

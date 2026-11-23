@@ -1,0 +1,26 @@
+<UserControl
+	x:Class="DataOrganizer.UI.Views.CopyHistoryView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.UI.Behaviors"
+	xmlns:vm="using:DataOrganizer.UI.ViewModels"
+	x:DataType="vm:CopyHistoryViewModel">
+
+	<Grid RowDefinitions="Auto,*">
+		<TextBox
+			Grid.Row="0"
+			Margin="4.0,0.0"
+			Classes="clearButton SearchTextBoxStyle"
+			Text="{Binding HistorySearch, Mode=TwoWay}" />
+
+		<ListBox
+			Grid.Row="1"
+			ItemTemplate="{StaticResource FileInListTemplate}"
+			ItemsSource="{Binding Items, Mode=OneTime}"
+			SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+			<Interaction.Behaviors>
+				<behaviors:ExplorerItemSignalsBehavior HighlightSignal="{Binding HighlightSignal, Mode=OneWay}" />
+			</Interaction.Behaviors>
+		</ListBox>
+	</Grid>
+</UserControl>
