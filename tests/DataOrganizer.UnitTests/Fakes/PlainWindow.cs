@@ -1,4 +1,4 @@
-using DataOrganizer.Windows;
+using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UnitTests.Fakes;
 

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Views;
+using DataOrganizer.UI.Extensions.Views;
 
 namespace DataOrganizer.UnitTests.Extensions.Views;
 

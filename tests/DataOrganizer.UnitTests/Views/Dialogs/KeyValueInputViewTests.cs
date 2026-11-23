@@ -7,9 +7,9 @@ using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Security;
-using DataOrganizer.ViewModels.Dialogs;
-using DataOrganizer.Views.Dialogs;
+using DataOrganizer.UI.Behaviors.Security;
+using DataOrganizer.UI.ViewModels.Dialogs;
+using DataOrganizer.UI.Views.Dialogs;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;

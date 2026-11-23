@@ -1,8 +1,8 @@
 using Avalonia.Automation.Peers;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.ViewModels.Windows;
-using DataOrganizer.Windows;
+using DataOrganizer.UI.ViewModels.Windows;
+using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UnitTests.Windows;
 

@@ -9,7 +9,7 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UI.Behaviors.Input;
 using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 

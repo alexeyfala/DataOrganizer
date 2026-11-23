@@ -10,8 +10,8 @@ using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
-using DataOrganizer.ViewModels.Hierarchy;
-using DataOrganizer.Views;
+using DataOrganizer.UI.ViewModels.Hierarchy;
+using DataOrganizer.UI.Views;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using System.Linq;
 

@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
-using DataOrganizer.ViewModels.Hierarchy;
+using DataOrganizer.UI.ViewModels.Hierarchy;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using Microsoft.Extensions.Time.Testing;
 using System;

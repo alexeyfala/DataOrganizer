@@ -8,10 +8,10 @@ using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
-using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Services.Documents;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.ViewModels;
+using DataOrganizer.UI.Interfaces.Views;
+using DataOrganizer.UI.Services.Documents;
+using DataOrganizer.UI.ViewModels;
 using NSubstitute;
 using System;
 

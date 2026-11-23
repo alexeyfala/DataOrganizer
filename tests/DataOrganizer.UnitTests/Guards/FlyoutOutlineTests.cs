@@ -5,7 +5,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.UI.Controls;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Guards;

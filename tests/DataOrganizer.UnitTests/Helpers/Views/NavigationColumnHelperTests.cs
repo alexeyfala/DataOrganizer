@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Helpers.Views;
+using DataOrganizer.UI.Helpers.Views;
 
 namespace DataOrganizer.UnitTests.Helpers.Views;
 

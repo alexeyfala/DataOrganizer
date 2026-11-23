@@ -3,7 +3,7 @@ using Avalonia.Automation.Provider;
 using Avalonia.Headless.NUnit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Controls.Text;
+using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UnitTests.TestHelpers;
 using System;
 using Action = System.Action;

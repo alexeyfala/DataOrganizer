@@ -73,13 +73,6 @@
 
 - ⚙️ [`SR.ru.resx`](../src/AvaloniaEdit.Localization/SR.ru.resx) — Russian texts of the AvaloniaEdit search panel.
 
-**`DataOrganizer`**
-
-- 🖼️ `Assets/Logo.ico` — application icon.
-- 🖼️ `Assets/Logo.svg` — vector icon for the Linux packages.
-- 🖼️ `Assets/Logo.256.png` — raster icon for AppImage.
-- 🖼️ `Assets/Background.jpg` — background of a record card.
-
 **`DataOrganizer.Desktop`**
 
 - ⚙️ [`app.manifest`](../src/DataOrganizer.Desktop/app.manifest) — Windows application manifest.
@@ -95,6 +88,13 @@
 
 - ⚙️ [`Strings.resx`](../src/DataOrganizer.Shared/Properties/Strings.resx) — interface strings, English.
 - ⚙️ [`Strings.ru.resx`](../src/DataOrganizer.Shared/Properties/Strings.ru.resx) — interface strings, Russian.
+
+**`DataOrganizer.UI`**
+
+- 🖼️ `Assets/Logo.ico` — application icon.
+- 🖼️ `Assets/Logo.svg` — vector icon for the Linux packages.
+- 🖼️ `Assets/Logo.256.png` — raster icon for AppImage.
+- 🖼️ `Assets/Background.jpg` — background of a record card.
 
 ---
 

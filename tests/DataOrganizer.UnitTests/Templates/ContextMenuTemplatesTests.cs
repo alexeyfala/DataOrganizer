@@ -7,14 +7,14 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
 using DataOrganizer.Documents.DatasetRecords.Models;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UI.Controls;
+using DataOrganizer.UI.ViewModels;
 using DataOrganizer.UnitTests.Factories;
-using DataOrganizer.ViewModels;
 using System;
 using System.Linq;
 

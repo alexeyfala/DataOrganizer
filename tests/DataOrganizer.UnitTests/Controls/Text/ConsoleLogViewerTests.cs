@@ -5,7 +5,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Controls.Text;
+using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UnitTests.TestHelpers;
 using Serilog.Events;
 using System;

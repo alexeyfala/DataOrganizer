@@ -17,7 +17,6 @@ The projects of `src/`, in the order of the Solution Explorer:
 
 - `AvaloniaEdit.Localization` — the Russian satellite of the AvaloniaEdit search panel.
 - `Bundle` — the installer that carries the .NET runtime and the `.msi`.
-- `DataOrganizer` — the user interface: views, view models, controls, styles.
 - `DataOrganizer.Database` — the stored data.
   - `Entities` — the entities of the database.
   - `Repository` — the database context, its access and the repositories.
@@ -52,6 +51,7 @@ The projects of `src/`, in the order of the Solution Explorer:
   - `Clipboard` — the clipboard and its history.
   - `FileExecution` — opening files in the programs of the system and taking back their changes.
   - `GlobalHotkeys` — system-wide hotkeys.
+- `DataOrganizer.UI` — the user interface: views, view models, controls, styles.
 - `DataOrganizer.Workflows` — the operations that span several topics.
   - `AppLifecycle` — start, background services and exit of the application.
   - `HierarchyExchange` — export and import of the tree.
@@ -70,8 +70,8 @@ Shared ← Database ← Infrastructure ← Hierarchy ← Security ← Documents 
                   ↖ Database.Migrations
 ```
 
-`DataOrganizer` references `DataOrganizer.Workflows`, `DataOrganizer.Database.Migrations` and
-`AvaloniaEdit.Localization`; the hosts reference `DataOrganizer`.
+`DataOrganizer.UI` references `DataOrganizer.Workflows`, `DataOrganizer.Database.Migrations` and
+`AvaloniaEdit.Localization`; the hosts reference `DataOrganizer.UI`.
 
 ## Folders inside a project
 

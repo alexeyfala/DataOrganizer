@@ -2,8 +2,8 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using DataOrganizer.UI.Windows;
 using DataOrganizer.UnitTests.Fakes;
-using DataOrganizer.Windows;
 
 namespace DataOrganizer.UnitTests.Windows;
 

@@ -18,7 +18,7 @@ internal partial class SystemClockTests
 	/// </summary>
 	private static readonly string[] SourceExceptions =
 	[
-		"DataOrganizer/App.axaml.cs reads DateTime.Now"
+		"DataOrganizer.UI/App.axaml.cs reads DateTime.Now"
 	];
 
 	/// <summary>

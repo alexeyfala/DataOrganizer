@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using AwesomeAssertions;
-using DataOrganizer.Converters;
 using DataOrganizer.Security.Helpers;
+using DataOrganizer.UI.Converters;
 using System;
 using System.Globalization;
 

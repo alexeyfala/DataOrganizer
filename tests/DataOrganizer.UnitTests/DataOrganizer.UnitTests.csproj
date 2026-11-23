@@ -15,7 +15,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer.TestSupport\DataOrganizer.TestSupport.csproj" />
-		<ProjectReference Include="..\..\src\DataOrganizer\DataOrganizer.csproj" />
+		<ProjectReference Include="..\..\src\DataOrganizer.UI\DataOrganizer.UI.csproj" />
 	</ItemGroup>
 
 	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->

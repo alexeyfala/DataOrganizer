@@ -5,7 +5,7 @@ using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.DialogContracts.Enums;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
-using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
 using NSubstitute;
 using System;
 using System.Threading;

@@ -1,7 +1,7 @@
 using Avalonia.Headless.NUnit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
-using DataOrganizer.Services.Documents;
+using DataOrganizer.UI.Services.Documents;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Services.Documents;

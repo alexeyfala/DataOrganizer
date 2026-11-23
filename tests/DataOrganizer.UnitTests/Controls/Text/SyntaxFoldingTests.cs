@@ -3,10 +3,10 @@ using Avalonia.Input;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AwesomeAssertions;
-using DataOrganizer.Controls.Text;
 using DataOrganizer.Documents.TextProcessing.Dto;
-using DataOrganizer.Services;
 using DataOrganizer.Shared.Constants;
+using DataOrganizer.UI.Controls.Text;
+using DataOrganizer.UI.Services;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls.Text;

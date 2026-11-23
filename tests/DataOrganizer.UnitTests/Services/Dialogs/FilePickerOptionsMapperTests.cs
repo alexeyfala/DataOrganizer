@@ -1,7 +1,7 @@
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
-using DataOrganizer.Services.Dialogs;
+using DataOrganizer.UI.Services.Dialogs;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;

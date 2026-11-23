@@ -1,6 +1,6 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Services.Dialogs;
+using DataOrganizer.UI.Services.Dialogs;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;

@@ -1,7 +1,7 @@
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Extensions.Views;
+using DataOrganizer.UI.Extensions.Views;
 using Microsoft.Extensions.Time.Testing;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Reactive;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
-using ObservableExtensions = DataOrganizer.Extensions.Views.ObservableExtensions;
+using ObservableExtensions = DataOrganizer.UI.Extensions.Views.ObservableExtensions;
 
 namespace DataOrganizer.UnitTests.Extensions.Views;
 

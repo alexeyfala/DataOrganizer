@@ -1,7 +1,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Enums;
-using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
 using System;
 using System.Threading.Tasks;
 

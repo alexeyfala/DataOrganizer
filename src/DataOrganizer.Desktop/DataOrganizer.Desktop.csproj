@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
+		<ProjectReference Include="..\DataOrganizer.UI\DataOrganizer.UI.csproj" />
 	</ItemGroup>
 
 	<!-- Drop debug symbols of native dependencies from the published output. -->

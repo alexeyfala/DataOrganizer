@@ -3,7 +3,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UI.Behaviors.Input;
 using DataOrganizer.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UnitTests.Behaviors.Input;

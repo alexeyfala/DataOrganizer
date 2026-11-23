@@ -2,7 +2,7 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.UI.Controls;
 using DataOrganizer.UnitTests.TestHelpers;
 using Material.Icons;
 

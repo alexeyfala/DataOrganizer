@@ -3,7 +3,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors;
+using DataOrganizer.UI.Behaviors;
 using DataOrganizer.UnitTests.TestHelpers;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

@@ -1,3 +1,4 @@
+using DataOrganizer.UI;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -15,7 +16,8 @@ internal static class AppAssemblies
 	/// </summary>
 	public static Assembly[] Enumerate()
 	{
-		string prefix = typeof(App).Namespace!;
+		// The projects of the application share the first segment of its namespace.
+		string prefix = typeof(App).Namespace!.Split('.')[0];
 
 		Dictionary<string, Assembly> found = [];
 

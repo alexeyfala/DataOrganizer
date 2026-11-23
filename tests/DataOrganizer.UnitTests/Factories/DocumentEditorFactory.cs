@@ -1,5 +1,5 @@
-using DataOrganizer.Services.Documents;
-using DataOrganizer.ViewModels;
+using DataOrganizer.UI.Services.Documents;
+using DataOrganizer.UI.ViewModels;
 
 namespace DataOrganizer.UnitTests.Factories;
 

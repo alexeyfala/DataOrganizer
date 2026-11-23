@@ -2,10 +2,10 @@ using Avalonia.Headless.NUnit;
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using DataOrganizer.Documents.Editor.Dto;
-using DataOrganizer.Services.Documents;
+using DataOrganizer.UI.Services.Documents;
+using DataOrganizer.UI.ViewModels;
+using DataOrganizer.UI.Views;
 using DataOrganizer.UnitTests.TestHelpers;
-using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
 using System.Text;
 
 namespace DataOrganizer.UnitTests.Views;

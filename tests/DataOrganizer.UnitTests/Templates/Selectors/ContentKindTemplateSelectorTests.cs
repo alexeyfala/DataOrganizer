@@ -2,8 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Enums;
-using DataOrganizer.Templates.Selectors;
+using DataOrganizer.UI.Enums;
+using DataOrganizer.UI.Templates.Selectors;
 
 namespace DataOrganizer.UnitTests.Templates.Selectors;
 

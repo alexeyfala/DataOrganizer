@@ -11,11 +11,11 @@ using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Behaviors.DragAndDrop;
 using DataOrganizer.Documents.DatasetRecords.Messages;
 using DataOrganizer.Documents.DatasetRecords.Models;
-using DataOrganizer.Interfaces;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UI.Behaviors.DragAndDrop;
+using DataOrganizer.UI.Interfaces;
 using DataOrganizer.UnitTests.TestHelpers;
 using System.Collections.Generic;
 

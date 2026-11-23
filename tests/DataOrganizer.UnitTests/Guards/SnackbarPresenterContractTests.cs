@@ -5,7 +5,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Notifications.Enums;
-using DataOrganizer.Services.Notifications;
+using DataOrganizer.UI.Services.Notifications;
 using DataOrganizer.UnitTests.TestHelpers;
 using Material.Styles.Controls;
 using System.Linq;

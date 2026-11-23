@@ -27,7 +27,7 @@
 		<BundleResource Include="..\..\LICENSE;..\..\NOTICE;..\..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
+		<ProjectReference Include="..\DataOrganizer.UI\DataOrganizer.UI.csproj" />
 	</ItemGroup>
 
 	<!-- Installer / disk-image naming (RuntimeIdentifier is fixed to osx-x64 above). -->

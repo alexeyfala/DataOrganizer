@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers;
+using DataOrganizer.UI.Helpers;
 using System;
 
 namespace DataOrganizer.UnitTests.Helpers;

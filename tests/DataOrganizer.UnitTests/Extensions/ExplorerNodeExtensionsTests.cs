@@ -1,9 +1,9 @@
 using AwesomeAssertions;
-using DataOrganizer.Extensions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
-using DataOrganizer.ViewModels.Hierarchy;
+using DataOrganizer.UI.Extensions;
+using DataOrganizer.UI.ViewModels.Hierarchy;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using DynamicData.Binding;
 using System;

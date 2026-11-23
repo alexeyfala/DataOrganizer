@@ -11,9 +11,9 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Documents.TextProcessing.Dto;
 using DataOrganizer.Documents.TextProcessing.Helpers;
-using DataOrganizer.Services;
+using DataOrganizer.UI.Services;
+using DataOrganizer.UI.Views;
 using DataOrganizer.UnitTests.TestHelpers;
-using DataOrganizer.Views;
 using System.Linq;
 using System.Text;
 

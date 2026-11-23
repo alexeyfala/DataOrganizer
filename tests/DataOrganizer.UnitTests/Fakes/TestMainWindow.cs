@@ -1,5 +1,5 @@
 using Avalonia.Controls;
-using DataOrganizer.Windows;
+using DataOrganizer.UI.Windows;
 using System;
 
 namespace DataOrganizer.UnitTests.Fakes;

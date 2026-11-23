@@ -7,8 +7,8 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Security;
-using DataOrganizer.Views;
+using DataOrganizer.UI.Behaviors.Security;
+using DataOrganizer.UI.Views;
 using Material.Icons.Avalonia;
 using System.Linq;
 

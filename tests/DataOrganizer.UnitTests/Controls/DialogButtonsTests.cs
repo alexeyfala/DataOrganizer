@@ -5,7 +5,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Controls;
+using DataOrganizer.UI.Controls;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Controls;

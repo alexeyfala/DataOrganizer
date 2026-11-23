@@ -12,8 +12,8 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
-using DataOrganizer.Controls.Text;
+using DataOrganizer.UI.Controls;
+using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 

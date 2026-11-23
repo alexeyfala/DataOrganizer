@@ -6,8 +6,8 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
-using DataOrganizer.Services.Dialogs;
-using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.UI.Services.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
 using DialogHostAvalonia;
 using System.Threading.Tasks;
 

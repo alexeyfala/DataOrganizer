@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Documents.Editor.Dto;
 using DataOrganizer.Documents.TextProcessing.Dto;
-using DataOrganizer.Services;
+using DataOrganizer.UI.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

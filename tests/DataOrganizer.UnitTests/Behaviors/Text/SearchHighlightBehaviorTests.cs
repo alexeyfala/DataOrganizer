@@ -3,8 +3,8 @@ using Avalonia.Controls.Documents;
 using Avalonia.Headless.NUnit;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Text;
-using DataOrganizer.Controls.Text;
+using DataOrganizer.UI.Behaviors.Text;
+using DataOrganizer.UI.Controls.Text;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Behaviors.Text;

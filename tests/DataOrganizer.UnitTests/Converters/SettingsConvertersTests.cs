@@ -1,8 +1,8 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AwesomeAssertions;
-using DataOrganizer.Converters;
 using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.UI.Converters;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;

@@ -5,7 +5,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UI.Behaviors.Input;
 using DataOrganizer.UnitTests.TestHelpers;
 using NSubstitute;
 using System.Linq;

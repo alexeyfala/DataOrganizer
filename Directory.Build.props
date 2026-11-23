@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<AppName>DataOrganizer</AppName>
 		<AppDisplayName>Data Organizer</AppDisplayName>
-		<AppIconPath>..\$(AppName)\Assets\Logo.ico</AppIconPath>
+		<AppIconPath>..\$(AppName).UI\Assets\Logo.ico</AppIconPath>
 		<AppVersion>0.3.0</AppVersion>
 		<AppTargetFramework>net11.0</AppTargetFramework>
 		<Manufacturer>Alexey Fala</Manufacturer>

@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Threading;
-using DataOrganizer.Services.Views;
 using DataOrganizer.Shared.Threading.Enums;
+using DataOrganizer.UI.Services.Views;
 using NSubstitute;
 using System;
 

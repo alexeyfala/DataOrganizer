@@ -9,8 +9,8 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Controls.Text;
-using DataOrganizer.Messages.Documents;
+using DataOrganizer.UI.Controls.Text;
+using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UnitTests.TestHelpers;
 using System.Linq;
 

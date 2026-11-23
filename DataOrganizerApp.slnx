@@ -101,8 +101,8 @@
     <Project Path="src/DataOrganizer.Security/DataOrganizer.Security.csproj" />
     <Project Path="src/DataOrganizer.Shared/DataOrganizer.Shared.csproj" />
     <Project Path="src/DataOrganizer.SystemIntegration/DataOrganizer.SystemIntegration.csproj" />
+    <Project Path="src/DataOrganizer.UI/DataOrganizer.UI.csproj" />
     <Project Path="src/DataOrganizer.Workflows/DataOrganizer.Workflows.csproj" />
-    <Project Path="src/DataOrganizer/DataOrganizer.csproj" />
     <Project Path="src/Setup.CustomActions/Setup.CustomActions.csproj" />
     <Project Path="src/Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />

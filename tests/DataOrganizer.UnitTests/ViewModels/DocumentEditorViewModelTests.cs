@@ -2,9 +2,9 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Documents.Editor.Interfaces;
+using DataOrganizer.UI.ViewModels;
 using DataOrganizer.UnitTests.Factories;
 using DataOrganizer.UnitTests.TestHelpers;
-using DataOrganizer.ViewModels;
 using NSubstitute;
 using System.Text;
 

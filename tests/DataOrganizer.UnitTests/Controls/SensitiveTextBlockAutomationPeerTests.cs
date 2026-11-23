@@ -7,8 +7,8 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UI.Controls;
 using System.Collections.Generic;
 using System.Linq;
 

@@ -14,7 +14,7 @@ using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Messages;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
-using DataOrganizer.ViewModels;
+using DataOrganizer.UI.ViewModels;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

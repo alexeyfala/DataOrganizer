@@ -6,7 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.UI.Controls;
 using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.Controls;

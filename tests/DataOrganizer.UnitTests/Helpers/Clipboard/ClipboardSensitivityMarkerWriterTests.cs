@@ -1,8 +1,8 @@
 using Avalonia.Input;
 using AwesomeAssertions;
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.SystemIntegration.Clipboard.Helpers;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UI.Helpers.Clipboard;
 using System;
 using System.Linq;
 

@@ -5,7 +5,7 @@ using DataOrganizer.Documents.Editor.Dto;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Shared.Extensions;
-using DataOrganizer.ViewModels;
+using DataOrganizer.UI.ViewModels;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 
 namespace DataOrganizer.UnitTests.ViewModels;

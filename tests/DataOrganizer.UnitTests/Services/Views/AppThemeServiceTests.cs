@@ -7,7 +7,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
-using DataOrganizer.Services.Views;
+using DataOrganizer.UI.Services.Views;
 using Material.Colors;
 using Material.Styles.Themes;
 using Material.Styles.Themes.Base;

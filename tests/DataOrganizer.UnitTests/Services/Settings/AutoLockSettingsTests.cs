@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
-using DataOrganizer.Services.Settings;
+using DataOrganizer.UI.Services.Settings;
 using NSubstitute;
 
 namespace DataOrganizer.UnitTests.Services.Settings;

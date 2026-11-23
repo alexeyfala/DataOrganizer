@@ -13,7 +13,7 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
-using DataOrganizer.Controls.Text;
+using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UnitTests.TestHelpers;
 using NSubstitute;
 using System.Linq;

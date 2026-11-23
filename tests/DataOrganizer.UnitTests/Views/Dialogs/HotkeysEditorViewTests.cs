@@ -6,8 +6,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
-using DataOrganizer.ViewModels.Dialogs;
-using DataOrganizer.Views.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
+using DataOrganizer.UI.Views.Dialogs;
 using NSubstitute;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;

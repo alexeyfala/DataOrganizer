@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
 using NSubstitute;
 using System.Threading.Tasks;
 

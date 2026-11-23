@@ -9,8 +9,8 @@ using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
-using DataOrganizer.ViewModels.Dialogs;
-using DataOrganizer.Views.Settings;
+using DataOrganizer.UI.ViewModels.Dialogs;
+using DataOrganizer.UI.Views.Settings;
 using NSubstitute;
 using System.Linq;
 

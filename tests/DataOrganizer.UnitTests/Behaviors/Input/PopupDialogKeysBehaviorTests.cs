@@ -7,7 +7,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UI.Behaviors.Input;
 using System.Reflection;
 
 namespace DataOrganizer.UnitTests.Behaviors.Input;

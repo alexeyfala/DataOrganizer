@@ -6,8 +6,8 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Enums;
-using DataOrganizer.ViewModels.Dialogs;
-using DataOrganizer.Views.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
+using DataOrganizer.UI.Views.Dialogs;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;

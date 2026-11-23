@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 using AwesomeAssertions;
-using DataOrganizer.Converters;
+using DataOrganizer.UI.Converters;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;

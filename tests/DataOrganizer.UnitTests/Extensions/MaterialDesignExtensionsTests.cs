@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.Extensions;
 using DataOrganizer.Infrastructure.Settings.Enums;
+using DataOrganizer.UI.Extensions;
 
 namespace DataOrganizer.UnitTests.Extensions;
 

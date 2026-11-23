@@ -1,8 +1,8 @@
 using AvaloniaEdit.Document;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Controls.Text;
-using DataOrganizer.Messages.Documents;
+using DataOrganizer.UI.Controls.Text;
+using DataOrganizer.UI.Messages.Documents;
 using System.Collections.Generic;
 using System.Linq;
 

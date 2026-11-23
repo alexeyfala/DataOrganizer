@@ -11,7 +11,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Controls;
+using DataOrganizer.UI.Controls;
 using DataOrganizer.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UnitTests.Controls;

@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.Services.Documents;
-using DataOrganizer.ViewModels;
+using DataOrganizer.UI.Services.Documents;
+using DataOrganizer.UI.ViewModels;
 using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.ViewModels;

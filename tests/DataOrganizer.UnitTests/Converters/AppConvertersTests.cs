@@ -4,10 +4,10 @@ using Avalonia.Data.Converters;
 using Avalonia.Headless.NUnit;
 using Avalonia.Media.Imaging;
 using AwesomeAssertions;
-using DataOrganizer.Converters;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Shared.Constants;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UI.Converters;
 using System.Globalization;
 
 namespace DataOrganizer.UnitTests.Converters;

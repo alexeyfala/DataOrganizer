@@ -4,7 +4,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Layout;
 using Avalonia.Media;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UI.Behaviors.Input;
 using DataOrganizer.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UnitTests.Behaviors.Input;

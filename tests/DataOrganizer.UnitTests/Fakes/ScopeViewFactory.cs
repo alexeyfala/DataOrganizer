@@ -1,6 +1,6 @@
 using Autofac;
 using Avalonia.Controls;
-using DataOrganizer.Interfaces.Views;
+using DataOrganizer.UI.Interfaces.Views;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Fakes;

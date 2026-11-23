@@ -1,8 +1,8 @@
 using Autofac.Extras.Moq;
 using AvaloniaEdit;
 using AwesomeAssertions;
-using DataOrganizer.Services.Settings;
 using DataOrganizer.Shared.Properties;
+using DataOrganizer.UI.Services.Settings;
 using System.Collections;
 using System.Globalization;
 using System.Linq;

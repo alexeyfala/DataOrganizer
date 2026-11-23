@@ -2,9 +2,9 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors.Security;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.TestSupport.Common;
+using DataOrganizer.UI.Behaviors.Security;
 using NSubstitute;
 
 namespace DataOrganizer.UnitTests.Behaviors.Security;

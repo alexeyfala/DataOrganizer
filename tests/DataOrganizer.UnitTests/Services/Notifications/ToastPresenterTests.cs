@@ -4,9 +4,9 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Services.Notifications;
-using DataOrganizer.Services.Views;
-using DataOrganizer.Windows;
+using DataOrganizer.UI.Services.Notifications;
+using DataOrganizer.UI.Services.Views;
+using DataOrganizer.UI.Windows;
 using NSubstitute;
 
 namespace DataOrganizer.UnitTests.Services.Notifications;

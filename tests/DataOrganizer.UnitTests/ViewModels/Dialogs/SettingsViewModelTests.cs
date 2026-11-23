@@ -7,7 +7,7 @@ using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
-using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
 using Material.Colors;
 using NSubstitute;
 using System;

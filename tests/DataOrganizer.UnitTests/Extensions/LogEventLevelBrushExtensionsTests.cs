@@ -1,6 +1,6 @@
 using Avalonia.Media;
 using AwesomeAssertions;
-using DataOrganizer.Extensions;
+using DataOrganizer.UI.Extensions;
 using Serilog.Events;
 
 namespace DataOrganizer.UnitTests.Extensions;

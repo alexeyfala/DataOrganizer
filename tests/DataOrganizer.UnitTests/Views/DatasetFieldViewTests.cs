@@ -7,7 +7,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.Views;
+using DataOrganizer.UI.Views;
 using NSubstitute;
 using System.Linq;
 using System.Threading.Tasks;

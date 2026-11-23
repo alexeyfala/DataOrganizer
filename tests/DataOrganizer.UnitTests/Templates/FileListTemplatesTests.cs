@@ -10,7 +10,7 @@ using DataOrganizer.Hierarchy.UnitTests.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
 using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
-using DataOrganizer.Views;
+using DataOrganizer.UI.Views;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Templates;

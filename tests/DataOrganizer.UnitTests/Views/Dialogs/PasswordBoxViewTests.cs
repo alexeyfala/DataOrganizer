@@ -5,8 +5,8 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.ViewModels.Dialogs;
-using DataOrganizer.Views.Dialogs;
+using DataOrganizer.UI.ViewModels.Dialogs;
+using DataOrganizer.UI.Views.Dialogs;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.Views.Dialogs;

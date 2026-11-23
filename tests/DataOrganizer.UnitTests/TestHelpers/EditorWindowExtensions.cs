@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.VisualTree;
-using DataOrganizer.Controls;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.ViewModels.Hierarchy;
-using DataOrganizer.Windows;
+using DataOrganizer.UI.Controls;
+using DataOrganizer.UI.ViewModels.Hierarchy;
+using DataOrganizer.UI.Windows;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.TestHelpers;

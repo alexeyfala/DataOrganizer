@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.FilteredLists.Dto;
 using DataOrganizer.Hierarchy.UnitTests.Factories;
-using DataOrganizer.ViewModels.Hierarchy;
+using DataOrganizer.UI.ViewModels.Hierarchy;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using System;
 using System.Collections.Generic;

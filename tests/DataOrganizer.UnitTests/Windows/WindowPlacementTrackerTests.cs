@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Settings.Enums;
-using DataOrganizer.Windows;
+using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UnitTests.Windows;
 

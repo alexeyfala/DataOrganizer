@@ -5,7 +5,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Views;
+using DataOrganizer.UI.Views;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using System.Linq;

@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Services.Documents;
+using DataOrganizer.UI.Services.Documents;
 using System;
 
 namespace DataOrganizer.UnitTests.Services.Documents;

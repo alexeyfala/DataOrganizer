@@ -5,7 +5,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
-using DataOrganizer.Behaviors.Input;
+using DataOrganizer.UI.Behaviors.Input;
 using DataOrganizer.UnitTests.TestHelpers;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
