@@ -10,6 +10,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Messages;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers;
 using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using Microsoft.Extensions.Time.Testing;
@@ -221,7 +222,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
-		List<ClipboardLogEntryCountChangedMessage> received = CaptureCountChanges(messenger);
+		List<ClipboardLogEntryCountChangedMessage> received = messenger.CaptureCountChanges();
 
 		// Act
 		await sut.ClearAllAsync();
@@ -1573,7 +1574,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(entry);
 
-		List<ClipboardLogEntryCountChangedMessage> received = CaptureCountChanges(messenger);
+		List<ClipboardLogEntryCountChangedMessage> received = messenger.CaptureCountChanges();
 
 		// Act
 		await sut.RemoveAsync(entry);
@@ -2572,20 +2573,6 @@ internal class ClipboardLogServiceTests
 		messenger.Register<ClipboardLogChangedMessage>(
 			received,
 			static (recipient, message) => ((List<ClipboardLogChangeKind>)recipient).Add(message.Kind));
-
-		return received;
-	}
-
-	/// <summary>
-	/// Records every <see cref="ClipboardLogEntryCountChangedMessage" /> sent on <paramref name="messenger" />.
-	/// </summary>
-	private static List<ClipboardLogEntryCountChangedMessage> CaptureCountChanges(IMessenger messenger)
-	{
-		List<ClipboardLogEntryCountChangedMessage> received = [];
-
-		messenger.Register<ClipboardLogEntryCountChangedMessage>(
-			received,
-			static (recipient, message) => ((List<ClipboardLogEntryCountChangedMessage>)recipient).Add(message));
 
 		return received;
 	}

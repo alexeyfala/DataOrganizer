@@ -97,7 +97,7 @@ internal class NotepadWindowTests
 		// The editor of the second tab was shown earlier, so its own first focus is behind it as well.
 		await WaitForFirstFocus(GetShownTextArea(sut));
 
-		Point point = sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[1].Header));
+		Point point = sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[1].Header));
 
 		// Act
 		sut.Click(point, MouseButton.Left);
@@ -135,7 +135,7 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header));
+		Point point = sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[0].Header));
 
 		// Act
 		sut.Click(point, MouseButton.Left);
@@ -180,7 +180,7 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		sut.Click(sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
+		sut.Click(sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -221,7 +221,7 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = sut.CenterOf(GetAddButton(sut.Tabs));
+		Point point = sut.CenterOf(sut.Tabs.GetAddButton());
 
 		// Act
 		sut.Click(point, MouseButton.Left);
@@ -261,7 +261,7 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		Point point = sut.CenterOf(GetCloseButton(sut.Tabs, 0));
+		Point point = sut.CenterOf(sut.Tabs.GetCloseButton(0));
 
 		// Act
 		sut.Click(point, MouseButton.Left);
@@ -321,7 +321,7 @@ internal class NotepadWindowTests
 			.When(x => x.Remove(closed))
 			.Do(_ => selected = sut.Tabs.SelectedItem);
 
-		Point point = sut.CenterOf(GetCloseButton(sut.Tabs, 1));
+		Point point = sut.CenterOf(sut.Tabs.GetCloseButton(1));
 
 		// Act
 		sut.Click(point, MouseButton.Left);
@@ -403,7 +403,7 @@ internal class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		sut.Click(sut.CenterOf(GetHeaderText(sut.Tabs, sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
+		sut.Click(sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -700,9 +700,9 @@ internal class NotepadWindowTests
 
 		NotepadTabViewModel[] tabs = [.. sut.ViewModel.Tabs];
 
-		Point from = sut.CenterOf(GetHeaderText(sut.Tabs, tabs[0].Header));
+		Point from = sut.CenterOf(sut.Tabs.GetHeaderText(tabs[0].Header));
 
-		Point to = sut.CenterOf(GetHeaderText(sut.Tabs, tabs[1].Header));
+		Point to = sut.CenterOf(sut.Tabs.GetHeaderText(tabs[1].Header));
 
 		// Act
 		sut.Drag(from, to);
@@ -1087,36 +1087,13 @@ internal class NotepadWindowTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		ToolTip.GetTip(GetHeaderText(sut.Tabs, name))
+		ToolTip.GetTip(sut.Tabs.GetHeaderText(name))
 			.Should()
 			.Be(name);
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the button that adds a tab.
-	/// </summary>
-	private static Button GetAddButton(DocumentTabControl control)
-	{
-		return control
-			.GetVisualDescendants()
-			.OfType<Button>()
-			.Single(x => x.Name == "PART_AddButton");
-	}
-
-	/// <summary>
-	/// Returns the close button of a tab.
-	/// </summary>
-	private static Button GetCloseButton(DocumentTabControl control, int index)
-	{
-		return control
-			.ContainerFromIndex(index)!
-			.GetVisualDescendants()
-			.OfType<Button>()
-			.Single();
-	}
-
 	/// <summary>
 	/// Returns the encoding block of the status bar of the editor the tabs of the window show.
 	/// </summary>
@@ -1127,17 +1104,6 @@ internal class NotepadWindowTests
 			.GetVisualDescendants()
 			.OfType<ChoiceSelector>()
 			.Single(static x => x.Name == "EncodingBlock");
-	}
-
-	/// <summary>
-	/// Returns the text block of the tab header that shows the text.
-	/// </summary>
-	private static TextBlock GetHeaderText(DocumentTabControl control, string text)
-	{
-		return control
-			.GetVisualDescendants()
-			.OfType<TextBlock>()
-			.Single(x => x.Text == text && x.FindAncestorOfType<TabItem>() is not null);
 	}
 
 	/// <summary>

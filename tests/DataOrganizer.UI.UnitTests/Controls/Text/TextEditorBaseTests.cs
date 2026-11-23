@@ -15,6 +15,7 @@ using AvaloniaEdit.Rendering;
 using AwesomeAssertions;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Fakes;
 using NSubstitute;
 using System.Linq;
 
@@ -773,12 +774,5 @@ internal class TextEditorBaseTests
 
 		Dispatcher.UIThread.RunJobs();
 	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Minimal concrete <see cref="TextEditorBase" />.
-	/// </summary>
-	private sealed class TestTextEditor : TextEditorBase;
 	#endregion
 }

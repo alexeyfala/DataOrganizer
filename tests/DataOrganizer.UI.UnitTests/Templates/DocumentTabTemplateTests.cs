@@ -3,8 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
-using AvaloniaEdit;
-using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Documents.Editor.Interfaces;
@@ -447,10 +445,11 @@ internal class DocumentTabTemplateTests
 		sut.Remove(file);
 
 		// Assert
-		HasHighlighting(view
+		view
 			.GetLogicalDescendants()
 			.OfType<DocumentTextEditor>()
-			.Single())
+			.Single()
+			.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -495,27 +494,16 @@ internal class DocumentTabTemplateTests
 		sut.Remove(tab);
 
 		// Assert
-		HasHighlighting(view
+		view
 			.GetLogicalDescendants()
 			.OfType<DocumentTextEditor>()
-			.Single())
+			.Single()
+			.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// <c>True</c> when the editor has the syntax highlighting.
-	/// </summary>
-	private static bool HasHighlighting(TextEditor editor)
-	{
-		return editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.OfType<TextMateColoringTransformer>()
-			.Any();
-	}
 	#endregion
 }

@@ -10,11 +10,11 @@ using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
-using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.UI.Controls;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
@@ -349,11 +349,11 @@ internal class SplitDocumentEditorTests
 		sut.Dispose();
 
 		// Assert
-		HasHighlighting(sut.PrimaryEditor)
+		sut.PrimaryEditor.HasHighlighting()
 			.Should()
 			.BeFalse();
 
-		HasHighlighting(sut.SecondaryEditor!)
+		sut.SecondaryEditor!.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -625,7 +625,7 @@ internal class SplitDocumentEditorTests
 		sut.IsSplit = isSplit;
 
 		// Assert
-		HasHighlighting(sut.SecondaryEditor!)
+		sut.SecondaryEditor!.HasHighlighting()
 			.Should()
 			.Be(isSplit);
 	}
@@ -668,7 +668,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		using SplitDocumentEditor sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 200),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 200),
 			IsSplit = true,
 			SyntaxLanguage = PowerShellLanguage
 		};
@@ -954,7 +954,7 @@ internal class SplitDocumentEditorTests
 		// Arrange
 		using SplitDocumentEditor sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 200),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 200),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -1375,17 +1375,6 @@ internal class SplitDocumentEditorTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates a document of blocks, each a numbered line followed by three indented lines, which folds from the end of
-	/// the numbered line to the end of the block.
-	/// </summary>
-	private static TextDocument CreateBlockDocument(int blockCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, blockCount)
-			.Select(static x => $"Block {x:D4}\n    One\n    Two\n    Three")));
-	}
-
-	/// <summary>
 	/// Creates a document of numbered lines of the same length.
 	/// </summary>
 	private static TextDocument CreateDocument(int lineCount)
@@ -1423,19 +1412,6 @@ internal class SplitDocumentEditorTests
 			.VisualLines
 			.Take(count)
 			.Select(static x => x.FirstDocumentLine.LineNumber)];
-	}
-
-	/// <summary>
-	/// <c>True</c> when the editor has the syntax highlighting.
-	/// </summary>
-	private static bool HasHighlighting(TextEditor editor)
-	{
-		return editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.OfType<TextMateColoringTransformer>()
-			.Any();
 	}
 	#endregion
 }

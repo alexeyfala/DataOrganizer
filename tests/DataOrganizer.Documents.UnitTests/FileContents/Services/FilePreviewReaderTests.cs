@@ -16,7 +16,6 @@ using DataOrganizer.TestSupport.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -161,7 +160,7 @@ internal class FilePreviewReaderTests
 	/// <see cref="FilePreviewReader.ReadPreviewAsync" />: contents the session key cannot open give no preview.
 	/// </summary>
 	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
+	[TestCaseSource(typeof(CipherFailures), nameof(CipherFailures.Session))]
 	public async Task ReadPreviewAsync_Gives_No_Preview_When_The_Decryption_Fails(Exception failure)
 	{
 		// Arrange
@@ -494,13 +493,5 @@ internal class FilePreviewReaderTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Failures an operation on the key of a session can end with.
-	/// </summary>
-	private static Exception[] SessionCipherFailures() =>
-	[
-		new AuthenticationTagMismatchException(),
-		new InvalidOperationException()
-	];
 	#endregion
 }

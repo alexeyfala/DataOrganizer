@@ -1,4 +1,5 @@
 using DataOrganizer.Hierarchy.Dto;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using SharpHook.Data;
 using System;
@@ -12,6 +13,27 @@ namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.TestHelpers.Fa
 public static class HotkeyFactory
 {
 	#region Methods
+	/// <summary>
+	/// Creates a file with one hotkey of the given key and mask.
+	/// </summary>
+	public static FileDto CreateFileWithHotkey(KeyCode code, EventMask mask)
+	{
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = code,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = mask,
+				OwnerId = file.Id
+			});
+
+		return file;
+	}
+
 	/// <summary>
 	/// Creates the required number of random <see cref="HotkeyDto" /> objects.
 	/// </summary>

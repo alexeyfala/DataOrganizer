@@ -182,7 +182,7 @@ internal class BookmarkMarginTests
 		window.MouseMove(new(400.0, 300.0));
 
 		// Assert
-		GetIcons(Draw(sut))
+		GetIcons(sut.Draw())
 			.Should()
 			.BeEmpty();
 	}
@@ -209,7 +209,7 @@ internal class BookmarkMarginTests
 		window.MouseMove(GetLinePoint(sut, line: 5, window));
 
 		// Assert
-		GetIcons(Draw(sut))
+		GetIcons(sut.Draw())
 			.Select(static x => x.Opacity)
 			.Should()
 			.Equal(1.0);
@@ -235,7 +235,7 @@ internal class BookmarkMarginTests
 		window.MouseMove(GetLinePoint(sut, line: 5, window));
 
 		// Assert
-		(Rect Bounds, double Opacity, IBrush? Brush) icon = GetIcons(Draw(sut))
+		(Rect Bounds, double Opacity, IBrush? Brush) icon = GetIcons(sut.Draw())
 			.Should()
 			.ContainSingle()
 			.Which;
@@ -318,7 +318,7 @@ internal class BookmarkMarginTests
 		editor.Bookmarks.Toggle(4);
 
 		// Act
-		(Rect Bounds, double Opacity, IBrush? Brush)[] icons = GetIcons(Draw(sut));
+		(Rect Bounds, double Opacity, IBrush? Brush)[] icons = GetIcons(sut.Draw());
 
 		// Assert
 		icons
@@ -347,21 +347,6 @@ internal class BookmarkMarginTests
 		return new(string.Join('\n', Enumerable
 			.Range(1, lineCount)
 			.Select(static x => $"Line {x:D4}")));
-	}
-
-	/// <summary>
-	/// Records what the margin paints.
-	/// </summary>
-	private static DrawingGroup Draw(BookmarkMargin margin)
-	{
-		DrawingGroup drawing = new();
-
-		using (DrawingContext context = drawing.Open())
-		{
-			margin.Render(context);
-		}
-
-		return drawing;
 	}
 
 	/// <summary>

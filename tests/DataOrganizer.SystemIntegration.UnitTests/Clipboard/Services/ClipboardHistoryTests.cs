@@ -6,6 +6,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Enums;
 using DataOrganizer.SystemIntegration.Clipboard.Messages;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers;
 using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using System;
@@ -683,7 +684,7 @@ internal class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		List<ClipboardLogEntryCountChangedMessage> received = CaptureCountChanges(messenger);
+		List<ClipboardLogEntryCountChangedMessage> received = messenger.CaptureCountChanges();
 
 		// Act
 		sut.HandleNewPayload([1], () => ClipboardEntryFactory.CreateTextEntry("a", [1]), isSensitive: false, isRestored: false);
@@ -1145,20 +1146,6 @@ internal class ClipboardHistoryTests
 		messenger.Register<ClipboardLogChangedMessage>(
 			received,
 			static (recipient, message) => ((List<ClipboardLogChangeKind>)recipient).Add(message.Kind));
-
-		return received;
-	}
-
-	/// <summary>
-	/// Records every <see cref="ClipboardLogEntryCountChangedMessage" /> sent on <paramref name="messenger" />.
-	/// </summary>
-	private static List<ClipboardLogEntryCountChangedMessage> CaptureCountChanges(IMessenger messenger)
-	{
-		List<ClipboardLogEntryCountChangedMessage> received = [];
-
-		messenger.Register<ClipboardLogEntryCountChangedMessage>(
-			received,
-			static (recipient, message) => ((List<ClipboardLogEntryCountChangedMessage>)recipient).Add(message));
 
 		return received;
 	}

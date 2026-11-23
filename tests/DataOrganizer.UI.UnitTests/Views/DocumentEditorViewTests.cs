@@ -13,7 +13,6 @@ using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
-using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -27,6 +26,7 @@ using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UI.Services;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.Views;
 using Microsoft.Extensions.Time.Testing;
 using System;
@@ -356,7 +356,7 @@ internal class DocumentEditorViewTests
 
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -445,7 +445,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -644,7 +644,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -917,7 +917,7 @@ internal class DocumentEditorViewTests
 		sut.Dispose();
 
 		// Assert
-		HasHighlighting(sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor)
+		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -1665,7 +1665,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -1683,7 +1683,7 @@ internal class DocumentEditorViewTests
 
 		using DocumentTextEditor other = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -1706,7 +1706,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			IsSplit = true,
 			SyntaxLanguage = PowerShellLanguage
 		};
@@ -1800,7 +1800,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -2485,7 +2485,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -2656,7 +2656,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -2698,7 +2698,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			IsSplit = true,
 			SyntaxLanguage = PowerShellLanguage
 		};
@@ -2829,7 +2829,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView source = new()
 		{
-			Document = CreateBlockDocument(blockCount: 200),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 200),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -2977,7 +2977,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -3110,7 +3110,7 @@ internal class DocumentEditorViewTests
 		// Arrange
 		using DocumentEditorView sut = new()
 		{
-			Document = CreateBlockDocument(blockCount: 10),
+			Document = TextDocumentFactory.CreateBlockDocument(blockCount: 10),
 			SyntaxLanguage = PowerShellLanguage
 		};
 
@@ -3185,17 +3185,6 @@ internal class DocumentEditorViewTests
 	/// Reports the view state of a view at once, through the behavior of its editor.
 	/// </summary>
 	private static void CaptureViewState(DocumentEditorView view) => GetViewStateBehavior(view).CaptureViewState();
-
-	/// <summary>
-	/// Creates a document of blocks, each a numbered line followed by three indented lines, which folds from the end of
-	/// the numbered line to the end of the block.
-	/// </summary>
-	private static TextDocument CreateBlockDocument(int blockCount)
-	{
-		return new(string.Join('\n', Enumerable
-			.Range(1, blockCount)
-			.Select(static x => $"Block {x:D4}\n    One\n    Two\n    Three")));
-	}
 
 	/// <summary>
 	/// Creates a document of numbered lines of the same length.
@@ -3300,19 +3289,6 @@ internal class DocumentEditorViewTests
 			.GetBehaviors(view.GetControl<SplitDocumentEditor>(EditorName))
 			.OfType<DocumentViewStateBehavior>()
 			.Single();
-	}
-
-	/// <summary>
-	/// <c>True</c> when the editor has the syntax highlighting.
-	/// </summary>
-	private static bool HasHighlighting(TextEditor editor)
-	{
-		return editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.OfType<TextMateColoringTransformer>()
-			.Any();
 	}
 	#endregion
 }

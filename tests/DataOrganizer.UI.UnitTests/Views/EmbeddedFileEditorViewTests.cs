@@ -4,9 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
-using AvaloniaEdit;
 using AvaloniaEdit.Document;
-using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Database.Repository.Interfaces.Database;
@@ -210,10 +208,11 @@ internal class EmbeddedFileEditorViewTests
 		sut.Dispose();
 
 		// Assert
-		HasHighlighting(sut
+		sut
 			.GetLogicalDescendants()
 			.OfType<DocumentTextEditor>()
-			.Single())
+			.Single()
+			.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -1394,19 +1393,6 @@ internal class EmbeddedFileEditorViewTests
 			.GetLogicalDescendants()
 			.OfType<ChoiceSelector>()
 			.Single(static x => x.Name == "EncodingBlock");
-	}
-
-	/// <summary>
-	/// <c>True</c> when the editor has the syntax highlighting.
-	/// </summary>
-	private static bool HasHighlighting(TextEditor editor)
-	{
-		return editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.OfType<TextMateColoringTransformer>()
-			.Any();
 	}
 	#endregion
 }

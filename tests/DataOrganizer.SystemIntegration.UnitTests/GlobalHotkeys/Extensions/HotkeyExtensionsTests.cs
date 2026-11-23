@@ -24,11 +24,11 @@ internal class HotkeyExtensionsTests
 		// Arrange
 		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto damaged = CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
+		FileDto damaged = HotkeyFactory.CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
 
 		root.Children.Add(damaged);
 
-		root.Children.Add(CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl));
+		root.Children.Add(HotkeyFactory.CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl));
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -51,7 +51,7 @@ internal class HotkeyExtensionsTests
 	public void GetFilesWithUnreadableHotkeys_Returns_File_With_Unreadable_Mask()
 	{
 		// Arrange
-		FileDto damaged = CreateFileWithHotkey(KeyCode.VcA, EventMask.None);
+		FileDto damaged = HotkeyFactory.CreateFileWithHotkey(KeyCode.VcA, EventMask.None);
 
 		ExplorerItemDtoBase[] hierarchy = [damaged];
 
@@ -94,8 +94,8 @@ internal class HotkeyExtensionsTests
 		// Arrange
 		ExplorerItemDtoBase[] hierarchy =
 		[
-			CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl),
-			CreateFileWithHotkey(KeyCode.VcB, EventMask.LeftShift | EventMask.LeftAlt)
+			HotkeyFactory.CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl),
+			HotkeyFactory.CreateFileWithHotkey(KeyCode.VcB, EventMask.LeftShift | EventMask.LeftAlt)
 		];
 
 		// Act
@@ -301,25 +301,5 @@ internal class HotkeyExtensionsTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates a file that owns a single hotkey.
-	/// </summary>
-	private static FileDto CreateFileWithHotkey(KeyCode code, EventMask mask)
-	{
-		FileDto file = ItemDtoFactory.CreateFileDto();
-
-		file
-			.Hotkeys
-			.Add(new()
-			{
-				Code = code,
-				Id = Guid.NewGuid(),
-				Index = 0,
-				Mask = mask,
-				OwnerId = file.Id
-			});
-
-		return file;
-	}
 	#endregion
 }

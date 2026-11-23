@@ -18,6 +18,7 @@ using DataOrganizer.Shared.Constants;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using DataOrganizer.UI.UnitTests.TestHelpers.Fakes;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -101,7 +102,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+		double row = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)[1];
 
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
 
@@ -109,7 +110,7 @@ internal class ScrollMarkMarginTests
 		window.MouseMove(new(10.0, 10.0));
 
 		// Assert
-		GetShapes(Draw(sut), TextHighlight.MarkBrush.Color)
+		GetShapes(sut.Draw(), TextHighlight.MarkBrush.Color)
 			.Select(static x => x.Height)
 			.Distinct()
 			.Should()
@@ -142,7 +143,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double[] rows = GetRows(Draw(sut), TextHighlight.MarkBrush.Color);
+		double[] rows = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color);
 
 		// A little off the mark, which is hard to hit exactly.
 		Point point = sut.TranslatePoint(new(sut.Bounds.Width / 2.0, rows[1] + 3.0), window) ?? default;
@@ -151,7 +152,7 @@ internal class ScrollMarkMarginTests
 		window.MouseMove(point);
 
 		// Assert
-		Rect[] marks = GetShapes(Draw(sut), TextHighlight.MarkBrush.Color);
+		Rect[] marks = GetShapes(sut.Draw(), TextHighlight.MarkBrush.Color);
 
 		Rect hovered = marks.Single(x => x.Center.Y == rows[1]);
 
@@ -191,7 +192,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+		double row = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)[1];
 
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
@@ -245,7 +246,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+		double row = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)[1];
 
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
@@ -289,7 +290,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+		double row = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)[1];
 
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
@@ -331,7 +332,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+		double row = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)[1];
 
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
@@ -381,7 +382,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+		double row = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)[1];
 
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
@@ -439,7 +440,7 @@ internal class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double row = GetRows(Draw(sut), TextHighlight.MarkBrush.Color)[1];
+		double row = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)[1];
 
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
@@ -522,7 +523,7 @@ internal class ScrollMarkMarginTests
 		other.Toggle(500);
 
 		// Assert
-		GetShapes(Draw(sut), GetBookmarkBrush())
+		GetShapes(sut.Draw(), GetBookmarkBrush())
 			.Should()
 			.BeEmpty();
 	}
@@ -555,7 +556,7 @@ internal class ScrollMarkMarginTests
 		IBrush bookmarkBrush = GetBookmarkBrush();
 
 		// Act
-		List<GeometryDrawing> shapes = [.. Draw(sut).Children.OfType<GeometryDrawing>()];
+		List<GeometryDrawing> shapes = [.. sut.Draw().Children.OfType<GeometryDrawing>()];
 
 		// Assert
 		int bookmark = shapes.FindIndex(x => x.Brush == bookmarkBrush);
@@ -591,7 +592,7 @@ internal class ScrollMarkMarginTests
 		editor.CaretOffset = editor.Document.GetLineByNumber(500).Offset;
 
 		// Act
-		double[] rows = GetRows(Draw(sut), ((ISolidColorBrush)editor.TextArea.Foreground!).Color);
+		double[] rows = GetRows(sut.Draw(), ((ISolidColorBrush)editor.TextArea.Foreground!).Color);
 
 		// Assert
 		rows
@@ -627,7 +628,7 @@ internal class ScrollMarkMarginTests
 		double height = sut.Bounds.Height;
 
 		// Act
-		Rect[] marks = GetShapes(Draw(sut), GetBookmarkBrush());
+		Rect[] marks = GetShapes(sut.Draw(), GetBookmarkBrush());
 
 		// Assert
 		marks
@@ -665,7 +666,7 @@ internal class ScrollMarkMarginTests
 		double height = sut.Bounds.Height;
 
 		// Act
-		double[] rows = GetRows(Draw(sut), TextHighlight.MarkBrush.Color);
+		double[] rows = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color);
 
 		// Assert
 		rows
@@ -695,7 +696,7 @@ internal class ScrollMarkMarginTests
 		HeadlessWindow.ShowInFluentTheme(editor);
 
 		// Assert
-		GetShapes(Draw(GetMargin(editor)), GetBookmarkBrush())
+		GetShapes(GetMargin(editor).Draw(), GetBookmarkBrush())
 			.Should()
 			.ContainSingle();
 	}
@@ -732,7 +733,7 @@ internal class ScrollMarkMarginTests
 		sut.UpdateMarks();
 
 		// Act
-		double[] rows = GetRows(Draw(sut), TextHighlight.MarkBrush.Color);
+		double[] rows = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color);
 
 		// Assert
 		rows
@@ -762,7 +763,7 @@ internal class ScrollMarkMarginTests
 		}
 
 		// Act
-		Rect[] marks = GetShapes(Draw(sut), GetBookmarkBrush());
+		Rect[] marks = GetShapes(sut.Draw(), GetBookmarkBrush());
 
 		// Assert
 		marks
@@ -794,7 +795,7 @@ internal class ScrollMarkMarginTests
 		sut.UpdateMarks();
 
 		// Act
-		double[] rows = GetRows(Draw(sut), TextHighlight.MarkBrush.Color);
+		double[] rows = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color);
 
 		// Assert
 		rows
@@ -838,7 +839,7 @@ internal class ScrollMarkMarginTests
 		double thumbTop = thumb.TranslatePoint(default, sut)?.Y ?? double.NaN;
 
 		// Act
-		double[] rows = GetRows(Draw(sut), TextHighlight.MarkBrush.Color);
+		double[] rows = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color);
 
 		// Assert
 		rows
@@ -978,21 +979,6 @@ internal class ScrollMarkMarginTests
 	}
 
 	/// <summary>
-	/// Records what the margin paints.
-	/// </summary>
-	private static DrawingGroup Draw(ScrollMarkMargin margin)
-	{
-		DrawingGroup drawing = new();
-
-		using (DrawingContext context = drawing.Open())
-		{
-			margin.Render(context);
-		}
-
-		return drawing;
-	}
-
-	/// <summary>
 	/// Returns the brush of the bookmarks.
 	/// </summary>
 	private static IBrush GetBookmarkBrush() => (IBrush)Application.Current!.FindResource(BookmarkBrushKey)!;
@@ -1069,15 +1055,8 @@ internal class ScrollMarkMarginTests
 	{
 		// The pause ends on a timer, which posts the pass over the document to the UI thread.
 		return Dispatcher.UIThread.RunJobsUntilAsync(
-			() => GetRows(Draw(margin), TextHighlight.MarkBrush.Color).Length == count,
+			() => GetRows(margin.Draw(), TextHighlight.MarkBrush.Color).Length == count,
 			maxRepeats: 1000);
 	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Minimal concrete <see cref="TextEditorBase" />.
-	/// </summary>
-	private sealed class TestTextEditor : TextEditorBase;
 	#endregion
 }

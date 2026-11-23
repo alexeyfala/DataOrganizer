@@ -44,7 +44,7 @@ internal class DocumentTabControlTests
 		HeadlessWindow.Show(sut);
 
 		// Assert
-		GetRight(sut, GetAddButton(sut))
+		GetRight(sut, sut.GetAddButton())
 			.Should()
 			.BeApproximately(sut.Bounds.Width, 1.0);
 	}
@@ -66,7 +66,7 @@ internal class DocumentTabControlTests
 		HeadlessWindow.Show(sut);
 
 		// Assert
-		GetLeft(sut, GetAddButton(sut))
+		GetLeft(sut, sut.GetAddButton())
 			.Should()
 			.BeApproximately(GetRight(sut, sut.ContainerFromIndex(1)!), 1.0);
 	}
@@ -90,7 +90,7 @@ internal class DocumentTabControlTests
 		HeadlessWindow.Show(sut);
 
 		// Assert
-		GetAddButton(sut).IsVisible
+		sut.GetAddButton().IsVisible
 			.Should()
 			.Be(isSet);
 	}
@@ -114,7 +114,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(sut.GetHeaderText("second"));
 
 		// Act
 		window.Click(point, MouseButton.Right);
@@ -142,7 +142,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(sut.GetHeaderText("second"));
 
 		// Act
 		window.Click(point, MouseButton.Right);
@@ -179,7 +179,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(sut.GetHeaderText("second"));
 
 		// Act
 		window.Click(point, MouseButton.Right);
@@ -223,7 +223,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
+		window.Click(window.CenterOf(sut.GetHeaderText("second")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -263,7 +263,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
+		window.Click(window.CenterOf(sut.GetHeaderText("second")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -298,7 +298,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		window.Click(window.CenterOf(GetHeaderText(sut, "first")), MouseButton.Right);
+		window.Click(window.CenterOf(sut.GetHeaderText("first")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -338,7 +338,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		window.Click(window.CenterOf(GetHeaderText(sut, "second")), MouseButton.Right);
+		window.Click(window.CenterOf(sut.GetHeaderText("second")), MouseButton.Right);
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -378,7 +378,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetAddButton(sut));
+		Point point = window.CenterOf(sut.GetAddButton());
 
 		// Act
 		window.Click(point, MouseButton.Left);
@@ -410,7 +410,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetCloseButton(sut, 1));
+		Point point = window.CenterOf(sut.GetCloseButton(1));
 
 		// Act
 		window.Click(point, MouseButton.Left);
@@ -469,7 +469,7 @@ internal class DocumentTabControlTests
 
 		sut.SelectedIndex = 1;
 
-		window.Drag(window.CenterOf(GetHeaderText(sut, "second")), window.CenterOf(GetHeaderText(sut, "third")));
+		window.Drag(window.CenterOf(sut.GetHeaderText("second")), window.CenterOf(sut.GetHeaderText("third")));
 
 		Dispatcher.UIThread.RunJobs();
 
@@ -679,7 +679,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetHeaderText(sut, "first"));
+		Point point = window.CenterOf(sut.GetHeaderText("first"));
 
 		// Act
 		window.Drag(point, point + new Vector(3.0, 0.0));
@@ -714,9 +714,9 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point from = window.CenterOf(GetCloseButton(sut, 0));
+		Point from = window.CenterOf(sut.GetCloseButton(0));
 
-		Point to = window.CenterOf(GetHeaderText(sut, "third"));
+		Point to = window.CenterOf(sut.GetHeaderText("third"));
 
 		// Act
 		window.Drag(from, to);
@@ -754,9 +754,9 @@ internal class DocumentTabControlTests
 
 		sut.SelectedItem = dragged;
 
-		Point from = window.CenterOf(GetHeaderText(sut, dragged));
+		Point from = window.CenterOf(sut.GetHeaderText(dragged));
 
-		Point to = window.CenterOf(GetHeaderText(sut, target));
+		Point to = window.CenterOf(sut.GetHeaderText(target));
 
 		built.Clear();
 
@@ -786,9 +786,9 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point from = window.CenterOf(GetHeaderText(sut, "third"));
+		Point from = window.CenterOf(sut.GetHeaderText("third"));
 
-		Point to = window.CenterOf(GetHeaderText(sut, "second"));
+		Point to = window.CenterOf(sut.GetHeaderText("second"));
 
 		window.MouseDown(from, MouseButton.Left);
 
@@ -824,9 +824,9 @@ internal class DocumentTabControlTests
 
 		Control container = sut.ContainerFromIndex(0)!;
 
-		Point from = window.CenterOf(GetHeaderText(sut, "first"));
+		Point from = window.CenterOf(sut.GetHeaderText("first"));
 
-		Point to = window.CenterOf(GetHeaderText(sut, "third"));
+		Point to = window.CenterOf(sut.GetHeaderText("third"));
 
 		sut.SelectionChanged += (_, e) => selected.AddRange(e.AddedItems.Cast<object?>());
 
@@ -875,9 +875,9 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point from = window.CenterOf(GetHeaderText(sut, "first"));
+		Point from = window.CenterOf(sut.GetHeaderText("first"));
 
-		Point to = window.CenterOf(GetHeaderText(sut, "second"));
+		Point to = window.CenterOf(sut.GetHeaderText("second"));
 
 		// The neighbour moves across the dragged tab.
 		window.Drag(from, to);
@@ -911,9 +911,9 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point from = window.CenterOf(GetHeaderText(sut, dragged));
+		Point from = window.CenterOf(sut.GetHeaderText(dragged));
 
-		Point to = window.CenterOf(GetHeaderText(sut, target));
+		Point to = window.CenterOf(sut.GetHeaderText(target));
 
 		// Act
 		window.Drag(from, to);
@@ -1054,7 +1054,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(sut.GetHeaderText("second"));
 
 		// Act
 		window.Click(point, MouseButton.Middle);
@@ -1171,7 +1171,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetHeaderText(sut, "second"));
+		Point point = window.CenterOf(sut.GetHeaderText("second"));
 
 		// Act
 		window.Click(point, MouseButton.Right);
@@ -1211,7 +1211,7 @@ internal class DocumentTabControlTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		Point point = window.CenterOf(GetHeaderText(sut, "third"));
+		Point point = window.CenterOf(sut.GetHeaderText("third"));
 
 		// Act
 		window.Click(point, MouseButton.Right);
@@ -1389,40 +1389,6 @@ internal class DocumentTabControlTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Returns the button that adds a tab.
-	/// </summary>
-	private static Button GetAddButton(DocumentTabControl control)
-	{
-		return control
-			.GetVisualDescendants()
-			.OfType<Button>()
-			.Single(x => x.Name == "PART_AddButton");
-	}
-
-	/// <summary>
-	/// Returns the close button of a tab.
-	/// </summary>
-	private static Button GetCloseButton(DocumentTabControl control, int index)
-	{
-		return control
-			.ContainerFromIndex(index)!
-			.GetVisualDescendants()
-			.OfType<Button>()
-			.Single();
-	}
-
-	/// <summary>
-	/// Returns the text block of the tab header that shows the text.
-	/// </summary>
-	private static TextBlock GetHeaderText(DocumentTabControl control, string text)
-	{
-		return control
-			.GetVisualDescendants()
-			.OfType<TextBlock>()
-			.Single(x => x.Text == text && x.FindAncestorOfType<TabItem>() is not null);
-	}
-
 	/// <summary>
 	/// Returns the left edge of the control in the coordinates of the root.
 	/// </summary>

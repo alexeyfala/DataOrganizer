@@ -382,7 +382,7 @@ internal class FileContentsReaderTests
 	/// stay closed instead of throwing.
 	/// </summary>
 	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
+	[TestCaseSource(typeof(CipherFailures), nameof(CipherFailures.Session))]
 	public async Task ReadAsync_Keeps_The_File_Closed_When_The_Decryption_Fails(Exception failure)
 	{
 		// Arrange
@@ -840,7 +840,7 @@ internal class FileContentsReaderTests
 	/// open stay closed instead of throwing.
 	/// </summary>
 	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
+	[TestCaseSource(typeof(CipherFailures), nameof(CipherFailures.Session))]
 	public async Task ReadUnlockedAsync_Keeps_The_File_Closed_When_The_Decryption_Fails(Exception failure)
 	{
 		// Arrange
@@ -1024,13 +1024,5 @@ internal class FileContentsReaderTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Failures an operation on the key of a session can end with.
-	/// </summary>
-	private static Exception[] SessionCipherFailures() =>
-	[
-		new AuthenticationTagMismatchException(),
-		new InvalidOperationException()
-	];
 	#endregion
 }

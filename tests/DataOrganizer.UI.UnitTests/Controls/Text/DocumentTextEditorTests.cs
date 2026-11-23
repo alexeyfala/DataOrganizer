@@ -13,7 +13,6 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
-using AvaloniaEdit.TextMate;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -469,7 +468,7 @@ internal class DocumentTextEditorTests
 		sut.SyntaxLanguage = PowerShellLanguage;
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -513,7 +512,7 @@ internal class DocumentTextEditorTests
 		sut.Dispose();
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -665,7 +664,7 @@ internal class DocumentTextEditorTests
 		sut.Document.Text = PowerShellText;
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.BeTrue();
 	}
@@ -742,7 +741,7 @@ internal class DocumentTextEditorTests
 		sut.Document.Text = TooLongText;
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -809,7 +808,7 @@ internal class DocumentTextEditorTests
 		sut.Document = null;
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -1433,7 +1432,7 @@ internal class DocumentTextEditorTests
 		sut.IsVisible = isVisible;
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.Be(isVisible);
 	}
@@ -3008,7 +3007,7 @@ internal class DocumentTextEditorTests
 		};
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -3159,7 +3158,7 @@ internal class DocumentTextEditorTests
 		};
 
 		// Assert
-		HasHighlighting(sut)
+		sut.HasHighlighting()
 			.Should()
 			.BeFalse();
 	}
@@ -4139,19 +4138,6 @@ internal class DocumentTextEditorTests
 			.TextArea
 			.LeftMargins
 			.OfType<FoldingMargin>()
-			.Any();
-	}
-
-	/// <summary>
-	/// <c>True</c> when the editor has the syntax highlighting.
-	/// </summary>
-	private static bool HasHighlighting(TextEditor editor)
-	{
-		return editor
-			.TextArea
-			.TextView
-			.LineTransformers
-			.OfType<TextMateColoringTransformer>()
 			.Any();
 	}
 
