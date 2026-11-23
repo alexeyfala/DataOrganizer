@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Markup;
 
 [Guard]
 [TestFixture(Description = "Guards the markup against namespace prefixes that nothing in the file uses")]

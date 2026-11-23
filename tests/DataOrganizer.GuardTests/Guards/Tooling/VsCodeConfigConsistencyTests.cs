@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml.Linq;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Tooling;
 
 [Guard]
 [TestFixture(Description = "Guards that .vscode configs stay in sync with the app name and the target framework in Directory.Build.props")]

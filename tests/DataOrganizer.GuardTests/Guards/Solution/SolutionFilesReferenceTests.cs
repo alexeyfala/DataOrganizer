@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Solution;
 
 [Guard]
 [TestFixture(Description = "Guards that the solution files reference describes every non-code file it covers")]

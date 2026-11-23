@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Solution;
 
 [Guard]
 [TestFixture(Description = "Guards that the solution filter of the test run lists every test project")]

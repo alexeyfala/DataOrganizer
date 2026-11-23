@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Markup;
 
 [Guard]
 [TestFixture(Description = "Guards that the markup gives UI Automation a name for every interactive element and a state of meaning for every toggle")]

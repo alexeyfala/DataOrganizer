@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Localization;
 
 [Guard]
 [TestFixture(Description = "Guards the localized texts against quotes that the quote builder does not put")]

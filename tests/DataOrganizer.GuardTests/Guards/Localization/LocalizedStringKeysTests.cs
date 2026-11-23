@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Localization;
 
 [Guard]
 [TestFixture(Description = "Guards the localized strings against keys that nothing uses and translations that miss or add keys")]

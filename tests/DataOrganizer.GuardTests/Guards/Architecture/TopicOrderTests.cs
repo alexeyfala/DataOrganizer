@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Architecture;
 
 [Guard]
 [TestFixture(Description = "Guards the order of the topics inside each layer project")]

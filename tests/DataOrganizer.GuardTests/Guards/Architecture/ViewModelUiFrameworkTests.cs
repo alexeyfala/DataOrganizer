@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Architecture;
 
 [Guard]
 [TestFixture(Description = "Guards the view models against the types of the UI framework")]

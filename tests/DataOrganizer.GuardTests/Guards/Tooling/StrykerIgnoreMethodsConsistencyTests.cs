@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.GuardTests.Guards;
+namespace DataOrganizer.GuardTests.Guards.Tooling;
 
 [Guard]
 [TestFixture(Description = "Guards that every call the Stryker settings leave out is still made in the code")]
