@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<ApplicationIcon>..\$(AppName)\Assets\Logo.ico</ApplicationIcon>
+		<ApplicationIcon>$(AppIconPath)</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AssemblyName>$(AppName)</AssemblyName>
 		<!-- To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute -->
