@@ -12,7 +12,7 @@ using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
-using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Infrastructure.UnitTests.Settings.TestHelpers.Factories;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Threading.Enums;

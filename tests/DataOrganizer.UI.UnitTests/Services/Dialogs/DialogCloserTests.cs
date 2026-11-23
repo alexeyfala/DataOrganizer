@@ -10,7 +10,7 @@ using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.Threading.Services;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using DataOrganizer.UI.Services.Dialogs;
 using DataOrganizer.UI.Services.Views;
 using DataOrganizer.UI.UnitTests.TestHelpers;

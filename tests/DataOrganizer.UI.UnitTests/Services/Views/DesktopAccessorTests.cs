@@ -9,7 +9,7 @@ using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.UI.Services.Views;
-using DataOrganizer.UI.UnitTests.Fakes;
+using DataOrganizer.UI.UnitTests.TestHelpers.Fakes;
 using DialogHostAvalonia;
 using NSubstitute;
 

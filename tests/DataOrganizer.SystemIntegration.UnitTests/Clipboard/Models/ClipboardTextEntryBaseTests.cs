@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Models;
 

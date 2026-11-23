@@ -1,4 +1,4 @@
-using DataOrganizer.GuardTests.Dto;
+using DataOrganizer.GuardTests.TestHelpers.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;

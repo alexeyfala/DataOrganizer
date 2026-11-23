@@ -17,7 +17,7 @@ using DataOrganizer.Infrastructure.Notifications.Constants;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.Shared.Threading.Interfaces;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using DataOrganizer.UI.Services.Documents;
 using DataOrganizer.UI.UnitTests.TestHelpers;
 using DataOrganizer.UI.ViewModels;

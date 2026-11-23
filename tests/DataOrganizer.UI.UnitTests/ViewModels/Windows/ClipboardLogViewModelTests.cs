@@ -5,7 +5,7 @@ using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Enums;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.UI.ViewModels.Windows;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

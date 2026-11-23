@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using System;
 using System.Collections.Generic;
 

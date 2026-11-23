@@ -12,7 +12,7 @@ using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.TestSupport.Common;
-using DataOrganizer.UI.UnitTests.Factories;
+using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.ViewModels;
 using NSubstitute;
 using Serilog;

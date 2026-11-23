@@ -4,7 +4,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.UI.UnitTests.Fakes;
+using DataOrganizer.UI.UnitTests.TestHelpers.Fakes;
 using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UI.UnitTests.Windows;

@@ -6,10 +6,10 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
-using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.TestHelpers.Factories;
 using DataOrganizer.UI.Views;
 using System.Linq;
 

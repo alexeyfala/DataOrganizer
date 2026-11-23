@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;

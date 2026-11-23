@@ -10,7 +10,7 @@ using DataOrganizer.Database.Repository.Services;
 using DataOrganizer.Database.Repository.Services.Database;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Storage.Services;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Database;
 using DataOrganizer.TestSupport.Models;
 using System.Threading.Tasks;

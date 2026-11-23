@@ -1,10 +1,10 @@
 using AwesomeAssertions;
 using DataOrganizer.Database.Repository.Dto;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Helpers;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Extensions;
-using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.TestHelpers.Factories;
 using SharpHook.Data;
 using System;
 using System.Linq;

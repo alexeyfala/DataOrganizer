@@ -11,7 +11,7 @@ using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Documents.Editor.Services;
 using DataOrganizer.Documents.TextProcessing.Interfaces;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.Interfaces.Documents;
 using DataOrganizer.UI.Interfaces.Views;

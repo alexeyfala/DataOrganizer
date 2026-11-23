@@ -10,7 +10,7 @@ using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Shared.Constants;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UI.Behaviors.Text;
 using System;

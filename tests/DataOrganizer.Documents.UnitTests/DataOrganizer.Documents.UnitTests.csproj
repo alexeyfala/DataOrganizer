@@ -17,9 +17,9 @@
 
 	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
 	<ItemGroup>
-		<Compile Include="..\DataOrganizer.Hierarchy.UnitTests\Factories\ItemDtoFactory.cs" Link="Factories\ItemDtoFactory.cs" />
-		<Compile Include="..\DataOrganizer.Security.UnitTests\Factories\SecretFactory.cs" Link="Factories\SecretFactory.cs" />
-		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\Fakes\InlineDispatcherAccessor.cs" Link="Threading\Fakes\InlineDispatcherAccessor.cs" />
+		<Compile Include="..\DataOrganizer.Hierarchy.UnitTests\TestHelpers\Factories\ItemDtoFactory.cs" Link="TestHelpers\Factories\ItemDtoFactory.cs" />
+		<Compile Include="..\DataOrganizer.Security.UnitTests\TestHelpers\Factories\SecretFactory.cs" Link="TestHelpers\Factories\SecretFactory.cs" />
+		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" Link="Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" />
 	</ItemGroup>
 
 </Project>

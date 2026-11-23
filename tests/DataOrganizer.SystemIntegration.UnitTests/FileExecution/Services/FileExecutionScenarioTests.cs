@@ -5,7 +5,7 @@ using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.SystemIntegration.FileExecution.Dto;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;

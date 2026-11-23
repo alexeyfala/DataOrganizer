@@ -8,7 +8,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
-using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Infrastructure.UnitTests.Settings.TestHelpers.Factories;
 using DataOrganizer.UI.ViewModels.Dialogs;
 using DataOrganizer.UI.Views.Settings;
 using NSubstitute;

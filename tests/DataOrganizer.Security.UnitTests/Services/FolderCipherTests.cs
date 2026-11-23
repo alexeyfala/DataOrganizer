@@ -1,11 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;

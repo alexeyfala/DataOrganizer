@@ -4,7 +4,7 @@ using Avalonia.Media.Imaging;
 using AwesomeAssertions;
 using DataOrganizer.Shared.Constants;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UI.Converters;
 using System;

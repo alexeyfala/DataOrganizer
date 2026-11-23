@@ -7,7 +7,7 @@ using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
 using DataOrganizer.Hierarchy.Storage.Services;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.TestSupport.Models;

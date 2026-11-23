@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Documents.Editor.Dto;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.UI.ViewModels;
 using DataOrganizer.Workflows.AppLifecycle.Services;

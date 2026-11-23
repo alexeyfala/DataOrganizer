@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Shared.Threading.Enums;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.Threading.Services;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;

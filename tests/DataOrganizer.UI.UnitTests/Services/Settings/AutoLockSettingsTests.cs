@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Settings.Dto;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
-using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Infrastructure.UnitTests.Settings.TestHelpers.Factories;
 using DataOrganizer.UI.Services.Settings;
 using NSubstitute;
 

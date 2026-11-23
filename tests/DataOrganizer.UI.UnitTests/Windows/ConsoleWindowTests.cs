@@ -7,7 +7,7 @@ using DataOrganizer.Documents.Editor.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Services;
 using DataOrganizer.Shared.Threading.Interfaces;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using DataOrganizer.UI.Services.Documents;
 using DataOrganizer.UI.ViewModels.Windows;
 using DataOrganizer.UI.Windows;

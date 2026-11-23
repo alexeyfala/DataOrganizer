@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Enums;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Services;

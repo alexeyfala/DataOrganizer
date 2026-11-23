@@ -6,7 +6,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Enums;
 using DataOrganizer.SystemIntegration.Clipboard.Messages;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using System;
 using System.Collections.Generic;

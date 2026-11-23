@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.SystemIntegration.Clipboard.Dto;
 using DataOrganizer.SystemIntegration.Clipboard.Helpers;
 using DataOrganizer.SystemIntegration.Clipboard.Models;
-using DataOrganizer.SystemIntegration.UnitTests.Clipboard.Factories;
+using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 using DataOrganizer.TestSupport.Common;
 using System.Collections.Generic;
 using System.Text.Json;

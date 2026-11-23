@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.FilteredLists.Helpers;
 using DataOrganizer.Hierarchy.Interfaces;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using System;
 
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Helpers;

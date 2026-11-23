@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using DataOrganizer.Security.Enums;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
-using DataOrganizer.Security.UnitTests.Factories;
+using DataOrganizer.Security.UnitTests.TestHelpers.Factories;
 using DataOrganizer.SystemIntegration.Clipboard.Enums;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;

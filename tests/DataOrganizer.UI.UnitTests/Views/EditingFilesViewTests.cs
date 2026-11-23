@@ -11,7 +11,7 @@ using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Enums;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UI.Controls;

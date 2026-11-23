@@ -8,7 +8,7 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.Behaviors.Input;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

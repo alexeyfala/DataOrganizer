@@ -14,7 +14,7 @@
 
 	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
 	<ItemGroup>
-		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\Fakes\InlineDispatcherAccessor.cs" Link="Threading\Fakes\InlineDispatcherAccessor.cs" />
+		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" Link="Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" />
 	</ItemGroup>
 
 </Project>

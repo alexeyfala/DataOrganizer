@@ -1,4 +1,4 @@
-using DataOrganizer.GuardTests.Dto;
+using DataOrganizer.GuardTests.TestHelpers.Dto;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 

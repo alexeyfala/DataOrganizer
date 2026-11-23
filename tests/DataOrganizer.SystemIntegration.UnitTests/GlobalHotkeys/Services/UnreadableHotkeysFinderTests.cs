@@ -1,7 +1,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;
 using SharpHook.Data;
 using System;

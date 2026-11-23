@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.GuardTests.Dto;
 using DataOrganizer.GuardTests.TestHelpers;
+using DataOrganizer.GuardTests.TestHelpers.Dto;
 using DataOrganizer.TestSupport.Guards;
 using System.Collections.Frozen;
 using System.Collections.Generic;

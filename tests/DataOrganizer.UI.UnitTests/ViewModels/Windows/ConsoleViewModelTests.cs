@@ -9,7 +9,7 @@ using DataOrganizer.Infrastructure.Diagnostics.Services;
 using DataOrganizer.Infrastructure.FileSystemOperations.Interfaces;
 using DataOrganizer.Shared.Threading.Enums;
 using DataOrganizer.Shared.Threading.Interfaces;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using DataOrganizer.TestSupport.Common;
 using DataOrganizer.UI.Services.Documents;
 using DataOrganizer.UI.ViewModels.Windows;

@@ -5,7 +5,7 @@ using DataOrganizer.Database.Repository.Enums;
 using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Services;

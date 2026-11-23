@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.Notifications.Dto;
 using DataOrganizer.Infrastructure.Notifications.Enums;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
-using DataOrganizer.Infrastructure.UnitTests.Diagnostics.Fakes;
+using DataOrganizer.Infrastructure.UnitTests.Diagnostics.TestHelpers.Fakes;
 using DataOrganizer.Security.Services;
 using System;
 using System.Collections.Generic;

@@ -10,7 +10,7 @@ using AwesomeAssertions;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
-using DataOrganizer.Infrastructure.UnitTests.Settings.Factories;
+using DataOrganizer.Infrastructure.UnitTests.Settings.TestHelpers.Factories;
 using DataOrganizer.UI.Controls;
 using DataOrganizer.UI.ViewModels.Dialogs;
 using DataOrganizer.UI.Views.Dialogs;

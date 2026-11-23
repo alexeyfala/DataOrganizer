@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.FilteredLists.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.ViewModels.Hierarchy;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using System;

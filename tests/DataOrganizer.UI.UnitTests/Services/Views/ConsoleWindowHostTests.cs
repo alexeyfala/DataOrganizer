@@ -13,7 +13,7 @@ using DataOrganizer.Infrastructure.Settings.Enums;
 using DataOrganizer.Infrastructure.Settings.Interfaces;
 using DataOrganizer.Infrastructure.Settings.Services;
 using DataOrganizer.Shared.Threading.Interfaces;
-using DataOrganizer.Shared.UnitTests.Threading.Fakes;
+using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using DataOrganizer.UI.Helpers.Views;
 using DataOrganizer.UI.Interfaces.Views;
 using DataOrganizer.UI.Services.Documents;

@@ -12,7 +12,7 @@ using DataOrganizer.Database.Repository.Interfaces.Database;
 using DataOrganizer.Documents.FileContents.Enums;
 using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Shared.Extensions;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;

@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Hierarchy.Dto;
-using DataOrganizer.Hierarchy.UnitTests.Factories;
+using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Interfaces;
