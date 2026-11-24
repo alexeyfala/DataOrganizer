@@ -5,38 +5,20 @@ root = true
 [*]
 charset = utf-8
 
-# MSBuild project and WiX files — keep tabs (VS defaults to spaces without this)
-[*.{csproj,wixproj,props,targets,wxs,wxi}]
-indent_style = tab
-indent_size = 4
-tab_width = 4
-end_of_line = crlf
-insert_final_newline = true
-
-# Avalonia markup — keep tabs, the XAML formatter follows the editor and that defaults to spaces
-[*.{axaml,xaml}]
-indent_style = tab
-indent_size = 4
-tab_width = 4
-end_of_line = crlf
-
 # Markdown — keep the BOM so Windows tools do not guess the encoding
 [*.md]
 charset = utf-8-bom
 
-# C# files
-[*.cs]
-
-#### Core EditorConfig Options ####
-
-# Indentation and spacing
-indent_size = 4
+# Code, MSBuild, WiX and Avalonia markup — tabs; VS defaults to spaces in the markup and project files
+[*.{cs,csproj,wixproj,props,targets,wxs,wxi,axaml,xaml}]
 indent_style = tab
+indent_size = 4
 tab_width = 4
-
-# New line preferences
 end_of_line = crlf
 insert_final_newline = true
+
+# C# files
+[*.cs]
 
 #### .NET Code Actions ####
 
@@ -54,8 +36,6 @@ dotnet_search_reference_assemblies = true
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = false
 file_header_template = unset
-# The build reports an orphaned using only with this severity and the XML documentation written.
-dotnet_diagnostic.IDE0005.severity = warning
 
 # this. and Me. preferences
 dotnet_style_qualification_for_event = false
@@ -66,11 +46,6 @@ dotnet_style_qualification_for_property = false
 # Language keywords vs BCL types preferences
 dotnet_style_predefined_type_for_locals_parameters_members = true
 dotnet_style_predefined_type_for_member_access = true
-
-# Name simplification preferences
-# Visual Studio and dotnet format report these; the build does not, even with EnforceCodeStyleInBuild.
-dotnet_diagnostic.IDE0001.severity = warning
-dotnet_diagnostic.IDE0002.severity = warning
 
 # Parentheses preferences
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
@@ -106,13 +81,8 @@ dotnet_style_prefer_simplified_interpolation = true
 # Field preferences
 dotnet_style_readonly_field = true
 
-# Unused private members
-dotnet_diagnostic.IDE0051.severity = warning
-dotnet_diagnostic.IDE0052.severity = warning
-
 # Parameter preferences
 dotnet_code_quality_unused_parameters = all
-dotnet_diagnostic.IDE0060.severity = warning
 
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
@@ -181,7 +151,6 @@ csharp_style_prefer_unbound_generic_type_in_nameof = true
 csharp_style_prefer_utf8_string_literals = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
-dotnet_diagnostic.IDE0059.severity = warning
 csharp_style_unused_value_expression_statement_preference = discard_variable
 
 # 'using' directive preferences
@@ -241,33 +210,7 @@ csharp_space_between_square_brackets = false
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
-#### Roslynator ####
-
-# Every rule the package enables is a warning, so the build reports it.
-dotnet_analyzer_diagnostic.category-roslynator.severity = warning
-
-# Rules Roslynator hides by default and the code does not follow stay hidden.
-dotnet_diagnostic.RCS1006.severity = silent
-dotnet_diagnostic.RCS1061.severity = silent
-dotnet_diagnostic.RCS1124.severity = silent
-dotnet_diagnostic.RCS1140.severity = silent
-dotnet_diagnostic.RCS1141.severity = silent
-dotnet_diagnostic.RCS1142.severity = silent
-dotnet_diagnostic.RCS1161.severity = silent
-dotnet_diagnostic.RCS1168.severity = silent
-dotnet_diagnostic.RCS1181.severity = silent
-dotnet_diagnostic.RCS1189.severity = silent
-dotnet_diagnostic.RCS1201.severity = silent
-dotnet_diagnostic.RCS1217.severity = silent
-dotnet_diagnostic.RCS1238.severity = silent
-
-# Flag values of enums use the shift operator (RCS1254 needs this option).
-roslynator_enum_flag_value_style = shift_operator
-
 #### Naming styles ####
-
-# The build reports a naming rule only when the diagnostic itself is enabled.
-dotnet_diagnostic.IDE1006.severity = warning
 
 # Rules are matched top to bottom: the first rule whose symbol specification
 # fits a symbol wins, so the specific ones come before the general ones.
@@ -387,3 +330,51 @@ dotnet_naming_style.begins_with_underscore.required_prefix = _
 dotnet_naming_style.begins_with_underscore.required_suffix =
 dotnet_naming_style.begins_with_underscore.word_separator =
 dotnet_naming_style.begins_with_underscore.capitalization = camel_case
+
+#### Rule severities ####
+
+# Code style (IDE)
+
+# IDE0001, IDE0002 (simplify names): Visual Studio and dotnet format report them;
+# the build does not, even with EnforceCodeStyleInBuild.
+dotnet_diagnostic.IDE0001.severity = warning
+dotnet_diagnostic.IDE0002.severity = warning
+
+# IDE0005 (orphaned using): the build reports it only with this severity and the XML documentation written.
+dotnet_diagnostic.IDE0005.severity = warning
+
+# IDE0051, IDE0052 (unused private members)
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.IDE0052.severity = warning
+
+# IDE0059 (unused value assignment)
+dotnet_diagnostic.IDE0059.severity = warning
+
+# IDE0060 (unused parameter)
+dotnet_diagnostic.IDE0060.severity = warning
+
+# IDE1006 (naming rules above): the build reports a naming rule only when this diagnostic is enabled.
+dotnet_diagnostic.IDE1006.severity = warning
+
+# Roslynator
+
+# Every rule the package enables is a warning, so the build reports it.
+dotnet_analyzer_diagnostic.category-roslynator.severity = warning
+
+# Rules Roslynator hides by default and the code does not follow stay hidden.
+dotnet_diagnostic.RCS1006.severity = silent
+dotnet_diagnostic.RCS1061.severity = silent
+dotnet_diagnostic.RCS1124.severity = silent
+dotnet_diagnostic.RCS1140.severity = silent
+dotnet_diagnostic.RCS1141.severity = silent
+dotnet_diagnostic.RCS1142.severity = silent
+dotnet_diagnostic.RCS1161.severity = silent
+dotnet_diagnostic.RCS1168.severity = silent
+dotnet_diagnostic.RCS1181.severity = silent
+dotnet_diagnostic.RCS1189.severity = silent
+dotnet_diagnostic.RCS1201.severity = silent
+dotnet_diagnostic.RCS1217.severity = silent
+dotnet_diagnostic.RCS1238.severity = silent
+
+# Flag values of enums use the shift operator (RCS1254 needs this option).
+roslynator_enum_flag_value_style = shift_operator
