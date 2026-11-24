@@ -258,7 +258,7 @@ internal class FileLockCheckerTests
 			.File
 			.WriteAllBytes(FilePath, [1]);
 
-		using FileSystemStream holder = files
+		await using FileSystemStream holder = files
 			.File
 			.Open(
 				FilePath,

@@ -89,9 +89,14 @@ public sealed partial class FileAssociationService : IFileAssociationService
 	private enum AssocF
 	{
 		/// <summary>
+		/// No options.
+		/// </summary>
+		None = 0,
+
+		/// <summary>
 		/// The "Unknown" type of a file without an association fails the query instead of answering with it.
 		/// </summary>
-		InitIgnoreUnknown = 0x400
+		InitIgnoreUnknown = 1 << 10
 	}
 
 	/// <summary>

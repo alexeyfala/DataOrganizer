@@ -491,7 +491,4 @@ internal class FilePreviewReaderTests
 	}
 
 	#endregion
-
-	#region Helpers
-	#endregion
 }

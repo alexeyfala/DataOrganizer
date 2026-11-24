@@ -299,7 +299,4 @@ internal class HotkeyExtensionsTests
 			.Equal(hotkeys.Select(static x => (x.Code, x.Mask)));
 	}
 	#endregion
-
-	#region Helpers
-	#endregion
 }

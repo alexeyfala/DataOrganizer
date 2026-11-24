@@ -1134,7 +1134,4 @@ internal class ClipboardHistoryTests
 			.BeTrue();
 	}
 	#endregion
-
-	#region Helpers
-	#endregion
 }

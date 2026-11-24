@@ -210,8 +210,8 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 				: targetBounds.Y;
 
 			double targetMid = Orientation == Orientation.Horizontal
-				? targetBounds.X + targetBounds.Width / 2.0
-				: targetBounds.Y + targetBounds.Height / 2.0;
+				? targetBounds.X + (targetBounds.Width / 2.0)
+				: targetBounds.Y + (targetBounds.Height / 2.0);
 
 			int targetIndex = _itemsControl.IndexFromContainer(targetContainer);
 

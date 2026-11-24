@@ -89,14 +89,26 @@ internal partial class ContainerBuiltClassTests
 		return AppAssemblies
 			.Enumerate()
 			.SelectMany(static x => x.GetTypes())
-			.Where(static x => x.IsClass && !x.IsAbstract && !IsRecord(x) && !typeof(AvaloniaObject).IsAssignableFrom(x))
-			.Where(static x => x
+			.Where(IsContainerCandidate)
+			.Select(static x => x.Name)
+			.Where(name => !builtByApp.Contains(name));
+	}
+
+	/// <summary>
+	/// Tells whether the container may build a class: a concrete class, neither a record nor an object of the interface,
+	/// whose constructor takes a service.
+	/// </summary>
+	private static bool IsContainerCandidate(Type type)
+	{
+		return type.IsClass
+			&& !type.IsAbstract
+			&& !IsRecord(type)
+			&& !typeof(AvaloniaObject).IsAssignableFrom(type)
+			&& type
 				.GetConstructors()
 				.Any(static constructor => constructor
 					.GetParameters()
-					.Any(static parameter => parameter.ParameterType.IsInterface)))
-			.Select(static x => x.Name)
-			.Where(name => !builtByApp.Contains(name));
+					.Any(static parameter => parameter.ParameterType.IsInterface));
 	}
 
 	/// <summary>

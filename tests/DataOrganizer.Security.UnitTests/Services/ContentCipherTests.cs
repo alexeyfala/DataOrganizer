@@ -237,7 +237,4 @@ internal class ContentCipherTests
 			.BeNull();
 	}
 	#endregion
-
-	#region Helpers
-	#endregion
 }

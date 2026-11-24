@@ -166,7 +166,7 @@ internal class FileChangeTrackerTests
 			.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
 
 		// Another program keeps the file to itself.
-		using FileSystemStream holder = files
+		await using FileSystemStream holder = files
 			.File
 			.Open(
 				TrackedFilePath,
@@ -909,7 +909,7 @@ internal class FileChangeTrackerTests
 			.File
 			.WriteAllBytes(TrackedFilePath, RandomValues.CreateBytes(32));
 
-		using FileSystemStream program = files
+		await using FileSystemStream program = files
 			.File
 			.Open(
 				TrackedFilePath,

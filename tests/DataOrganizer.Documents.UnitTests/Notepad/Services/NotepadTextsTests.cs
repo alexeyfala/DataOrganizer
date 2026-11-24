@@ -98,7 +98,7 @@ internal class NotepadTextsTests
 
 		INotepadTab tab = Substitute.For<INotepadTab>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
+		using AutoMock mock = AutoMock.GetLoose(_ =>
 		{
 			IDocumentText document = Substitute.For<IDocumentText>();
 

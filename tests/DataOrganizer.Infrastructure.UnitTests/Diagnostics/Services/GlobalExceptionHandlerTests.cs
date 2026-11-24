@@ -8,6 +8,7 @@ using Serilog;
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
@@ -236,8 +237,11 @@ internal class GlobalExceptionHandlerTests
 		// Act
 		sut.StartMonitoring();
 
+		// The first failure comes from Avalonia's reader of the FreeDesktop settings portal.
 		DropFaultedTasks(
-			new AccentColorReadException(accentColorMessage),
+			ExceptionDispatchInfo.SetRemoteStackTrace(
+				new InvalidOperationException(accentColorMessage),
+				"   at Avalonia.FreeDesktop.DBusPlatformSettings.<ReadAccentColorAsync>d__9.MoveNext()"),
 			new InvalidOperationException(otherMessage));
 
 		// Assert
@@ -283,28 +287,6 @@ internal class GlobalExceptionHandlerTests
 		GC.Collect();
 
 		GC.WaitForPendingFinalizers();
-	}
-	#endregion
-
-	#region Nested Types
-	/// <summary>
-	/// Failure raised inside Avalonia's reader of the FreeDesktop settings portal.
-	/// </summary>
-	private sealed class AccentColorReadException : Exception
-	{
-		#region Constructors
-		/// <summary>
-		/// Initializes a new instance of the <see cref="AccentColorReadException" /> class.
-		/// </summary>
-		public AccentColorReadException(string message) : base(message)
-		{
-		}
-		#endregion
-
-		#region Properties
-		/// <inheritdoc />
-		public override string StackTrace => "   at Avalonia.FreeDesktop.DBusPlatformSettings.<ReadAccentColorAsync>d__9.MoveNext()";
-		#endregion
 	}
 	#endregion
 }

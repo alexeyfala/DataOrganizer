@@ -1022,7 +1022,4 @@ internal class FileContentsReaderTests
 			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 	#endregion
-
-	#region Helpers
-	#endregion
 }

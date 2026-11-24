@@ -97,7 +97,4 @@ internal class SqlitePragmasTests
 			.Be(TempStoreMemory);
 	}
 	#endregion
-
-	#region Helpers
-	#endregion
 }

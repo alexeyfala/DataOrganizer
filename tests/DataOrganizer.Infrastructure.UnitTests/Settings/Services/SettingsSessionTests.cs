@@ -181,10 +181,7 @@ internal class SettingsSessionTests
 		// Arrange
 		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(themeService);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(themeService));
 
 		SettingsSession sut = mock.Create<SettingsSession>();
 

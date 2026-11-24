@@ -276,7 +276,7 @@ internal class DocumentEncodingSwitcherTests
 		// Arrange
 		IEncodedDocument editor = Substitute.For<IEncodedDocument>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
+		using AutoMock mock = AutoMock.GetLoose(_ =>
 		{
 			DocumentCodec codec = new();
 

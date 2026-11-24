@@ -1112,9 +1112,7 @@ internal class DatasetEditorViewModelTests
 	public async Task ContainerLoaded_Enables_The_Edit_Commands(Func<DatasetEditorViewModel, ICommand> command)
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-		});
+		using AutoMock mock = AutoMock.GetLoose();
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
@@ -1453,10 +1451,7 @@ internal class DatasetEditorViewModelTests
 		// Arrange
 		IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(jsonSerializer);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(jsonSerializer));
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 

@@ -97,7 +97,7 @@ internal class UnusedRegistrationTests
 			}
 		}
 
-		return setup.Registrations.Where(x => x.Services is not null && !x.Services.Any(reached.Contains));
+		return setup.Registrations.Where(x => x.Services?.Any(reached.Contains) == false);
 	}
 
 	/// <summary>

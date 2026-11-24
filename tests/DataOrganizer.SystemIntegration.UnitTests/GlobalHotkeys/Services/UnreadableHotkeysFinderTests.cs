@@ -61,7 +61,4 @@ internal class UnreadableHotkeysFinderTests
 			.Contain(unreadableMask);
 	}
 	#endregion
-
-	#region Helpers
-	#endregion
 }

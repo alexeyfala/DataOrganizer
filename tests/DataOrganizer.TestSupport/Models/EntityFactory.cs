@@ -19,7 +19,7 @@ public static class EntityFactory
 		in Guid id = default,
 		byte[]? contents = null,
 		string? editorState = null,
-		in Guid? parentId = null,
+		Guid? parentId = null,
 		bool isFavorite = false,
 		bool isSelected = false,
 		byte[]? note = null) => new()
@@ -54,7 +54,7 @@ public static class EntityFactory
 	/// </summary>
 	public static FolderEntity CreateFolder(
 		in Guid id = default,
-		in Guid? parentId = null,
+		Guid? parentId = null,
 		byte[]? encryptedDek = null,
 		bool isExpanded = false,
 		bool isSelected = false,
