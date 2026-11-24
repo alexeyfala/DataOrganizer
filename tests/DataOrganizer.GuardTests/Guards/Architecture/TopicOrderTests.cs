@@ -88,14 +88,25 @@ internal sealed class TopicOrderTests
 	}
 
 	/// <summary>
-	/// Enumerates the names of the topic folders of a project folder: the top folders that hold no code themselves.
+	/// Enumerates the names of the topic folders of a project folder: the top folders that hold code only in their
+	/// subfolders.
 	/// </summary>
 	private static IEnumerable<string> EnumerateTopicFolders(string root)
 	{
 		return Directory
 			.EnumerateDirectories(root)
-			.Where(static path => !RepositoryFiles.IsBuildOutput(Path.GetFileName(path)) && !Directory.EnumerateFiles(path, "*.cs").Any())
+			.Where(IsTopicFolder)
 			.Select(static path => Path.GetFileName(path));
+	}
+
+	/// <summary>
+	/// Tells whether a top folder of a project is a topic: it holds no code itself but has code in its subfolders.
+	/// </summary>
+	private static bool IsTopicFolder(string path)
+	{
+		return !RepositoryFiles.IsBuildOutput(Path.GetFileName(path))
+			&& !Directory.EnumerateFiles(path, "*.cs").Any()
+			&& Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories).Any();
 	}
 
 	/// <summary>
