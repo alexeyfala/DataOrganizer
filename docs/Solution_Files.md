@@ -14,6 +14,7 @@
     - 📄 [`Architecture.md`](Design/Architecture.md) — the projects, their topics and the references between them.
     - 📄 [`Encryption_Format.md`](Design/Encryption_Format.md) — the layout of encrypted data.
   - 📁 **`Development/`**
+    - 📄 [`Code_Analysis.md`](Development/Code_Analysis.md) — the analyzers of the build, the levels of their rules and the report of their findings.
     - 📄 [`Database_Migrations.md`](Development/Database_Migrations.md) — EF Core migration commands.
     - 📄 [`Debugging_Tests.md`](Development/Debugging_Tests.md) — how to run `Debug All Tests` without stops on expected exceptions.
     - 📄 [`Development_Setup.md`](Development/Development_Setup.md) — setting up Linux and macOS to build from source.

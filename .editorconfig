@@ -241,6 +241,29 @@ csharp_space_between_square_brackets = false
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
+#### Roslynator ####
+
+# Every rule the package enables is a warning, so the build reports it.
+dotnet_analyzer_diagnostic.category-roslynator.severity = warning
+
+# Rules Roslynator hides by default and the code does not follow stay hidden.
+dotnet_diagnostic.RCS1006.severity = silent
+dotnet_diagnostic.RCS1061.severity = silent
+dotnet_diagnostic.RCS1124.severity = silent
+dotnet_diagnostic.RCS1140.severity = silent
+dotnet_diagnostic.RCS1141.severity = silent
+dotnet_diagnostic.RCS1142.severity = silent
+dotnet_diagnostic.RCS1161.severity = silent
+dotnet_diagnostic.RCS1168.severity = silent
+dotnet_diagnostic.RCS1181.severity = silent
+dotnet_diagnostic.RCS1189.severity = silent
+dotnet_diagnostic.RCS1201.severity = silent
+dotnet_diagnostic.RCS1217.severity = silent
+dotnet_diagnostic.RCS1238.severity = silent
+
+# Flag values of enums use the shift operator (RCS1254 needs this option).
+roslynator_enum_flag_value_style = shift_operator
+
 #### Naming styles ####
 
 # The build reports a naming rule only when the diagnostic itself is enabled.

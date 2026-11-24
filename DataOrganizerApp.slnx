@@ -23,6 +23,7 @@
     <File Path="docs/Design/Encryption_Format.md" />
   </Folder>
   <Folder Name="/docs/Development/">
+    <File Path="docs/Development/Code_Analysis.md" />
     <File Path="docs/Development/Database_Migrations.md" />
     <File Path="docs/Development/Debugging_Tests.md" />
     <File Path="docs/Development/Development_Setup.md" />

@@ -56,6 +56,9 @@ dotnet test DataOrganizerApp.Tests.slnf --filter "TestCategory!=Integration&Test
   their topics and the references between them are described there.
 - Follow the existing code style. It is enforced by the repository
   [`.editorconfig`](../.editorconfig) — most editors apply it automatically.
+- The build runs the .NET, NUnit and [Roslynator](https://github.com/dotnet/roslynator) analyzers; a change adds
+  no warning. [`docs/Development/Code_Analysis.md`](../docs/Development/Code_Analysis.md) shows how to list the
+  findings and change the level of a rule.
 - Write source-code comments in **English**.
 - Match the patterns already used in the surrounding code (naming, structure,
   MVVM conventions).

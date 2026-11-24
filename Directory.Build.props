@@ -54,4 +54,15 @@
 		<Copyright>Copyright (c) 2026 $(Manufacturer)</Copyright>
 		<PackageLicenseExpression>$(License)</PackageLicenseExpression>
 	</PropertyGroup>
+
+	<!--
+		Roslynator analyzers for every C# project; .editorconfig sets their levels. They run only at
+		build time, so the published application and its third-party notices leave them out.
+	-->
+	<ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+		<PackageReference Include="Roslynator.Analyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 </Project>
