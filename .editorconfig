@@ -356,6 +356,12 @@ dotnet_diagnostic.IDE0060.severity = warning
 # IDE1006 (naming rules above): the build reports a naming rule only when this diagnostic is enabled.
 dotnet_diagnostic.IDE1006.severity = warning
 
+# .NET analyzers
+
+# SYSLIB1096 (COM interfaces through [GeneratedComInterface]): the application stays on built-in COM,
+# which its late-bound calls to the Windows shell need, so the switch would gain nothing.
+dotnet_diagnostic.SYSLIB1096.severity = none
+
 # Roslynator
 
 # Every rule the package enables is a warning, so the build reports it.
