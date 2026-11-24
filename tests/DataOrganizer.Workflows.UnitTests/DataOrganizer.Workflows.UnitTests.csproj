@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<ItemGroup>
 		<PackageReference Include="Autofac.Extras.Moq" />
 		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
@@ -17,5 +16,4 @@
 		<Compile Include="..\DataOrganizer.Hierarchy.UnitTests\TestHelpers\Factories\ItemDtoFactory.cs" Link="TestHelpers\Factories\ItemDtoFactory.cs" />
 		<Compile Include="..\DataOrganizer.Infrastructure.UnitTests\Settings\TestHelpers\Factories\SettingsFactory.cs" Link="Settings\TestHelpers\Factories\SettingsFactory.cs" />
 	</ItemGroup>
-
 </Project>

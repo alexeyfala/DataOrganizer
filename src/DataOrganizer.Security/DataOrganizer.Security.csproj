@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<ItemGroup>
 		<PackageReference Include="NSec.Cryptography" />
 	</ItemGroup>
@@ -11,5 +10,4 @@
 	<ItemGroup>
 		<InternalsVisibleTo Include="DataOrganizer.Security.UnitTests" />
 	</ItemGroup>
-
 </Project>

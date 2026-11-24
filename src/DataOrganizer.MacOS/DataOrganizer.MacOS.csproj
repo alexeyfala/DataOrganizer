@@ -11,21 +11,26 @@
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
-	<ItemGroup>
-		<TrimmerRootDescriptor Include="Roots.xml" />
-	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Avalonia.Desktop" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer.UI\DataOrganizer.UI.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<TrimmerRootDescriptor Include="Roots.xml" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Content Include="Logo.icns" />
 	</ItemGroup>
+
 	<!-- Ship license and attribution files inside the .app bundle (Contents/Resources). -->
 	<ItemGroup>
 		<BundleResource Include="..\..\LICENSE;..\..\NOTICE;..\..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer.UI\DataOrganizer.UI.csproj" />
 	</ItemGroup>
 
 	<!-- Installer / disk-image naming (RuntimeIdentifier is fixed to osx-x64 above). -->

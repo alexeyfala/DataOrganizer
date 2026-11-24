@@ -15,9 +15,11 @@
 		<RestoreGraphProjectInput>$(MSBuildProjectFullPath);$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Setup\Setup.wixproj'))</RestoreGraphProjectInput>
 		<LCID>1033</LCID>
 	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(SetupCulture)'=='ru-ru'">
 		<LCID>1049</LCID>
 	</PropertyGroup>
+
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
@@ -34,13 +36,16 @@
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupProductName=$(SetupProductName)</DefineConstants>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<Content Include="Themes\HyperlinkTheme.xml" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="WixToolset.BootstrapperApplications.wixext" />
 		<PackageReference Include="WixToolset.Netfx.wixext" />
 	</ItemGroup>
+
 	<!--
 		Skip during restore: WiX makes 'EnableDefaultCompileItems = false' global on the
 		restore phase, which would drop Program.cs from the Desktop build (CS5001).
@@ -49,8 +54,9 @@
 		BuildingInsideVisualStudio=false makes it build them, as on the command line.
 	-->
 	<Target Name="BuildSetupDependency" Condition="'$(MSBuildRestoreSessionId)' == '' AND '$(DesignTimeBuild)' != 'true'">
-		<MSBuild Projects="..\Setup\Setup.wixproj" Properties="&#xD;&#xA;				 Configuration=$(Configuration);&#xD;&#xA;				 OpenOutputFolder=false;&#xD;&#xA;				 BuildingInsideVisualStudio=false;" />
+		<MSBuild Projects="..\Setup\Setup.wixproj" Properties="Configuration=$(Configuration);OpenOutputFolder=false;BuildingInsideVisualStudio=false" />
 	</Target>
+
 	<!--
 		The bundle embeds the runtime installer from the output folder. One already there is taken as it is,
 		a missing one is downloaded from Microsoft. Either way its checksum must match.
@@ -59,6 +65,7 @@
 		<DownloadFile SourceUrl="https://builds.dotnet.microsoft.com/dotnet/Runtime/$(DotNetVersion)/$(DotNetInstallerName)" DestinationFolder="$(OutputPath)" Retries="2" Condition="!Exists('$(OutputPath)\$(DotNetInstallerName)')" />
 		<VerifyFileHash File="$(OutputPath)\$(DotNetInstallerName)" Algorithm="SHA512" Hash="$(DotNetInstallerSha512)" />
 	</Target>
+
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
 		<!-- explorer.exe exits with 1 even when the window opens. -->

@@ -13,6 +13,11 @@ public static class RepositoryFiles
 {
 	#region Data
 	/// <summary>
+	/// Folder of the build scripts and packaging files, relative to the repository root.
+	/// </summary>
+	public const string BuildFolder = "build";
+
+	/// <summary>
 	/// Solution file at the repository root.
 	/// </summary>
 	public const string SolutionFileName = "DataOrganizerApp.slnx";
@@ -53,6 +58,29 @@ public static class RepositoryFiles
 	}
 
 	/// <summary>
+	/// Reads every file that matches one of the patterns at the repository root and in the build, source and tests
+	/// folders, the build output left out, each paired with its repository-relative path written with forward slashes.
+	/// </summary>
+	public static IEnumerable<(string FilePath, string Text)> EnumerateRepositoryFiles(params string[] patterns)
+	{
+		string root = LocateRoot();
+
+		(string Folder, SearchOption Option)[] places =
+		[
+			(root, SearchOption.TopDirectoryOnly),
+			(Path.Combine(root, BuildFolder), SearchOption.AllDirectories),
+			(Path.Combine(root, SourceFolder), SearchOption.AllDirectories),
+			(Path.Combine(root, TestsFolder), SearchOption.AllDirectories),
+		];
+
+		return places
+			.SelectMany(place => patterns.SelectMany(pattern => Directory.EnumerateFiles(place.Folder, pattern, place.Option)))
+			.Select(path => Path.GetRelativePath(root, path))
+			.Where(static x => !IsBuildOutput(x))
+			.Select(x => (FilePath: x.Replace(Path.DirectorySeparatorChar, '/'), Text: File.ReadAllText(Path.Combine(root, x))));
+	}
+
+	/// <summary>
 	/// Reads every C# file of the projects of the application, the build output left out, each paired with its path
 	/// inside the source folder, written with forward slashes.
 	/// </summary>
@@ -65,13 +93,13 @@ public static class RepositoryFiles
 	public static IEnumerable<(string FilePath, string Text)> EnumerateTestCode() => EnumerateCode(TestsFolder);
 
 	/// <summary>
-	/// Tells whether a relative path lies in the build output of a project.
+	/// Tells whether a relative path lies in the build output of a project or in the results of a test run.
 	/// </summary>
 	public static bool IsBuildOutput(string relativePath)
 	{
 		return relativePath
 			.Split(Path.DirectorySeparatorChar)
-			.Any(static x => x is "bin" or "obj");
+			.Any(static x => x is "bin" or "obj" or "TestResults");
 	}
 
 	/// <summary>

@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<ItemGroup>
 		<PackageReference Include="Autofac.Extras.Moq" />
 		<!-- The editor's TextDocument maps offsets to lines in the folding tests and is the reference for FoldingText. -->
@@ -21,5 +20,4 @@
 		<Compile Include="..\DataOrganizer.Security.UnitTests\TestHelpers\Factories\SecretFactory.cs" Link="TestHelpers\Factories\SecretFactory.cs" />
 		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" Link="Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" />
 	</ItemGroup>
-
 </Project>

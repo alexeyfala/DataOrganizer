@@ -9,8 +9,8 @@ charset = utf-8
 [*.md]
 charset = utf-8-bom
 
-# Code, MSBuild, WiX and Avalonia markup — tabs; VS defaults to spaces in the markup and project files
-[*.{cs,csproj,wixproj,props,targets,wxs,wxi,axaml,xaml}]
+# Code, MSBuild, WiX, Avalonia markup and other XML — tabs; VS defaults to spaces in the markup and project files
+[*.{cs,csproj,wixproj,props,targets,wxs,wxi,wxl,axaml,xaml,xml,config,manifest,plist}]
 indent_style = tab
 indent_size = 4
 tab_width = 4

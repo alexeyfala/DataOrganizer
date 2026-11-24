@@ -17,6 +17,7 @@
 		-->
 		<SuppressIces>ICE61</SuppressIces>
 	</PropertyGroup>
+
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppDisplayName=$(AppDisplayName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
@@ -26,16 +27,20 @@
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupProductName=$(SetupProductName)</DefineConstants>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<Content Include="Predefines.wxi" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="WixToolset.UI.wixext" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
 		<ProjectReference Include="..\Setup.CustomActions\Setup.CustomActions.csproj" />
 	</ItemGroup>
+
 	<Target Name="PreBuild" BeforeTargets="CoreCompile" DependsOnTargets="ResolveReferences" Condition="'$(DesignTimeBuild)' != 'true'">
 		<PropertyGroup>
 			<_DesktopPublishDir>@(_WixReferencedProjectOutputs->WithMetadataValue('OriginalItemSpec', '..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj')->'%(RootDir)%(Directory)')Publish</_DesktopPublishDir>
@@ -44,6 +49,7 @@
 		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File ..\..\build\gen-license-rtf.ps1" WorkingDirectory="$(MSBuildProjectDirectory)" />
 		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
 	</Target>
+
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(DesignTimeBuild)' != 'true'">
 		<!--
 		With .wxl files WiX builds into a culture subfolder. One culture is built at a time, so the MSI moves

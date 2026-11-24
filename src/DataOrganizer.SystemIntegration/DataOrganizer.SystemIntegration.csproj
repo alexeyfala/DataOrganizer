@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<!-- Required by [LibraryImport] source generator (writes unsafe interop stubs). -->
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -16,5 +15,4 @@
 	<ItemGroup>
 		<InternalsVisibleTo Include="DataOrganizer.SystemIntegration.UnitTests" />
 	</ItemGroup>
-
 </Project>

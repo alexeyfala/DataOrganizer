@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<ItemGroup>
 		<PackageReference Include="Bogus" />
 		<PackageReference Include="OSVersionExt.NetStd" />
@@ -13,5 +12,4 @@
 		<InternalsVisibleTo Include="DataOrganizer.UI.UnitTests" />
 		<InternalsVisibleTo Include="DataOrganizer.Workflows.UnitTests" />
 	</ItemGroup>
-
 </Project>

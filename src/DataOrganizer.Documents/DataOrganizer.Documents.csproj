@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<WarningsAsErrors>nullable;GE001</WarningsAsErrors>
 	</PropertyGroup>
@@ -16,5 +15,4 @@
 		<InternalsVisibleTo Include="DataOrganizer.Documents.UnitTests" />
 		<InternalsVisibleTo Include="DataOrganizer.UI.UnitTests" />
 	</ItemGroup>
-
 </Project>

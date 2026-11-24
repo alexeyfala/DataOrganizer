@@ -300,7 +300,7 @@
 			Value="LICENSE.rtf" />
 
 		<!--
-			Add Icon and ARPPRODUCTICON (the installer icon). 
+			Add Icon and ARPPRODUCTICON (the installer icon).
 			Note: ARPPRODUCTICON = Add/Remove Program Product Icon
 			This icon is visible in the Windows Apps and Features list.
 		-->

@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
 			<PrivateAssets>all</PrivateAssets>
@@ -10,5 +9,4 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer.Database\DataOrganizer.Database.csproj" />
 	</ItemGroup>
-
 </Project>

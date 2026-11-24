@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<!-- Required by [LibraryImport] source generator (writes unsafe interop stubs). -->
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -14,18 +13,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer.TestSupport\DataOrganizer.TestSupport.csproj" />
 		<ProjectReference Include="..\..\src\DataOrganizer.UI\DataOrganizer.UI.csproj" />
+		<ProjectReference Include="..\DataOrganizer.TestSupport\DataOrganizer.TestSupport.csproj" />
 	</ItemGroup>
 
 	<!-- Test helpers kept in the test projects of their layers and compiled here from the same files. -->
 	<ItemGroup>
-		<Compile Include="..\DataOrganizer.SystemIntegration.UnitTests\Clipboard\TestHelpers\Factories\ClipboardEntryFactory.cs" Link="Clipboard\TestHelpers\Factories\ClipboardEntryFactory.cs" />
-		<Compile Include="..\DataOrganizer.SystemIntegration.UnitTests\GlobalHotkeys\TestHelpers\Factories\HotkeyFactory.cs" Link="GlobalHotkeys\TestHelpers\Factories\HotkeyFactory.cs" />
+		<Compile Include="..\DataOrganizer.Documents.UnitTests\TextProcessing\TestHelpers\Fakes\FixedFoldingStrategy.cs" Link="TextProcessing\TestHelpers\Fakes\FixedFoldingStrategy.cs" />
 		<Compile Include="..\DataOrganizer.Hierarchy.UnitTests\TestHelpers\Factories\ItemDtoFactory.cs" Link="TestHelpers\Factories\ItemDtoFactory.cs" />
 		<Compile Include="..\DataOrganizer.Infrastructure.UnitTests\Settings\TestHelpers\Factories\SettingsFactory.cs" Link="Settings\TestHelpers\Factories\SettingsFactory.cs" />
-		<Compile Include="..\DataOrganizer.Documents.UnitTests\TextProcessing\TestHelpers\Fakes\FixedFoldingStrategy.cs" Link="TextProcessing\TestHelpers\Fakes\FixedFoldingStrategy.cs" />
 		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" Link="Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" />
+		<Compile Include="..\DataOrganizer.SystemIntegration.UnitTests\Clipboard\TestHelpers\Factories\ClipboardEntryFactory.cs" Link="Clipboard\TestHelpers\Factories\ClipboardEntryFactory.cs" />
+		<Compile Include="..\DataOrganizer.SystemIntegration.UnitTests\GlobalHotkeys\TestHelpers\Factories\HotkeyFactory.cs" Link="GlobalHotkeys\TestHelpers\Factories\HotkeyFactory.cs" />
 	</ItemGroup>
-
 </Project>

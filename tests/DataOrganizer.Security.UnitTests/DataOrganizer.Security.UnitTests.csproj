@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<ItemGroup>
 		<PackageReference Include="Autofac.Extras.Moq" />
 		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
@@ -18,5 +17,4 @@
 		<Compile Include="..\DataOrganizer.Infrastructure.UnitTests\Diagnostics\TestHelpers\Fakes\RecordingNotificationService.cs" Link="Diagnostics\TestHelpers\Fakes\RecordingNotificationService.cs" />
 		<Compile Include="..\DataOrganizer.Shared.UnitTests\Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" Link="Threading\TestHelpers\Fakes\InlineDispatcherAccessor.cs" />
 	</ItemGroup>
-
 </Project>

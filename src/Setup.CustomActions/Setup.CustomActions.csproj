@@ -1,18 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<!--
 		The Windows Installer hosts managed custom actions on .NET Framework, so this project targets it.
-		Its tests compile the Helpers and Models files themselves on .NET 10.
+		Its tests compile its files themselves.
 	-->
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
 		<TargetFramework>net472</TargetFramework>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<Content Include="CustomAction.config" CopyToOutputDirectory="PreserveNewest" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="PolySharp">
@@ -22,4 +17,7 @@
 		<PackageReference Include="WixToolset.Dtf.CustomAction" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Include="CustomAction.config" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 </Project>

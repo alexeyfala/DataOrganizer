@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<!--
 		Builds the Russian satellite of AvaloniaEdit, ru/AvaloniaEdit.resources.dll, whose package ships English and
 		Chinese texts of the search panel only. The satellite needs the version of AvaloniaEdit.dll but not its public
@@ -55,5 +54,4 @@
 			<Output TaskParameter="OutputAssembly" ItemName="FileWrites" />
 		</Csc>
 	</Target>
-
 </Project>

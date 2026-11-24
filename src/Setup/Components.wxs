@@ -20,12 +20,12 @@
 
 				<!--
 					The file represented by this component.
-					
+
 					The file's location is used as the key path.  If the key
 					path is not present, the component is considered as not
 					being installed; otherwise, if the key path is present, the
 					installer performs an upgrade, repair, or remove.
-					
+
 					Note: During uninstall, the file is removed by the Windows
 					Installer.  In addition, the file's parent directories are
 					removed so long as the parent directories are empty.  There
@@ -92,7 +92,7 @@
 					path is not present, the component is considered as not
 					being installed; otherwise, if the key path is present, the
 					installer performs an upgrade, repair, or remove.
-					
+
 					Shortcuts require a registry-based key path; the
 					application's own path can be a key path but that key path
 					cannot be used with shortcuts.

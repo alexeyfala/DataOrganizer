@@ -4,51 +4,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AvaloniaResource Include="Assets\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<AvaloniaResource Remove="Assets\Logo.256.png" />
-		<AvaloniaResource Remove="Assets\Logo.svg" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<AvaloniaXaml Remove="Templates\ClipboardLogTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\ContextMenuTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\EditorTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\FavoritesTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\FileListTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\NotificationTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\OpenedFilesTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\PropertiesTemplates.axaml" />
-		<AvaloniaXaml Remove="Templates\SettingsTemplates.axaml" />
-		<AvaloniaXaml Remove="Styling\Resources.axaml" />
-		<AvaloniaXaml Remove="Styling\SideSheetControlTheme.axaml" />
-		<AvaloniaXaml Remove="Styling\Styles.axaml" />
-		<AvaloniaXaml Remove="Styling\Themes.axaml" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<AvaloniaResource Include="Styling\Resources.axaml" />
-		<AvaloniaResource Include="Styling\SideSheetControlTheme.axaml" />
-		<AvaloniaResource Include="Styling\Styles.axaml" />
-		<AvaloniaResource Include="Styling\Themes.axaml" />
-		<AvaloniaResource Include="Templates\ClipboardLogTemplates.axaml" />
-		<AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
-		<AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
-		<AvaloniaResource Include="Templates\EditorTemplates.axaml" />
-		<AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
-		<AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
-		<AvaloniaResource Include="Templates\FileListTemplates.axaml" />
-		<AvaloniaResource Include="Templates\NotificationTemplates.axaml" />
-		<AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
-		<AvaloniaResource Include="Templates\PropertiesTemplates.axaml" />
-		<AvaloniaResource Include="Templates\SettingsTemplates.axaml" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Avalonia" />
 		<PackageReference Include="Avalonia.Fonts.Inter" />
 		<PackageReference Include="Avalonia.Themes.Fluent" />
@@ -78,5 +33,50 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="DataOrganizer.UI.UnitTests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Include="Assets\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Remove="Assets\Logo.256.png" />
+		<AvaloniaResource Remove="Assets\Logo.svg" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaXaml Remove="Styling\Resources.axaml" />
+		<AvaloniaXaml Remove="Styling\SideSheetControlTheme.axaml" />
+		<AvaloniaXaml Remove="Styling\Styles.axaml" />
+		<AvaloniaXaml Remove="Styling\Themes.axaml" />
+		<AvaloniaXaml Remove="Templates\ClipboardLogTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\ContextMenuTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\EditorTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\FileListTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\NotificationTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\PropertiesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\SettingsTemplates.axaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Include="Styling\Resources.axaml" />
+		<AvaloniaResource Include="Styling\SideSheetControlTheme.axaml" />
+		<AvaloniaResource Include="Styling\Styles.axaml" />
+		<AvaloniaResource Include="Styling\Themes.axaml" />
+		<AvaloniaResource Include="Templates\ClipboardLogTemplates.axaml" />
+		<AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
+		<AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
+		<AvaloniaResource Include="Templates\EditorTemplates.axaml" />
+		<AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
+		<AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\FileListTemplates.axaml" />
+		<AvaloniaResource Include="Templates\NotificationTemplates.axaml" />
+		<AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\PropertiesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\SettingsTemplates.axaml" />
 	</ItemGroup>
 </Project>
