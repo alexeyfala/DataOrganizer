@@ -1,4 +1,4 @@
-# Mutation testing (Stryker)
+﻿# Mutation testing (Stryker)
 
 ## What it is for
 
