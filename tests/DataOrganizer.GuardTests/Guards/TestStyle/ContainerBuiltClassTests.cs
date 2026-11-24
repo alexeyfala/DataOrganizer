@@ -11,7 +11,7 @@ namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
 [Guard]
 [TestFixture(Description = "Guards the tests against building with new a class that the container of the application builds")]
-internal partial class ContainerBuiltClassTests
+internal sealed partial class ContainerBuiltClassTests
 {
 	#region Data
 	/// <summary>

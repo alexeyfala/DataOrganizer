@@ -18,7 +18,7 @@ using System.Text;
 namespace DataOrganizer.Documents.UnitTests.Notepad.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NotepadTexts)}"" type")]
-internal class NotepadTextsTests
+internal sealed class NotepadTextsTests
 {
 	#region Methods
 	/// <summary>

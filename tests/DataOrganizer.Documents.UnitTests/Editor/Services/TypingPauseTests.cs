@@ -12,7 +12,7 @@ using System;
 namespace DataOrganizer.Documents.UnitTests.Editor.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TypingPause)}"" type")]
-internal class TypingPauseTests
+internal sealed class TypingPauseTests
 {
 	#region Methods
 	/// <summary>

@@ -10,7 +10,7 @@ using DataOrganizer.UI.UnitTests.TestHelpers;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ShowContextFlyoutOnDoubleTapBehavior)}"" type")]
-internal class ShowContextFlyoutOnDoubleTapBehaviorTests
+internal sealed class ShowContextFlyoutOnDoubleTapBehaviorTests
 {
 	#region Data
 	/// <summary>

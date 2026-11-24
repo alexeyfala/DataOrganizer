@@ -16,7 +16,7 @@ using System.Windows.Input;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PointerHoverCommandBehavior)}"" type")]
-internal class PointerHoverCommandBehaviorTests
+internal sealed class PointerHoverCommandBehaviorTests
 {
 	#region Data
 	/// <summary>

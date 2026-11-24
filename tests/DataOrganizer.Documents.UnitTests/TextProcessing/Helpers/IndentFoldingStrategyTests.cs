@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(IndentFoldingStrategy)}"" type")]
-internal partial class IndentFoldingStrategyTests
+internal sealed partial class IndentFoldingStrategyTests
 {
 	#region Data
 	/// <summary>

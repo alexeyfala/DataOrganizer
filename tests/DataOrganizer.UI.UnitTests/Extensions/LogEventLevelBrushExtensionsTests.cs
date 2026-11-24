@@ -6,7 +6,7 @@ using Serilog.Events;
 namespace DataOrganizer.UI.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LogEventLevelBrushExtensions)}"" type")]
-internal class LogEventLevelBrushExtensionsTests
+internal sealed class LogEventLevelBrushExtensionsTests
 {
 	#region Methods
 	/// <summary>

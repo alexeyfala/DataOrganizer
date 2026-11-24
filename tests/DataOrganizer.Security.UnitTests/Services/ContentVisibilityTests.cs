@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Security.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentVisibility)}"" type")]
-internal class ContentVisibilityTests
+internal sealed class ContentVisibilityTests
 {
 	#region Methods
 	/// <summary>

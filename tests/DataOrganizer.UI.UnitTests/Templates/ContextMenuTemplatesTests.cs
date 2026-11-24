@@ -21,7 +21,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Templates;
 
 [TestFixture(Description = @"Tests of ""ContextMenuTemplates.axaml"" resources")]
-internal class ContextMenuTemplatesTests
+internal sealed class ContextMenuTemplatesTests
 {
 	#region Data
 	/// <summary>

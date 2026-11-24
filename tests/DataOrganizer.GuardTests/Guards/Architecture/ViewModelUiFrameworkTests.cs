@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Architecture;
 
 [Guard]
 [TestFixture(Description = "Guards the view models against the types of the UI framework")]
-internal class ViewModelUiFrameworkTests
+internal sealed class ViewModelUiFrameworkTests
 {
 	#region Data
 	/// <summary>

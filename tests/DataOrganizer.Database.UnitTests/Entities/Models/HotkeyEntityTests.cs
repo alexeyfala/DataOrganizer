@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace DataOrganizer.Database.UnitTests.Entities.Models;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeyEntity)}"" type")]
-internal class HotkeyEntityTests
+internal sealed class HotkeyEntityTests
 {
 	#region Methods
 	/// <summary>

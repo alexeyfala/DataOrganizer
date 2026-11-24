@@ -5,7 +5,7 @@ using Serilog.Events;
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LogEventLevelExtensions)}"" type")]
-internal class LogEventLevelExtensionsTests
+internal sealed class LogEventLevelExtensionsTests
 {
 	#region Methods
 	/// <summary>

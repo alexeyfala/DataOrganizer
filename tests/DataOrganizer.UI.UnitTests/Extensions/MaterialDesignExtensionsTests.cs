@@ -5,7 +5,7 @@ using DataOrganizer.UI.Extensions;
 namespace DataOrganizer.UI.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MaterialDesignExtensions)}"" type")]
-internal class MaterialDesignExtensionsTests
+internal sealed class MaterialDesignExtensionsTests
 {
 	#region Methods
 	/// <summary>

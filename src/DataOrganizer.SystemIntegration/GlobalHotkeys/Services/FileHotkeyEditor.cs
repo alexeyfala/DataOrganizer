@@ -14,6 +14,7 @@ using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using MapsterMapper;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,7 +81,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
-			_notification.ShowWarningSnackbar($"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} {QuoteBuilder.Build(existed.Name)}");
+			_notification.ShowWarningSnackbar($"{string.Format(CultureInfo.CurrentCulture, Strings.HotkeysAlreadyAssignedFor, sequence)} {QuoteBuilder.Build(existed.Name)}");
 
 			return OverwriteHotkeysOutcome.AlreadyInUse;
 		}

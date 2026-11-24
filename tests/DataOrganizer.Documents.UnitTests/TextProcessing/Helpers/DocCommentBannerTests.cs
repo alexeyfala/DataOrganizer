@@ -5,7 +5,7 @@ using DataOrganizer.Shared.Constants;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocCommentBanner)}"" type")]
-internal class DocCommentBannerTests
+internal sealed class DocCommentBannerTests
 {
 	#region Data
 	/// <summary>

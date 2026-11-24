@@ -5,7 +5,7 @@ using SharpHook.Data;
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyCodeExtensions)}"" type")]
-internal class KeyCodeExtensionsTests
+internal sealed class KeyCodeExtensionsTests
 {
 	#region Methods
 	/// <summary>

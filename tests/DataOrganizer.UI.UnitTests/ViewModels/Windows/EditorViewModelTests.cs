@@ -85,7 +85,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditorViewModel)}"" type")]
-internal class EditorViewModelTests
+internal sealed class EditorViewModelTests
 {
 	#region Data
 	/// <summary>

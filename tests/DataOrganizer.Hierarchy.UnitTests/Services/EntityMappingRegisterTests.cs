@@ -11,7 +11,7 @@ using System;
 namespace DataOrganizer.Hierarchy.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EntityMappingRegister)}"" type")]
-internal class EntityMappingRegisterTests
+internal sealed class EntityMappingRegisterTests
 {
 	#region Methods
 	/// <summary>

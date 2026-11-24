@@ -13,7 +13,7 @@ using System.Reactive.Linq;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Hierarchy;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerNodeViewModelBase)}"" type")]
-internal class ExplorerNodeViewModelBaseTests
+internal sealed class ExplorerNodeViewModelBaseTests
 {
 	#region Data
 	/// <summary>

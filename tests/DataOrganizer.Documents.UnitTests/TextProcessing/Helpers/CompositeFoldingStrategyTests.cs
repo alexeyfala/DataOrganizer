@@ -9,7 +9,7 @@ using System.Linq;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(CompositeFoldingStrategy)}"" type")]
-internal class CompositeFoldingStrategyTests
+internal sealed class CompositeFoldingStrategyTests
 {
 	#region Data
 	/// <summary>

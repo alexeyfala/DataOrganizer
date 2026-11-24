@@ -56,7 +56,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FavoritesViewModel)}"" type")]
-internal class FavoritesViewModelTests
+internal sealed class FavoritesViewModelTests
 {
 	#region Methods
 	/// <summary>

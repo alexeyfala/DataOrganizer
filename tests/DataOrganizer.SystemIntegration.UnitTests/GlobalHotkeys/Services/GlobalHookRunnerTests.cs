@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalHookRunner)}"" type")]
-internal class GlobalHookRunnerTests
+internal sealed class GlobalHookRunnerTests
 {
 	#region Methods
 	/// <summary>

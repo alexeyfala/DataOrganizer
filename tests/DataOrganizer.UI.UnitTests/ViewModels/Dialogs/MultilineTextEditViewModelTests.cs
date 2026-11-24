@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MultilineTextEditViewModel)}"" type")]
-internal class MultilineTextEditViewModelTests
+internal sealed class MultilineTextEditViewModelTests
 {
 	#region Methods
 	/// <summary>

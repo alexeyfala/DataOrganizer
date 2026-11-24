@@ -16,7 +16,7 @@ using System.Security.Cryptography;
 namespace DataOrganizer.Security.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EncryptionService)}"" type")]
-internal class EncryptionServiceTests
+internal sealed class EncryptionServiceTests
 {
 	#region Data
 	/// <summary>

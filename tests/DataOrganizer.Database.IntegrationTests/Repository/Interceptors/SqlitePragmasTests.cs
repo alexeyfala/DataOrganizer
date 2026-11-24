@@ -11,7 +11,7 @@ using System.Text;
 namespace DataOrganizer.Database.IntegrationTests.Repository.Interceptors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqlitePragmas)}"" type")]
-internal class SqlitePragmasTests
+internal sealed class SqlitePragmasTests
 {
 	#region Methods
 	/// <summary>

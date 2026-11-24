@@ -10,7 +10,7 @@ using System.Text.Json;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogMapper)}"" type")]
-internal class ClipboardLogMapperTests
+internal sealed class ClipboardLogMapperTests
 {
 	#region Methods
 	/// <summary>

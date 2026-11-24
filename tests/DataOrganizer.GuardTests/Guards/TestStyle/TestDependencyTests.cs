@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
 [Guard]
 [TestFixture(Description = "Guards the tests against libraries, texts and the disk that the test style rules out")]
-internal partial class TestDependencyTests
+internal sealed partial class TestDependencyTests
 {
 	#region Data
 	/// <summary>

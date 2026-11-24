@@ -15,7 +15,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FlyoutButton)}"" type")]
-internal class FlyoutButtonTests
+internal sealed class FlyoutButtonTests
 {
 	#region Methods
 	/// <summary>

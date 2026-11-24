@@ -6,7 +6,7 @@ using DataOrganizer.UI.Behaviors.Security;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(WipeReplacedTextBehavior)}"" type")]
-internal class WipeReplacedTextBehaviorTests
+internal sealed class WipeReplacedTextBehaviorTests
 {
 	#region Methods
 	/// <summary>

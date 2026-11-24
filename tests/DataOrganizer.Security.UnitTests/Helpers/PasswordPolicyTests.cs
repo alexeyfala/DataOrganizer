@@ -6,7 +6,7 @@ using DataOrganizer.Security.Helpers;
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PasswordPolicy)}"" type")]
-internal class PasswordPolicyTests
+internal sealed class PasswordPolicyTests
 {
 	#region Data
 	/// <summary>

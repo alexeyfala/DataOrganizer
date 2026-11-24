@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MarkdownFoldingStrategy)}"" type")]
-internal partial class MarkdownFoldingStrategyTests
+internal sealed partial class MarkdownFoldingStrategyTests
 {
 	#region Data
 	/// <summary>

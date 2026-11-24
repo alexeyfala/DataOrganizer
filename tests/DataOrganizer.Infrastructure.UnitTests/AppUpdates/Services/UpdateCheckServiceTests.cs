@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Infrastructure.UnitTests.AppUpdates.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UpdateCheckService)}"" type")]
-internal class UpdateCheckServiceTests
+internal sealed class UpdateCheckServiceTests
 {
 	#region Methods
 	/// <summary>

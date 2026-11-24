@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeysEditorViewModel)}"" type")]
-internal class HotkeysEditorViewModelTests
+internal sealed class HotkeysEditorViewModelTests
 {
 	#region Methods
 	/// <summary>

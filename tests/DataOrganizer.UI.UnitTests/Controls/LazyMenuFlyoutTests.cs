@@ -17,7 +17,7 @@ using DataOrganizer.UI.UnitTests.TestHelpers;
 namespace DataOrganizer.UI.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LazyMenuFlyout)}"" type")]
-internal class LazyMenuFlyoutTests
+internal sealed class LazyMenuFlyoutTests
 {
 	#region Methods
 	/// <summary>

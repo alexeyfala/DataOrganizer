@@ -34,7 +34,7 @@ using TimeProvider = System.TimeProvider;
 namespace DataOrganizer.Database.UnitTests.Repository.Services.Database;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
-internal class DbAccessTests
+internal sealed class DbAccessTests
 {
 	#region Data
 	/// <summary>

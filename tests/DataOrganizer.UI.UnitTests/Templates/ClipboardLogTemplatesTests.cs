@@ -19,7 +19,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Templates;
 
 [TestFixture(Description = @"Tests of ""ClipboardLogTemplates.axaml"" resources")]
-internal class ClipboardLogTemplatesTests
+internal sealed class ClipboardLogTemplatesTests
 {
 	#region Data
 	/// <summary>

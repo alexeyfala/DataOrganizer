@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetFieldView)}"" type")]
-internal class DatasetFieldViewTests
+internal sealed class DatasetFieldViewTests
 {
 	#region Methods
 	/// <summary>

@@ -13,7 +13,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that the presenter still finds its way around Material's snackbar host")]
-internal class SnackbarPresenterContractTests
+internal sealed class SnackbarPresenterContractTests
 {
 	#region Methods
 	/// <summary>

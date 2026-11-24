@@ -11,7 +11,7 @@ using System.Threading;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Hierarchy;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HierarchySearchViewModel)}"" type")]
-internal class HierarchySearchViewModelTests
+internal sealed class HierarchySearchViewModelTests
 {
 	#region Data
 	/// <summary>

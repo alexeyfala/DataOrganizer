@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SystemAppResolver)}"" type")]
-internal class SystemAppResolverTests
+internal sealed class SystemAppResolverTests
 {
 	#region Methods
 	/// <summary>

@@ -358,6 +358,19 @@ dotnet_diagnostic.IDE1006.severity = warning
 
 # .NET analyzers
 
+# CA1001 (owner of a disposable field is not IDisposable): behaviors and controls release such fields when they leave
+# the tree, and a helper is released by the type that owns it.
+dotnet_diagnostic.CA1001.severity = none
+
+# CA1051, CA1711, CA1716 (protected fields, reserved name suffixes, keywords of other languages): design rules for
+# libraries; the application has no outside consumers.
+dotnet_diagnostic.CA1051.severity = none
+dotnet_diagnostic.CA1711.severity = none
+dotnet_diagnostic.CA1716.severity = none
+
+# CA1863 (cache a CompositeFormat): pays off on hot paths only, and a cached localized format would keep its culture.
+dotnet_diagnostic.CA1863.severity = none
+
 # SYSLIB1096 (COM interfaces through [GeneratedComInterface]): the application stays on built-in COM,
 # which its late-bound calls to the Windows shell need, so the switch would gain nothing.
 dotnet_diagnostic.SYSLIB1096.severity = none

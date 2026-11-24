@@ -4,6 +4,7 @@ using Serilog.Core;
 using Serilog.Events;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace DataOrganizer.Infrastructure.Diagnostics.Services;
 
@@ -23,7 +24,11 @@ public sealed class LogCallbackSink : ILogEventSink
 	/// <inheritdoc />
 	public void Emit(LogEvent logEvent)
 	{
-		string message = $"[{logEvent.Timestamp.ToString(LogDefaults.TimestampFormat)}] {logEvent.Level.ToShort()} {logEvent.RenderMessage()}{Environment.NewLine}";
+		string timestamp = logEvent.Timestamp.ToString(LogDefaults.TimestampFormat, CultureInfo.InvariantCulture);
+
+		string text = logEvent.RenderMessage(CultureInfo.InvariantCulture);
+
+		string message = $"[{timestamp}] {logEvent.Level.ToShort()} {text}{Environment.NewLine}";
 
 		if (logEvent.Exception is { } ex)
 		{

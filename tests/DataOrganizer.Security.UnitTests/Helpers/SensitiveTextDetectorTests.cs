@@ -4,7 +4,7 @@ using DataOrganizer.Security.Helpers;
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SensitiveTextDetector)}"" type")]
-internal class SensitiveTextDetectorTests
+internal sealed class SensitiveTextDetectorTests
 {
 	#region Methods
 	/// <summary>

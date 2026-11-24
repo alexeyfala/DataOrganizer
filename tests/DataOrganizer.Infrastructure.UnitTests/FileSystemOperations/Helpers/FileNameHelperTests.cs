@@ -3,7 +3,7 @@ using DataOrganizer.Infrastructure.FileSystemOperations.Helpers;
 namespace DataOrganizer.Infrastructure.UnitTests.FileSystemOperations.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileNameHelper)}"" type")]
-internal class FileNameHelperTests
+internal sealed class FileNameHelperTests
 {
 	#region Methods
 	/// <summary>

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Workflows.UnitTests.HierarchyExchange.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqliteExchangeFormat)}"" type")]
-internal class SqliteExchangeFormatTests
+internal sealed class SqliteExchangeFormatTests
 {
 	#region Data
 	/// <summary>

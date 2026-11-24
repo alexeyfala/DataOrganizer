@@ -8,7 +8,7 @@ using NSubstitute;
 namespace DataOrganizer.Documents.UnitTests.Editor.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditorStateMapper)}"" type")]
-internal class EditorStateMapperTests
+internal sealed class EditorStateMapperTests
 {
 	#region Methods
 	/// <summary>

@@ -3,7 +3,7 @@ using DataOrganizer.Shared.Extensions;
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ArrayExtensions)}"" type")]
-internal class ArrayExtensionsTests
+internal sealed class ArrayExtensionsTests
 {
 	#region Methods
 	/// <summary>

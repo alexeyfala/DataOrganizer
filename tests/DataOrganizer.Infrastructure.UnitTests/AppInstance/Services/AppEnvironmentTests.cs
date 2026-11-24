@@ -11,7 +11,7 @@ using System.IO;
 namespace DataOrganizer.Infrastructure.UnitTests.AppInstance.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppEnvironment)}"" type")]
-internal class AppEnvironmentTests
+internal sealed class AppEnvironmentTests
 {
 	#region Data
 	/// <summary>

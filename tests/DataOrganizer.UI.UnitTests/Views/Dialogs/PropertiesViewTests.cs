@@ -13,7 +13,7 @@ using NSubstitute;
 namespace DataOrganizer.UI.UnitTests.Views.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PropertiesView)}"" type")]
-internal class PropertiesViewTests
+internal sealed class PropertiesViewTests
 {
 	#region Methods
 	/// <summary>

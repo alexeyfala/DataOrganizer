@@ -11,7 +11,7 @@ using Action = System.Action;
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TextEditorAutomationPeer)}"" type")]
-internal class TextEditorAutomationPeerTests
+internal sealed class TextEditorAutomationPeerTests
 {
 	#region Methods
 	/// <summary>

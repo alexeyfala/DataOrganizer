@@ -6,7 +6,7 @@ namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [SupportedOSPlatform("windows")]
 [TestFixture(Description = $@"Tests of ""{nameof(WindowsExecutingFileHolderFinder)}"" type")]
-internal class WindowsExecutingFileHolderFinderTests
+internal sealed class WindowsExecutingFileHolderFinderTests
 {
 	#region Methods
 	/// <summary>

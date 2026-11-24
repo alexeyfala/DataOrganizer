@@ -12,7 +12,7 @@ using Testably.Abstractions.Testing;
 namespace DataOrganizer.Shared.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileEraser)}"" type")]
-internal class FileEraserTests
+internal sealed class FileEraserTests
 {
 	#region Data
 	/// <summary>

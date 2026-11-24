@@ -37,7 +37,7 @@ using System.Windows.Input;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentEditorView)}"" type")]
-internal class DocumentEditorViewTests
+internal sealed class DocumentEditorViewTests
 {
 	#region Data
 	/// <summary>

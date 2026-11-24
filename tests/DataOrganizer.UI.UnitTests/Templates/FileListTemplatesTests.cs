@@ -16,7 +16,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Templates;
 
 [TestFixture(Description = @"Tests of ""FileListTemplates.axaml"" resources")]
-internal class FileListTemplatesTests
+internal sealed class FileListTemplatesTests
 {
 	#region Data
 	/// <summary>

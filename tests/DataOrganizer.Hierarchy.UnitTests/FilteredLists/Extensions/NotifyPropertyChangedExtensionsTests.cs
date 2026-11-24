@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NotifyPropertyChangedExtensions)}"" type")]
-internal partial class NotifyPropertyChangedExtensionsTests
+internal sealed partial class NotifyPropertyChangedExtensionsTests
 {
 	#region Methods
 	/// <summary>

@@ -23,7 +23,7 @@ using System.Threading;
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SelectedFavoritesViewModel)}"" type")]
-internal class SelectedFavoritesViewModelTests
+internal sealed class SelectedFavoritesViewModelTests
 {
 	#region Data
 	/// <summary>

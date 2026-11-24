@@ -10,7 +10,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that the arrows, the page buttons and the thumb of a scroll bar stay out of UI Automation, while the scroll bar stays in it")]
-internal class ScrollBarAutomationTests
+internal sealed class ScrollBarAutomationTests
 {
 	#region Methods
 	/// <summary>

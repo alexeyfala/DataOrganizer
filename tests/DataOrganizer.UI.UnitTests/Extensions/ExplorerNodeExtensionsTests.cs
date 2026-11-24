@@ -14,7 +14,7 @@ using System.Reactive.Linq;
 namespace DataOrganizer.UI.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerNodeExtensions)}"" type")]
-internal class ExplorerNodeExtensionsTests
+internal sealed class ExplorerNodeExtensionsTests
 {
 	#region Data
 	/// <summary>

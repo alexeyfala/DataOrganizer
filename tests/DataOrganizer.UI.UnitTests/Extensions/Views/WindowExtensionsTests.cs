@@ -6,7 +6,7 @@ using DataOrganizer.UI.Extensions.Views;
 namespace DataOrganizer.UI.UnitTests.Extensions.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(WindowExtensions)}"" type")]
-internal class WindowExtensionsTests
+internal sealed class WindowExtensionsTests
 {
 	#region Methods
 	/// <summary>

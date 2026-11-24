@@ -5,7 +5,7 @@ using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 namespace DataOrganizer.Hierarchy.UnitTests.Dto;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileDto)}"" type")]
-internal class FileDtoTests
+internal sealed class FileDtoTests
 {
 	#region Methods
 	/// <summary>

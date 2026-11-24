@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AsyncRollbackScope)}"" type")]
-internal class AsyncRollbackScopeTests
+internal sealed class AsyncRollbackScopeTests
 {
 	#region Methods
 	/// <summary>

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GenericExtensions)}"" type")]
-internal class GenericExtensionsTests
+internal sealed class GenericExtensionsTests
 {
 	#region Methods
 	/// <summary>

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Infrastructure.UnitTests.Notifications.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ProgressScope)}"" type")]
-internal class ProgressScopeTests
+internal sealed class ProgressScopeTests
 {
 	#region Methods
 	/// <summary>

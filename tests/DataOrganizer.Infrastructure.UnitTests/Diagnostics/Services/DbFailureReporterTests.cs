@@ -14,7 +14,7 @@ using System;
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbFailureReporter)}"" type")]
-internal class DbFailureReporterTests
+internal sealed class DbFailureReporterTests
 {
 	#region Methods
 	/// <summary>

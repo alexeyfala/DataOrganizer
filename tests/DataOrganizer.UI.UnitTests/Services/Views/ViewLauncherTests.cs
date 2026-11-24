@@ -70,7 +70,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ViewLauncher)}"" type")]
-internal class ViewLauncherTests
+internal sealed class ViewLauncherTests
 {
 	#region Methods
 	/// <summary>

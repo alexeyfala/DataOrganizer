@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentIdentity)}"" type")]
-internal class ContentIdentityTests
+internal sealed class ContentIdentityTests
 {
 	#region Methods
 	/// <summary>

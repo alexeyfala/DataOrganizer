@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Database.IntegrationTests.Repository.Services.Database;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbMaintenance)}"" type")]
-internal class DbMaintenanceTests
+internal sealed class DbMaintenanceTests
 {
 	#region Data
 	/// <summary>

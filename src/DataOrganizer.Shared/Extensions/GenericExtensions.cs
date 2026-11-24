@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -93,7 +94,7 @@ public static class GenericExtensions
 		this T source,
 		string ignoredProperty) where T : class, new()
 	{
-		return CopyPropertiesTo(source, x => !string.Equals(x, ignoredProperty));
+		return CopyPropertiesTo(source, x => !string.Equals(x, ignoredProperty, StringComparison.Ordinal));
 	}
 
 	/// <summary>
@@ -161,9 +162,9 @@ public static class GenericExtensions
 					}
 					else if (value.GetType().IsEnum && value is Enum enumValue)
 					{
-						object numberValue = Convert.ChangeType(value, enumValue.GetTypeCode());
+						object numberValue = Convert.ChangeType(value, enumValue.GetTypeCode(), CultureInfo.InvariantCulture);
 
-						value = Convert.ChangeType(value, TypeCode.String);
+						value = Convert.ChangeType(value, TypeCode.String, CultureInfo.InvariantCulture);
 
 						value = $"{value} {{enum number value: {numberValue}}}";
 					}

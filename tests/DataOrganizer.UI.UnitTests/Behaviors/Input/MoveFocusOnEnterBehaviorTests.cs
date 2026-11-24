@@ -7,7 +7,7 @@ using DataOrganizer.UI.Behaviors.Input;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MoveFocusOnEnterBehavior)}"" type")]
-internal class MoveFocusOnEnterBehaviorTests
+internal sealed class MoveFocusOnEnterBehaviorTests
 {
 	#region Methods
 	/// <summary>

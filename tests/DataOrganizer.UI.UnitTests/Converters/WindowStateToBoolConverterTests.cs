@@ -6,7 +6,7 @@ using System.Globalization;
 namespace DataOrganizer.UI.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(WindowStateToBoolConverter)}"" type")]
-internal class WindowStateToBoolConverterTests
+internal sealed class WindowStateToBoolConverterTests
 {
 	#region Methods
 	/// <summary>

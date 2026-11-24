@@ -5,7 +5,7 @@ using DataOrganizer.Documents.TextProcessing.Extensions;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TextTransformExtensions)}"" type")]
-internal class TextTransformExtensionsTests
+internal sealed class TextTransformExtensionsTests
 {
 	#region Methods
 	/// <summary>

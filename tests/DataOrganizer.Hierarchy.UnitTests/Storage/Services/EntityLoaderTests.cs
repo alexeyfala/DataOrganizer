@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Hierarchy.UnitTests.Storage.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EntityLoader)}"" type")]
-internal class EntityLoaderTests
+internal sealed class EntityLoaderTests
 {
 	#region Methods
 	/// <summary>

@@ -237,7 +237,7 @@ public static partial class SerilogExtensions
 		try
 		{
 			return value is not null
-				? UnicodeCharRegex().Replace(value, x => ((char)int.Parse(x.Groups[nameof(Capture.Value)].Value, NumberStyles.HexNumber)).ToString())
+				? UnicodeCharRegex().Replace(value, x => ((char)int.Parse(x.Groups[nameof(Capture.Value)].Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture)).ToString())
 				: value;
 		}
 		catch (Exception ex)

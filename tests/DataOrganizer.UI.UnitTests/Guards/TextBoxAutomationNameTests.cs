@@ -8,7 +8,7 @@ using Material.Styles.Assists;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that a text box is named for UI Automation by its label, or else by its placeholder")]
-internal class TextBoxAutomationNameTests
+internal sealed class TextBoxAutomationNameTests
 {
 	#region Methods
 	/// <summary>

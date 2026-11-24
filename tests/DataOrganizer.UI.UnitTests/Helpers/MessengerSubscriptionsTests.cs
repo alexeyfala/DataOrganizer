@@ -6,7 +6,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MessengerSubscriptions)}"" type")]
-internal class MessengerSubscriptionsTests
+internal sealed class MessengerSubscriptionsTests
 {
 	#region Methods
 	/// <summary>

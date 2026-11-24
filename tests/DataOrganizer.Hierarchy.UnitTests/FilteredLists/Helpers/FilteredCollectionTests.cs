@@ -14,7 +14,7 @@ using System.Threading;
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FilteredCollection<>)}"" type")]
-internal class FilteredCollectionTests
+internal sealed class FilteredCollectionTests
 {
 	#region Methods
 	/// <summary>

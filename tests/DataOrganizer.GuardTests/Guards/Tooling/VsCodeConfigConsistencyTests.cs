@@ -11,7 +11,7 @@ namespace DataOrganizer.GuardTests.Guards.Tooling;
 
 [Guard]
 [TestFixture(Description = "Guards that .vscode configs stay in sync with the app name and the target framework in Directory.Build.props")]
-internal class VsCodeConfigConsistencyTests
+internal sealed class VsCodeConfigConsistencyTests
 {
 	#region Data
 	/// <summary>

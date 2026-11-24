@@ -11,7 +11,7 @@ namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
 [Guard]
 [TestFixture(Description = "Guards the methods of the test classes against checks that the test style rules out")]
-internal partial class TestMethodStyleTests
+internal sealed partial class TestMethodStyleTests
 {
 	#region Data
 	/// <summary>

@@ -39,7 +39,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(App)}"" type")]
-internal partial class AppTests
+internal sealed partial class AppTests
 {
 	#region Data
 	/// <summary>

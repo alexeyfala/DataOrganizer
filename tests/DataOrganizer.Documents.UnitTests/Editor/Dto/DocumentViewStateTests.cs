@@ -4,7 +4,7 @@ using DataOrganizer.Documents.Editor.Dto;
 namespace DataOrganizer.Documents.UnitTests.Editor.Dto;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentViewState)}"" type")]
-internal class DocumentViewStateTests
+internal sealed class DocumentViewStateTests
 {
 	#region Methods
 	/// <summary>

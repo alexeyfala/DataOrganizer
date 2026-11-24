@@ -31,7 +31,7 @@ using System.Windows.Input;
 namespace DataOrganizer.UI.UnitTests.Behaviors.DragAndDrop;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetDropRecordInsideBehavior)}"" type")]
-internal class DatasetDropRecordInsideBehaviorTests
+internal sealed class DatasetDropRecordInsideBehaviorTests
 {
 	#region Data
 	/// <summary>

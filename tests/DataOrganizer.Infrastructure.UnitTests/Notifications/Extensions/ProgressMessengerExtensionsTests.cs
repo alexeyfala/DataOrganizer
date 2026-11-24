@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Infrastructure.UnitTests.Notifications.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ProgressMessengerExtensions)}"" type")]
-internal class ProgressMessengerExtensionsTests
+internal sealed class ProgressMessengerExtensionsTests
 {
 	#region Methods
 	/// <summary>

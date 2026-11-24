@@ -10,7 +10,7 @@ using System;
 namespace DataOrganizer.Workflows.UnitTests.HierarchyExchange.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ImportedEntityRules)}"" type")]
-internal class ImportedEntityRulesTests
+internal sealed class ImportedEntityRulesTests
 {
 	#region Methods
 	/// <summary>

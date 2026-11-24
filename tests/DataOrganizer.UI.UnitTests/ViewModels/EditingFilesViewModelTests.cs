@@ -11,7 +11,7 @@ using DataOrganizer.Workflows.AppLifecycle.Services;
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditingFilesViewModel)}"" type")]
-internal class EditingFilesViewModelTests
+internal sealed class EditingFilesViewModelTests
 {
 	#region Methods
 	/// <summary>

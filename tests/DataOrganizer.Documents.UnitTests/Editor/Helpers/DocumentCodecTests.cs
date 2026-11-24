@@ -8,7 +8,7 @@ using System.Text;
 namespace DataOrganizer.Documents.UnitTests.Editor.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentCodec)}"" type")]
-internal class DocumentCodecTests
+internal sealed class DocumentCodecTests
 {
 	#region Data
 	/// <summary>

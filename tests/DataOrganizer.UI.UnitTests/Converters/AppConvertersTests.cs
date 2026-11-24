@@ -13,7 +13,7 @@ using System.Globalization;
 namespace DataOrganizer.UI.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppConverters)}"" type")]
-internal class AppConvertersTests
+internal sealed class AppConvertersTests
 {
 	#region Methods
 	/// <summary>

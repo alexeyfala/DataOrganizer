@@ -5,7 +5,7 @@ using SharpHook.Data;
 namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EnumNameReader)}"" type")]
-internal class EnumNameReaderTests
+internal sealed class EnumNameReaderTests
 {
 	#region Methods
 	/// <summary>

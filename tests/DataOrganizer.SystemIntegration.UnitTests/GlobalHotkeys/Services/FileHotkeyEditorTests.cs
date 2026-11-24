@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileHotkeyEditor)}"" type")]
-internal class FileHotkeyEditorTests
+internal sealed class FileHotkeyEditorTests
 {
 	#region Methods
 	/// <summary>

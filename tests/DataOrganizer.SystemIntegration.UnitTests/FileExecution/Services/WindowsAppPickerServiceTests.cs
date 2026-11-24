@@ -5,7 +5,7 @@ namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [SupportedOSPlatform("windows")]
 [TestFixture(Description = $@"Tests of ""{nameof(WindowsAppPickerService)}"" type")]
-internal class WindowsAppPickerServiceTests
+internal sealed class WindowsAppPickerServiceTests
 {
 	#region Methods
 	/// <summary>

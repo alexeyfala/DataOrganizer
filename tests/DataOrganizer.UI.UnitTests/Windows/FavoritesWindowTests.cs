@@ -32,7 +32,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FavoritesWindow)}"" type")]
-internal class FavoritesWindowTests
+internal sealed class FavoritesWindowTests
 {
 	#region Methods
 	/// <summary>

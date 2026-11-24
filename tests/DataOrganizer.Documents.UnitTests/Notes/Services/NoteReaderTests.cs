@@ -12,7 +12,7 @@ using NSubstitute;
 namespace DataOrganizer.Documents.UnitTests.Notes.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteReader)}"" type")]
-internal class NoteReaderTests
+internal sealed class NoteReaderTests
 {
 	#region Methods
 	/// <summary>

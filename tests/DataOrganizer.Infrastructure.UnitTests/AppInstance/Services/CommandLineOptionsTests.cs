@@ -10,7 +10,7 @@ using System.Linq;
 namespace DataOrganizer.Infrastructure.UnitTests.AppInstance.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(CommandLineOptions)}"" type")]
-internal class CommandLineOptionsTests
+internal sealed class CommandLineOptionsTests
 {
 	#region Methods
 	/// <summary>

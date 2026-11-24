@@ -11,7 +11,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that a button showing no text is named for UI Automation by its tip")]
-internal class ButtonAutomationNameTests
+internal sealed class ButtonAutomationNameTests
 {
 	#region Methods
 	/// <summary>

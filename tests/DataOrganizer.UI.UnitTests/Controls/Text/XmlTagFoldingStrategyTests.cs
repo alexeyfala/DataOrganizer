@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(XmlTagFoldingStrategy)}"" type")]
-internal partial class XmlTagFoldingStrategyTests
+internal sealed partial class XmlTagFoldingStrategyTests
 {
 	#region Data
 	/// <summary>

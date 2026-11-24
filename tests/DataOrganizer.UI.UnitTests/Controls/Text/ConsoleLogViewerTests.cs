@@ -14,7 +14,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ConsoleLogViewer)}"" type")]
-internal class ConsoleLogViewerTests
+internal sealed class ConsoleLogViewerTests
 {
 	#region Data
 	/// <summary>

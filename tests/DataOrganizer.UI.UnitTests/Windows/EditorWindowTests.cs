@@ -65,7 +65,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditorWindow)}"" type")]
-internal class EditorWindowTests
+internal sealed class EditorWindowTests
 {
 	#region Data
 	/// <summary>

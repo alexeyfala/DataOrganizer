@@ -13,7 +13,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(IconsBlock)}"" type")]
-internal class IconsBlockTests
+internal sealed class IconsBlockTests
 {
 	#region Methods
 	/// <summary>

@@ -13,6 +13,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
 using DataOrganizer.SystemIntegration.Clipboard.Services;
 using DataOrganizer.SystemIntegration.GlobalHotkeys.Interfaces;
 using Serilog;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -87,7 +88,7 @@ public sealed class HotkeyContentCopier : ContentCopierBase, IHotkeyContentCopie
 			return;
 		}
 
-		_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
+		_notification.ShowToast(string.Format(CultureInfo.CurrentCulture, Strings.TheContentsCopiedToClipboard, file.Name));
 
 		await _dispatcher
 			.PostAsync(() => _copyHistory.Add(file, showAtOnce: true))

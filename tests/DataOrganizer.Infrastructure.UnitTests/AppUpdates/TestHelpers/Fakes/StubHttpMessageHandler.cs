@@ -53,13 +53,13 @@ public sealed class StubHttpMessageHandler : HttpMessageHandler
 
 	#region Helpers
 	/// <inheritdoc />
-	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
 		StubHttpRequest received = new()
 		{
 			// The content is read here because the caller disposes it right after the request is sent.
 			Content = request.Content is { } content
-				? await content.ReadAsStringAsync(token).ConfigureAwait(false)
+				? await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)
 				: null,
 			Method = request.Method,
 			Uri = request.RequestUri

@@ -9,7 +9,7 @@ using DataOrganizer.UI.UnitTests.TestHelpers;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExpanderDoubleClickToggleBehavior)}"" type")]
-internal class ExpanderDoubleClickToggleBehaviorTests
+internal sealed class ExpanderDoubleClickToggleBehaviorTests
 {
 	#region Methods
 	/// <summary>

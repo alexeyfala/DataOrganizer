@@ -6,7 +6,7 @@ using DataOrganizer.Shared.Services;
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Dto;
 
 [TestFixture(Description = "Guards that the window settings left by an earlier build still open")]
-internal class WindowSettingsFormatCompatibilityTests
+internal sealed class WindowSettingsFormatCompatibilityTests
 {
 	#region Data
 	/// <summary>

@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ScrollMarkMargin)}"" type")]
-internal class ScrollMarkMarginTests
+internal sealed class ScrollMarkMarginTests
 {
 	#region Data
 	/// <summary>

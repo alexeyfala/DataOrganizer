@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Documents.UnitTests.FileContents.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileContentsWriter)}"" type")]
-internal class FileContentsWriterTests
+internal sealed class FileContentsWriterTests
 {
 	#region Methods
 	/// <summary>

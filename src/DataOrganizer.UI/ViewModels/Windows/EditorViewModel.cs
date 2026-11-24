@@ -52,6 +52,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -1494,9 +1495,9 @@ public sealed partial class EditorViewModel :
 
 		yield return new(Strings.Name, dto.Name);
 
-		yield return new(Strings.Created, dto.CreatedAt.ToString(format));
+		yield return new(Strings.Created, dto.CreatedAt.ToString(format, CultureInfo.CurrentCulture));
 
-		yield return new(Strings.Updated, dto.UpdatedAt.ToString(format));
+		yield return new(Strings.Updated, dto.UpdatedAt.ToString(format, CultureInfo.CurrentCulture));
 	}
 
 	/// <summary>

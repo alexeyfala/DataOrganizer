@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Architecture;
 
 [Guard]
 [TestFixture(Description = "Guards the order of the topics inside each layer project")]
-internal class TopicOrderTests
+internal sealed class TopicOrderTests
 {
 	#region Data
 	/// <summary>

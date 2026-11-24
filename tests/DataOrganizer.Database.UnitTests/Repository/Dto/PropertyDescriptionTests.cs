@@ -4,7 +4,7 @@ using DataOrganizer.Database.Repository.Dto;
 namespace DataOrganizer.Database.UnitTests.Repository.Dto;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PropertyDescription)}"" type")]
-internal class PropertyDescriptionTests
+internal sealed class PropertyDescriptionTests
 {
 	#region Methods
 	/// <summary>

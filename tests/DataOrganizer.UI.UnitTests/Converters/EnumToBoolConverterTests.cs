@@ -6,7 +6,7 @@ using System.Globalization;
 namespace DataOrganizer.UI.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EnumToBoolConverter)}"" type")]
-internal class EnumToBoolConverterTests
+internal sealed class EnumToBoolConverterTests
 {
 	#region Methods
 	/// <summary>

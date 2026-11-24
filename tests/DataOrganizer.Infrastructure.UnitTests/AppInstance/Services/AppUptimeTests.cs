@@ -8,7 +8,7 @@ using System;
 namespace DataOrganizer.Infrastructure.UnitTests.AppInstance.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppUptime)}"" type")]
-internal class AppUptimeTests
+internal sealed class AppUptimeTests
 {
 	#region Methods
 	/// <summary>

@@ -17,7 +17,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SettingsViewModel)}"" type")]
-internal class SettingsViewModelTests
+internal sealed class SettingsViewModelTests
 {
 	#region Methods
 	/// <summary>

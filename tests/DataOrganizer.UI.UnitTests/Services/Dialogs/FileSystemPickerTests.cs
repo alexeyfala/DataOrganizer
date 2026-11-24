@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Services.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileSystemPicker)}"" type")]
-internal class FileSystemPickerTests
+internal sealed class FileSystemPickerTests
 {
 	#region Methods
 	/// <summary>

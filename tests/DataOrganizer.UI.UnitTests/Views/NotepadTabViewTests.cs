@@ -11,7 +11,7 @@ using System.Text;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NotepadTabView)}"" type")]
-internal class NotepadTabViewTests
+internal sealed class NotepadTabViewTests
 {
 	#region Data
 	/// <summary>

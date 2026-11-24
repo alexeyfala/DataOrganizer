@@ -11,7 +11,7 @@ namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
 [Guard]
 [TestFixture(Description = "Guards the containers of the tests against setups that the test style rules out")]
-internal partial class ContainerSetupStyleTests
+internal sealed partial class ContainerSetupStyleTests
 {
 	#region Data
 	/// <summary>

@@ -9,7 +9,7 @@ using System.Globalization;
 namespace DataOrganizer.UI.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SecurityConverters)}"" type")]
-internal class SecurityConvertersTests
+internal sealed class SecurityConvertersTests
 {
 	#region Methods
 	/// <summary>

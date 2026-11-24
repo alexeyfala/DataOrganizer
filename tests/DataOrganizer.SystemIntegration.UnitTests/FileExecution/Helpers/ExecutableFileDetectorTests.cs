@@ -3,7 +3,7 @@ using DataOrganizer.SystemIntegration.FileExecution.Helpers;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutableFileDetector)}"" type")]
-internal class ExecutableFileDetectorTests
+internal sealed class ExecutableFileDetectorTests
 {
 	#region Methods
 	/// <summary>

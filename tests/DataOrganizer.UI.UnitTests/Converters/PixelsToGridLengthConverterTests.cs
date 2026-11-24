@@ -7,7 +7,7 @@ using System.Globalization;
 namespace DataOrganizer.UI.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PixelsToGridLengthConverter)}"" type")]
-internal class PixelsToGridLengthConverterTests
+internal sealed class PixelsToGridLengthConverterTests
 {
 	#region Methods
 	/// <summary>

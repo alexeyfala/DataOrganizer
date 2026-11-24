@@ -9,7 +9,7 @@ using System.Net.Http.Headers;
 namespace DataOrganizer.Infrastructure.UnitTests.AppUpdates.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppUpdatesServiceCollectionExtensions)}"" type")]
-internal class AppUpdatesServiceCollectionExtensionsTests
+internal sealed class AppUpdatesServiceCollectionExtensionsTests
 {
 	#region Methods
 	/// <summary>

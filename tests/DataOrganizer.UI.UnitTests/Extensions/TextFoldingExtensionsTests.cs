@@ -6,7 +6,7 @@ using DataOrganizer.UI.Extensions;
 namespace DataOrganizer.UI.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TextFoldingExtensions)}"" type")]
-internal class TextFoldingExtensionsTests
+internal sealed class TextFoldingExtensionsTests
 {
 	#region Methods
 	/// <summary>

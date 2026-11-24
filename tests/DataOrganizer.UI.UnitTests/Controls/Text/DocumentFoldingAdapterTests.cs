@@ -11,7 +11,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentFoldingAdapter)}"" type")]
-internal class DocumentFoldingAdapterTests
+internal sealed class DocumentFoldingAdapterTests
 {
 	#region Methods
 	/// <summary>

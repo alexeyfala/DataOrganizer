@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TaskExceptionHandler)}"" type")]
-internal class TaskExceptionHandlerTests
+internal sealed class TaskExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>

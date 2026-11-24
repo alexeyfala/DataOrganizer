@@ -4,7 +4,7 @@ using DataOrganizer.Shared.Extensions;
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(StringExtensions)}"" type")]
-internal class StringExtensionsTests
+internal sealed class StringExtensionsTests
 {
 	#region Data
 	/// <summary>

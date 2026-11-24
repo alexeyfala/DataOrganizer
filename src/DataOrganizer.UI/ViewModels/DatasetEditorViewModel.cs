@@ -590,7 +590,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		string? value,
 		CancellationToken token = default)
 	{
-		if (string.Equals(key, target.Key) && string.Equals(value, target.Value))
+		if (string.Equals(key, target.Key, StringComparison.Ordinal) && string.Equals(value, target.Value, StringComparison.Ordinal))
 		{
 			_logger.LogInformation("Ignoring edit of key and value record because key and value are the same");
 
@@ -625,7 +625,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		string value,
 		CancellationToken token = default)
 	{
-		if (string.Equals(value, target.Value))
+		if (string.Equals(value, target.Value, StringComparison.Ordinal))
 		{
 			_logger.LogInformation("Ignoring edit of value record because value is the same");
 
@@ -674,7 +674,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		string name,
 		CancellationToken token = default)
 	{
-		if (string.Equals(name, group.Name))
+		if (string.Equals(name, group.Name, StringComparison.Ordinal))
 		{
 			_logger.LogInformation("Ignoring renaming of group name because name is the same");
 

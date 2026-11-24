@@ -31,7 +31,7 @@ using IFile = System.IO.Abstractions.IFile;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogStore)}"" type")]
-internal class ClipboardLogStoreTests
+internal sealed class ClipboardLogStoreTests
 {
 	#region Data
 	/// <summary>

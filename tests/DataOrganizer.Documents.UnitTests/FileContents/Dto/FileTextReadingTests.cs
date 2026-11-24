@@ -5,7 +5,7 @@ using DataOrganizer.Documents.FileContents.Enums;
 namespace DataOrganizer.Documents.UnitTests.FileContents.Dto;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileTextReading)}"" type")]
-internal class FileTextReadingTests
+internal sealed class FileTextReadingTests
 {
 	#region Methods
 	/// <summary>

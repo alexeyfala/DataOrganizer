@@ -13,7 +13,7 @@ using System.Linq;
 namespace DataOrganizer.Infrastructure.UnitTests.FileSystemOperations.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MacOSExplorerManager)}"" type")]
-internal class MacOSExplorerManagerTests
+internal sealed class MacOSExplorerManagerTests
 {
 	#region Data
 	/// <summary>

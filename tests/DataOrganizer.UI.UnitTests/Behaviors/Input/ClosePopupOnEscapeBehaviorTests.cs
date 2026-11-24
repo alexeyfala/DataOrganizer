@@ -9,7 +9,7 @@ using DataOrganizer.UI.Behaviors.Input;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClosePopupOnEscapeBehavior)}"" type")]
-internal class ClosePopupOnEscapeBehaviorTests
+internal sealed class ClosePopupOnEscapeBehaviorTests
 {
 	#region Methods
 	/// <summary>

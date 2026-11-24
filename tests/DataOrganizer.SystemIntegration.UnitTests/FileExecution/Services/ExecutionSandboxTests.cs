@@ -17,7 +17,7 @@ using TimeProvider = System.TimeProvider;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutionSandbox)}"" type")]
-internal class ExecutionSandboxTests
+internal sealed class ExecutionSandboxTests
 {
 	#region Data
 	/// <summary>

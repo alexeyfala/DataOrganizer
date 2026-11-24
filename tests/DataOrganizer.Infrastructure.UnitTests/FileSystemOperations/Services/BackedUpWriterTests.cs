@@ -19,7 +19,7 @@ using Testably.Abstractions.Testing;
 namespace DataOrganizer.Infrastructure.UnitTests.FileSystemOperations.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(BackedUpWriter)}"" type")]
-internal class BackedUpWriterTests
+internal sealed class BackedUpWriterTests
 {
 	#region Methods
 	/// <summary>

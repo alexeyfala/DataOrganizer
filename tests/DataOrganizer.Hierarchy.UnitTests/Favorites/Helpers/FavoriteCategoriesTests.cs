@@ -12,7 +12,7 @@ using System.Linq;
 namespace DataOrganizer.Hierarchy.UnitTests.Favorites.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FavoriteCategories)}"" type")]
-internal class FavoriteCategoriesTests
+internal sealed class FavoriteCategoriesTests
 {
 	#region Methods
 	/// <summary>

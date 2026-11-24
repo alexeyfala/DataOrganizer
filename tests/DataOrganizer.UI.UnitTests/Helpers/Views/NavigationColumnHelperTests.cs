@@ -4,7 +4,7 @@ using DataOrganizer.UI.Helpers.Views;
 namespace DataOrganizer.UI.UnitTests.Helpers.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NavigationColumnHelper)}"" type")]
-internal class NavigationColumnHelperTests
+internal sealed class NavigationColumnHelperTests
 {
 	#region Methods
 	/// <summary>

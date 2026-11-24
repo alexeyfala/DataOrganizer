@@ -6,7 +6,7 @@ using WixToolset.Dtf.WindowsInstaller;
 namespace Setup.CustomActions.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FeatureStateMigration)}"" type")]
-internal class FeatureStateMigrationTests
+internal sealed class FeatureStateMigrationTests
 {
 	#region Data
 	/// <summary>

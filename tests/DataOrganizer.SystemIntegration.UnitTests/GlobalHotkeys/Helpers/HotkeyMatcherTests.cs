@@ -10,7 +10,7 @@ using SharpHook.Data;
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeyMatcher)}"" type")]
-internal class HotkeyMatcherTests
+internal sealed class HotkeyMatcherTests
 {
 	#region Methods
 	/// <summary>

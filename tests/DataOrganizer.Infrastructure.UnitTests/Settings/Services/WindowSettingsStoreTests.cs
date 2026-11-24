@@ -11,7 +11,7 @@ using NSubstitute;
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(WindowSettingsStore)}"" type")]
-internal class WindowSettingsStoreTests
+internal sealed class WindowSettingsStoreTests
 {
 	#region Data
 	/// <summary>

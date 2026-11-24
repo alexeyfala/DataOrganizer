@@ -20,7 +20,7 @@ using System.Text;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ChoiceSelector)}"" type")]
-internal class ChoiceSelectorTests
+internal sealed class ChoiceSelectorTests
 {
 	#region Data
 	/// <summary>

@@ -12,7 +12,7 @@ using Testably.Abstractions.Testing;
 namespace DataOrganizer.Shared.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AtomicFileWriter)}"" type")]
-internal class AtomicFileWriterTests
+internal sealed class AtomicFileWriterTests
 {
 	#region Data
 	/// <summary>

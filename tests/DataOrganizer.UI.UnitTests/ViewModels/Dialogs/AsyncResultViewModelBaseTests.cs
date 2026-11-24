@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AsyncResultViewModelBase<>)}"" type")]
-internal class AsyncResultViewModelBaseTests
+internal sealed class AsyncResultViewModelBaseTests
 {
 	#region Methods
 	/// <summary>

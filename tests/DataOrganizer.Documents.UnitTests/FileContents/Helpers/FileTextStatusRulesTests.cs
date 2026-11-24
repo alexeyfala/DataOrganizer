@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Documents.UnitTests.FileContents.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileTextStatusRules)}"" type")]
-internal class FileTextStatusRulesTests
+internal sealed class FileTextStatusRulesTests
 {
 	#region Methods
 	/// <summary>

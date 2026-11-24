@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Localization;
 
 [Guard]
 [TestFixture(Description = "Guards the localized strings against keys that nothing uses and translations that miss or add keys")]
-internal partial class LocalizedStringKeysTests
+internal sealed partial class LocalizedStringKeysTests
 {
 	#region Data
 	/// <summary>

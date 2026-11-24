@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentTextEditor)}"" type")]
-internal class DocumentTextEditorTests
+internal sealed class DocumentTextEditorTests
 {
 	#region Data
 	/// <summary>

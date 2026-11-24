@@ -49,7 +49,7 @@ using System.Windows.Input;
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetEditorViewModel)}"" type")]
-internal class DatasetEditorViewModelTests
+internal sealed class DatasetEditorViewModelTests
 {
 	#region Data
 	/// <summary>

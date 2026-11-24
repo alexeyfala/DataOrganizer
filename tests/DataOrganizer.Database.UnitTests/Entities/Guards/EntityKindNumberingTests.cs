@@ -6,7 +6,7 @@ using System.Linq;
 namespace DataOrganizer.Database.UnitTests.Entities.Guards;
 
 [TestFixture(Description = $@"Guards the numbers ""{nameof(EntityKind)}"" is stored with")]
-internal class EntityKindNumberingTests
+internal sealed class EntityKindNumberingTests
 {
 	#region Methods
 	/// <summary>

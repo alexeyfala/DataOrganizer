@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(CommentFoldingStrategy)}"" type")]
-internal partial class CommentFoldingStrategyTests
+internal sealed partial class CommentFoldingStrategyTests
 {
 	#region Data
 	/// <summary>

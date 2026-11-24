@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardTextWriter)}"" type")]
-internal class ClipboardTextWriterTests
+internal sealed class ClipboardTextWriterTests
 {
 	#region Methods
 	/// <summary>

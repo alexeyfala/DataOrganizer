@@ -13,7 +13,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards the look of the double line splitter: a filled band between two lines, with the grip of the single line splitter")]
-internal class DoubleLineGridSplitterThemeTests
+internal sealed class DoubleLineGridSplitterThemeTests
 {
 	#region Data
 	/// <summary>

@@ -10,7 +10,7 @@ using NSubstitute;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SensitiveCopyBehavior)}"" type")]
-internal class SensitiveCopyBehaviorTests
+internal sealed class SensitiveCopyBehaviorTests
 {
 	#region Methods
 	/// <summary>

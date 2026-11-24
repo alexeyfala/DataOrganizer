@@ -23,7 +23,7 @@ using System.Windows.Input;
 namespace DataOrganizer.UI.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentTabControl)}"" type")]
-internal class DocumentTabControlTests
+internal sealed class DocumentTabControlTests
 {
 	#region Methods
 	/// <summary>

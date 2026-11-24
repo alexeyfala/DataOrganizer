@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(OpenFilesCloser)}"" type")]
-internal class OpenFilesCloserTests
+internal sealed class OpenFilesCloserTests
 {
 	#region Methods
 	/// <summary>

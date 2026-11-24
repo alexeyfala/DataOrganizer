@@ -12,7 +12,7 @@ namespace DataOrganizer.GuardTests.Guards.Markup;
 
 [Guard]
 [TestFixture(Description = "Guards that the markup gives UI Automation a name for every interactive element and a state of meaning for every toggle")]
-internal partial class AutomationNameMarkupTests
+internal sealed partial class AutomationNameMarkupTests
 {
 	#region Data
 	/// <summary>

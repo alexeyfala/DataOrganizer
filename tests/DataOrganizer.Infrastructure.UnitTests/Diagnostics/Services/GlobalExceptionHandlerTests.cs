@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalExceptionHandler)}"" type")]
-internal class GlobalExceptionHandlerTests
+internal sealed class GlobalExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>

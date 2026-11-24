@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardHistoryUnlocker)}"" type")]
-internal class ClipboardHistoryUnlockerTests
+internal sealed class ClipboardHistoryUnlockerTests
 {
 	#region Methods
 	/// <summary>

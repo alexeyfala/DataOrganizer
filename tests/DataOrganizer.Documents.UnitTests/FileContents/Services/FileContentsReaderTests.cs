@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Documents.UnitTests.FileContents.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileContentsReader)}"" type")]
-internal class FileContentsReaderTests
+internal sealed class FileContentsReaderTests
 {
 	#region Data
 	/// <summary>

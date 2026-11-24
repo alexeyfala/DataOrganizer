@@ -5,7 +5,7 @@ using DataOrganizer.SystemIntegration.Clipboard.Models;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogEntryFactory)}"" type")]
-internal class ClipboardLogEntryFactoryTests
+internal sealed class ClipboardLogEntryFactoryTests
 {
 	#region Methods
 	/// <summary>

@@ -4,7 +4,7 @@ using DataOrganizer.Database.Entities.Models;
 namespace DataOrganizer.Database.UnitTests.Entities.Models;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerItemBase)}"" type")]
-internal class ExplorerItemBaseTests
+internal sealed class ExplorerItemBaseTests
 {
 	#region Methods
 	/// <summary>

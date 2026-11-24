@@ -5,7 +5,7 @@ using SharpHook.Data;
 namespace DataOrganizer.Database.UnitTests.Repository.Dto;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyStroke)}"" type")]
-internal class KeyStrokeTests
+internal sealed class KeyStrokeTests
 {
 	#region Methods
 	/// <summary>

@@ -15,7 +15,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogConverters)}"" type")]
-internal class ClipboardLogConvertersTests
+internal sealed class ClipboardLogConvertersTests
 {
 	#region Data
 	/// <summary>

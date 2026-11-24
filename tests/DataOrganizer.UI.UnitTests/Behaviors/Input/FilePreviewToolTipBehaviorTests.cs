@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FilePreviewToolTipBehavior)}"" type")]
-internal class FilePreviewToolTipBehaviorTests
+internal sealed class FilePreviewToolTipBehaviorTests
 {
 	#region Data
 	/// <summary>

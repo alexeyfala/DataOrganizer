@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Workflows.UnitTests.HierarchyScenarios.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DeletionScenario)}"" type")]
-internal class DeletionScenarioTests
+internal sealed class DeletionScenarioTests
 {
 	#region Methods
 	/// <summary>

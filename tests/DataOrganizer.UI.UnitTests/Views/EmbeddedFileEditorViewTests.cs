@@ -36,7 +36,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EmbeddedFileEditorView)}"" type")]
-internal class EmbeddedFileEditorViewTests
+internal sealed class EmbeddedFileEditorViewTests
 {
 	#region Data
 	/// <summary>

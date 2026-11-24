@@ -5,7 +5,7 @@ using System;
 namespace DataOrganizer.Infrastructure.UnitTests.AppUpdates.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TransportSecurity)}"" type")]
-internal class TransportSecurityTests
+internal sealed class TransportSecurityTests
 {
 	#region Methods
 	/// <summary>

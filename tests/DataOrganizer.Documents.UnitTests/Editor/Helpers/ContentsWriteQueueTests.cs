@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Documents.UnitTests.Editor.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentsWriteQueue)}"" type")]
-internal class ContentsWriteQueueTests
+internal sealed class ContentsWriteQueueTests
 {
 	#region Methods
 	/// <summary>

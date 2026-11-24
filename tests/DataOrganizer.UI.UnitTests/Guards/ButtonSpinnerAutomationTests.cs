@@ -9,7 +9,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that the arrows of a button spinner are named for UI Automation by tips of their own")]
-internal class ButtonSpinnerAutomationTests
+internal sealed class ButtonSpinnerAutomationTests
 {
 	#region Methods
 	/// <summary>

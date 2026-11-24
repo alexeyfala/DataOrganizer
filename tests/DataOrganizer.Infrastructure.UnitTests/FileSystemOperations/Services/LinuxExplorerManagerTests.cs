@@ -19,7 +19,7 @@ using Testably.Abstractions.Testing;
 namespace DataOrganizer.Infrastructure.UnitTests.FileSystemOperations.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LinuxExplorerManager)}"" type")]
-internal class LinuxExplorerManagerTests
+internal sealed class LinuxExplorerManagerTests
 {
 	#region Data
 	/// <summary>

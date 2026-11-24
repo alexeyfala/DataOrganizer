@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardAutoClear)}"" type")]
-internal class ClipboardAutoClearTests
+internal sealed class ClipboardAutoClearTests
 {
 	#region Data
 	/// <summary>

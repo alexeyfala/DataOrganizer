@@ -12,7 +12,7 @@ using System.Threading;
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FilteredHierarchy)}"" type")]
-internal class FilteredHierarchyTests
+internal sealed class FilteredHierarchyTests
 {
 	#region Methods
 	/// <summary>

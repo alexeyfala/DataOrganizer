@@ -5,7 +5,7 @@ using DataOrganizer.Documents.TextProcessing.Helpers;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ChoiceSearch)}"" type")]
-internal class ChoiceSearchTests
+internal sealed class ChoiceSearchTests
 {
 	#region Methods
 	/// <summary>

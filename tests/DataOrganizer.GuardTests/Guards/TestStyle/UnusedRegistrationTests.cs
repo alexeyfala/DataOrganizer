@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
 [Guard]
 [TestFixture(Description = "Guards the tests against registering services that nothing they build takes")]
-internal class UnusedRegistrationTests
+internal sealed class UnusedRegistrationTests
 {
 	#region Data
 	/// <summary>

@@ -12,7 +12,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.UI.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SecretTextBoxAutomationPeer)}"" type")]
-internal class SecretTextBoxAutomationPeerTests
+internal sealed class SecretTextBoxAutomationPeerTests
 {
 	#region Data
 	/// <summary>

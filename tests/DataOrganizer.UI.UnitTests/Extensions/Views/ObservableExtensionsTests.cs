@@ -14,7 +14,7 @@ using ObservableExtensions = DataOrganizer.UI.Extensions.Views.ObservableExtensi
 namespace DataOrganizer.UI.UnitTests.Extensions.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ObservableExtensions)}"" type")]
-internal class ObservableExtensionsTests
+internal sealed class ObservableExtensionsTests
 {
 	#region Data
 	/// <summary>

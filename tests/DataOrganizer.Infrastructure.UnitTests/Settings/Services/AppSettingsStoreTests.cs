@@ -13,7 +13,7 @@ using NSubstitute;
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppSettingsStore)}"" type")]
-internal class AppSettingsStoreTests
+internal sealed class AppSettingsStoreTests
 {
 	#region Methods
 	/// <summary>

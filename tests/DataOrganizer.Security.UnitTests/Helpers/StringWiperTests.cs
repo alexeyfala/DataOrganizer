@@ -5,7 +5,7 @@ using System.Linq;
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(StringWiper)}"" type")]
-internal class StringWiperTests
+internal sealed class StringWiperTests
 {
 	#region Methods
 	/// <summary>

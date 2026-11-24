@@ -9,7 +9,7 @@ using DataOrganizer.UI.Views;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TitleBarView)}"" type")]
-internal class TitleBarViewTests
+internal sealed class TitleBarViewTests
 {
 	#region Methods
 	/// <summary>

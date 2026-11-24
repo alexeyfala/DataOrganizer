@@ -11,7 +11,7 @@ namespace DataOrganizer.GuardTests.Guards.Markup;
 
 [Guard]
 [TestFixture(Description = "Guards the markup against namespace prefixes that nothing in the file uses")]
-internal partial class UnusedXmlnsTests
+internal sealed partial class UnusedXmlnsTests
 {
 	#region Methods
 	/// <summary>

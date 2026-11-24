@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Database.UnitTests.Repository.Interceptors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqlitePragmaInterceptor)}"" type")]
-internal class SqlitePragmaInterceptorTests
+internal sealed class SqlitePragmaInterceptorTests
 {
 	#region Data
 	/// <summary>

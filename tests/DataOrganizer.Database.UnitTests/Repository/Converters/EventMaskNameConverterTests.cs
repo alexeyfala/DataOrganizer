@@ -7,7 +7,7 @@ using System.Linq;
 namespace DataOrganizer.Database.UnitTests.Repository.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EventMaskNameConverter)}"" type")]
-internal class EventMaskNameConverterTests
+internal sealed class EventMaskNameConverterTests
 {
 	#region Methods
 	/// <summary>

@@ -16,7 +16,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Security.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AutoLockService)}"" type")]
-internal class AutoLockServiceTests
+internal sealed class AutoLockServiceTests
 {
 	#region Methods
 	/// <summary>

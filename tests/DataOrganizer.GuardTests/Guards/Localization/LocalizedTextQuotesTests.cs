@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Localization;
 
 [Guard]
 [TestFixture(Description = "Guards the localized texts against quotes that the quote builder does not put")]
-internal partial class LocalizedTextQuotesTests
+internal sealed partial class LocalizedTextQuotesTests
 {
 	#region Methods
 	/// <summary>

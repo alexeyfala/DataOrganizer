@@ -12,7 +12,7 @@ using System.Linq;
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeyExtensions)}"" type")]
-internal class HotkeyExtensionsTests
+internal sealed class HotkeyExtensionsTests
 {
 	#region Methods
 	/// <summary>

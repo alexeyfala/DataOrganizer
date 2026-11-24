@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Workflows.UnitTests.HierarchyExchange.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ImportScenario)}"" type")]
-internal class ImportScenarioTests
+internal sealed class ImportScenarioTests
 {
 	#region Methods
 	/// <summary>

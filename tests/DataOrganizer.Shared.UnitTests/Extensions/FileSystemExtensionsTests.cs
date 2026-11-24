@@ -8,7 +8,7 @@ using Testably.Abstractions.Testing;
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileSystemExtensions)}"" type")]
-internal class FileSystemExtensionsTests
+internal sealed class FileSystemExtensionsTests
 {
 	#region Data
 	/// <summary>

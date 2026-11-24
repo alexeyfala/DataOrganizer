@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Infrastructure.UnitTests.AppUpdates.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UpdatePromptRelay)}"" type")]
-internal class UpdatePromptRelayTests
+internal sealed class UpdatePromptRelayTests
 {
 	#region Methods
 	/// <summary>

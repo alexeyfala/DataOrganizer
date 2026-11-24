@@ -83,6 +83,7 @@ using Serilog.Sinks.FileEx;
 using SharpHook;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Abstractions;
 using Testably.Abstractions;
@@ -562,6 +563,7 @@ public sealed class App : Application
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{LogDefaults.TimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
+					formatProvider: CultureInfo.InvariantCulture,
 					rollingInterval: RollingInterval.Day,
 					retainedFileCountLimit: 10,
 					encoding: TextDefaults.Encoding,

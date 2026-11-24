@@ -16,7 +16,7 @@ using NSubstitute;
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DesktopAccessor)}"" type")]
-internal class DesktopAccessorTests
+internal sealed class DesktopAccessorTests
 {
 	#region Methods
 	/// <summary>

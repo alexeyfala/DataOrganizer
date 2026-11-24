@@ -11,7 +11,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DialogButtons)}"" type")]
-internal class DialogButtonsTests
+internal sealed class DialogButtonsTests
 {
 	#region Methods
 	/// <summary>

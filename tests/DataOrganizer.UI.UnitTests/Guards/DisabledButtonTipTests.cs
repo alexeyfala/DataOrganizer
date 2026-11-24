@@ -10,7 +10,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that a disabled button of the app shows its tip, as an enabled one does")]
-internal class DisabledButtonTipTests
+internal sealed class DisabledButtonTipTests
 {
 	#region Methods
 	/// <summary>

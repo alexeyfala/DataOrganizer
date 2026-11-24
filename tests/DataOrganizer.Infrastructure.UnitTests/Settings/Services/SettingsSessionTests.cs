@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SettingsSession)}"" type")]
-internal class SettingsSessionTests
+internal sealed class SettingsSessionTests
 {
 	#region Methods
 	/// <summary>

@@ -1,4 +1,5 @@
 using SharpHook.Data;
+using System;
 using System.Diagnostics;
 
 namespace DataOrganizer.Database.Repository.Dto;
@@ -25,7 +26,7 @@ public readonly record struct KeyStroke
 	{
 		string name = Code.ToString();
 
-		return name.StartsWith("Vc") ? name[2..] : name;
+		return name.StartsWith("Vc", StringComparison.Ordinal) ? name[2..] : name;
 	}
 	#endregion
 }

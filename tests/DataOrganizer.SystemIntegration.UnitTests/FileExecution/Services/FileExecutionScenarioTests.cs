@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileExecutionScenario)}"" type")]
-internal class FileExecutionScenarioTests
+internal sealed class FileExecutionScenarioTests
 {
 	#region Methods
 	/// <summary>

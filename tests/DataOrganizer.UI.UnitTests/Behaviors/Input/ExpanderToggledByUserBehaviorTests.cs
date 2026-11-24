@@ -14,7 +14,7 @@ using System.Windows.Input;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExpanderToggledByUserBehavior)}"" type")]
-internal class ExpanderToggledByUserBehaviorTests
+internal sealed class ExpanderToggledByUserBehaviorTests
 {
 	#region Methods
 	/// <summary>

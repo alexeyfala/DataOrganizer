@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SelectedFavoritesView)}"" type")]
-internal class SelectedFavoritesViewTests
+internal sealed class SelectedFavoritesViewTests
 {
 	#region Methods
 	/// <summary>

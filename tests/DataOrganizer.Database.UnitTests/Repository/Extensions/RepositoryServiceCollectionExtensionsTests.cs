@@ -17,7 +17,7 @@ using System.IO.Abstractions;
 namespace DataOrganizer.Database.UnitTests.Repository.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(RepositoryServiceCollectionExtensions)}"" type")]
-internal class RepositoryServiceCollectionExtensionsTests
+internal sealed class RepositoryServiceCollectionExtensionsTests
 {
 	#region Methods
 	/// <summary>

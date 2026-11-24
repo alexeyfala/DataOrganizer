@@ -9,7 +9,7 @@ namespace DataOrganizer.GuardTests.Guards.Tooling;
 
 [Guard]
 [TestFixture(Description = "Guards that every call the Stryker settings leave out is still made in the code")]
-internal class StrykerIgnoreMethodsConsistencyTests
+internal sealed class StrykerIgnoreMethodsConsistencyTests
 {
 	#region Data
 	/// <summary>

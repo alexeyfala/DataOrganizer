@@ -5,7 +5,7 @@ using DataOrganizer.TestSupport.Common;
 namespace DataOrganizer.Documents.UnitTests.Notes.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteHeaderBuilder)}"" type")]
-internal class NoteHeaderBuilderTests
+internal sealed class NoteHeaderBuilderTests
 {
 	#region Methods
 	/// <summary>

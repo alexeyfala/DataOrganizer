@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ConsoleLog)}"" type")]
-internal class ConsoleLogTests
+internal sealed class ConsoleLogTests
 {
 	#region Methods
 	/// <summary>

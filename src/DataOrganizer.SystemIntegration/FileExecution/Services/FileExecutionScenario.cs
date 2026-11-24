@@ -8,6 +8,7 @@ using DataOrganizer.SystemIntegration.FileExecution.Helpers;
 using DataOrganizer.SystemIntegration.FileExecution.Interfaces;
 using Serilog;
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.FileExecution.Services;
@@ -68,7 +69,7 @@ public sealed class FileExecutionScenario : IFileExecutionScenario
 		{
 			// Stryker disable once String : wording of a question
 			string text =
-				$"{string.Format(Strings.TheFileMayRunProgramOrScriptOnYourDevice, file.Name, Environment.NewLine)}" +
+				$"{string.Format(CultureInfo.CurrentCulture, Strings.TheFileMayRunProgramOrScriptOnYourDevice, file.Name, Environment.NewLine)}" +
 				Environment.NewLine +
 				Environment.NewLine +
 				$"{Strings.OpenTheExecutableFile}?";

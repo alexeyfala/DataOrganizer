@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Workflows.UnitTests.AppLifecycle.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppController)}"" type")]
-internal class AppControllerTests
+internal sealed class AppControllerTests
 {
 	#region Methods
 	/// <summary>

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Views.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(YesNoCancelBoxView)}"" type")]
-internal class YesNoCancelBoxViewTests
+internal sealed class YesNoCancelBoxViewTests
 {
 	#region Methods
 	/// <summary>

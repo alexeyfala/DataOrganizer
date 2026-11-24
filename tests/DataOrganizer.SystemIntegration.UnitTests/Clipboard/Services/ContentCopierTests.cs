@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentCopier)}"" type")]
-internal class ContentCopierTests
+internal sealed class ContentCopierTests
 {
 	#region Methods
 	/// <summary>

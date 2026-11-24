@@ -16,7 +16,7 @@ using System.Linq;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardHistory)}"" type")]
-internal class ClipboardHistoryTests
+internal sealed class ClipboardHistoryTests
 {
 	#region Data
 	/// <summary>

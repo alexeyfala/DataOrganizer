@@ -33,7 +33,7 @@ using TimeProvider = System.TimeProvider;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileChangeTracker)}"" type")]
-internal class FileChangeTrackerTests
+internal sealed class FileChangeTrackerTests
 {
 	#region Data
 	/// <summary>

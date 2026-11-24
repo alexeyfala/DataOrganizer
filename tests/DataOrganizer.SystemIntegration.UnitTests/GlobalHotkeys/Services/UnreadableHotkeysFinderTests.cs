@@ -9,7 +9,7 @@ using SharpHook.Data;
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UnreadableHotkeysFinder)}"" type")]
-internal class UnreadableHotkeysFinderTests
+internal sealed class UnreadableHotkeysFinderTests
 {
 	#region Methods
 	/// <summary>

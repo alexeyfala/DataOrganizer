@@ -16,7 +16,7 @@ using System.Reactive.Subjects;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Hierarchy;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FolderNodeViewModel)}"" type")]
-internal class FolderNodeViewModelTests
+internal sealed class FolderNodeViewModelTests
 {
 	#region Data
 	/// <summary>

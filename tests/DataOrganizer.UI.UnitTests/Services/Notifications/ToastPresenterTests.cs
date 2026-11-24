@@ -12,7 +12,7 @@ using NSubstitute;
 namespace DataOrganizer.UI.UnitTests.Services.Notifications;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ToastPresenter)}"" type")]
-internal class ToastPresenterTests
+internal sealed class ToastPresenterTests
 {
 	#region Methods
 	/// <summary>

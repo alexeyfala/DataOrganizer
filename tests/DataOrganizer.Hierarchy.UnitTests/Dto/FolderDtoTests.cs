@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.Hierarchy.UnitTests.Dto;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FolderDto)}"" type")]
-internal class FolderDtoTests
+internal sealed class FolderDtoTests
 {
 	#region Methods
 	/// <summary>

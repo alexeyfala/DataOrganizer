@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UnsupportedAppPickerService)}"" type")]
-internal class UnsupportedAppPickerServiceTests
+internal sealed class UnsupportedAppPickerServiceTests
 {
 	#region Methods
 	/// <summary>

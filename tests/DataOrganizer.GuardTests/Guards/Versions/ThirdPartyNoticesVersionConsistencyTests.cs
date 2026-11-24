@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Versions;
 
 [Guard]
 [TestFixture(Description = "Guards that the third-party notices list the packages of the application with their versions")]
-internal partial class ThirdPartyNoticesVersionConsistencyTests
+internal sealed partial class ThirdPartyNoticesVersionConsistencyTests
 {
 	#region Data
 	/// <summary>

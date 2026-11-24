@@ -11,7 +11,7 @@ using System.Linq;
 namespace DataOrganizer.Documents.UnitTests.DatasetRecords.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetRecordTree)}"" type")]
-internal class DatasetRecordTreeTests
+internal sealed class DatasetRecordTreeTests
 {
 	#region Methods
 	/// <summary>

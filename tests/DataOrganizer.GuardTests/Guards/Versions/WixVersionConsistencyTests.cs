@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Versions;
 
 [Guard]
 [TestFixture(Description = "Guards that the WiX extensions of each installer project match the version of its WiX SDK")]
-internal class WixVersionConsistencyTests
+internal sealed class WixVersionConsistencyTests
 {
 	#region Data
 	/// <summary>

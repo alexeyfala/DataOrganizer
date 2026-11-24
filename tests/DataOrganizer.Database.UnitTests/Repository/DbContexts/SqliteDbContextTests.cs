@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Database.UnitTests.Repository.DbContexts;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqliteDbContext)}"" type")]
-internal class SqliteDbContextTests
+internal sealed class SqliteDbContextTests
 {
 	#region Methods
 	/// <summary>

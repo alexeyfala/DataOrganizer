@@ -5,7 +5,7 @@ using System.Text;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Dto;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileEncoding)}"" type")]
-internal class FileEncodingTests
+internal sealed class FileEncodingTests
 {
 	#region Methods
 	/// <summary>

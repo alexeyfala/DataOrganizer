@@ -11,7 +11,7 @@ using System.Resources;
 namespace DataOrganizer.UI.UnitTests.Services.Settings;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UiCultureService)}"" type")]
-internal class UiCultureServiceTests
+internal sealed class UiCultureServiceTests
 {
 	#region Data
 	/// <inheritdoc cref="_resourceCulture" />

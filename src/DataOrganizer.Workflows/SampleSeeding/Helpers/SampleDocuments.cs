@@ -399,7 +399,7 @@ internal static partial class SampleDocuments
 				? $" (request {faker.Random.Guid()} from {faker.Internet.Ip()})"
 				: string.Empty;
 
-			builder.AppendLine($"{moment.ToString(LogDateFormat, CultureInfo.InvariantCulture)} [{level}] {faker.Hacker.Phrase()}{request}");
+			builder.AppendLine(CultureInfo.InvariantCulture, $"{moment.ToString(LogDateFormat, CultureInfo.InvariantCulture)} [{level}] {faker.Hacker.Phrase()}{request}");
 
 			if (level == ErrorLevel)
 			{
@@ -642,9 +642,9 @@ internal static partial class SampleDocuments
 	{
 		StringBuilder builder = new();
 
-		builder.AppendLine($"# {faker.Lorem.Sentence()}");
+		builder.AppendLine(CultureInfo.InvariantCulture, $"# {faker.Lorem.Sentence()}");
 
-		builder.AppendLine($"# {faker.Lorem.Sentence()}");
+		builder.AppendLine(CultureInfo.InvariantCulture, $"# {faker.Lorem.Sentence()}");
 
 		builder.AppendLine();
 
@@ -654,7 +654,7 @@ internal static partial class SampleDocuments
 
 			if (isRegion)
 			{
-				builder.AppendLine($"# region {key}");
+				builder.AppendLine(CultureInfo.InvariantCulture, $"# region {key}");
 			}
 
 			AppendYamlMember(

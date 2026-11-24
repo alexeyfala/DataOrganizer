@@ -7,7 +7,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Services.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FilePickerOptionsMapper)}"" type")]
-internal class FilePickerOptionsMapperTests
+internal sealed class FilePickerOptionsMapperTests
 {
 	#region Methods
 	/// <summary>

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SyntaxLanguageProfiles)}"" type")]
-internal class SyntaxLanguageProfilesTests
+internal sealed class SyntaxLanguageProfilesTests
 {
 	#region Methods
 	/// <summary>

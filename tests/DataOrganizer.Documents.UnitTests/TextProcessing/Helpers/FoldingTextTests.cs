@@ -6,7 +6,7 @@ using System.Linq;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FoldingText)}"" type")]
-internal class FoldingTextTests
+internal sealed class FoldingTextTests
 {
 	#region Methods
 	/// <summary>

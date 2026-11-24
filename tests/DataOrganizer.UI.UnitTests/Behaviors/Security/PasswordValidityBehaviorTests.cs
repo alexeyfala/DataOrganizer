@@ -7,7 +7,7 @@ using DataOrganizer.UI.Behaviors.Security;
 namespace DataOrganizer.UI.UnitTests.Behaviors.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PasswordValidityBehavior)}"" type")]
-internal class PasswordValidityBehaviorTests
+internal sealed class PasswordValidityBehaviorTests
 {
 	#region Data
 	/// <summary>

@@ -8,7 +8,7 @@ using DataOrganizer.UI.Templates.Selectors;
 namespace DataOrganizer.UI.UnitTests.Templates.Selectors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentKindTemplateSelector)}"" type")]
-internal class ContentKindTemplateSelectorTests
+internal sealed class ContentKindTemplateSelectorTests
 {
 	#region Methods
 	/// <summary>

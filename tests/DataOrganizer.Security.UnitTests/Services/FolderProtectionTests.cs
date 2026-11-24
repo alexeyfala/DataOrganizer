@@ -41,7 +41,7 @@ using Testably.Abstractions.Testing;
 namespace DataOrganizer.Security.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FolderProtection)}"" type")]
-internal class FolderProtectionTests
+internal sealed class FolderProtectionTests
 {
 	#region Methods
 	/// <summary>

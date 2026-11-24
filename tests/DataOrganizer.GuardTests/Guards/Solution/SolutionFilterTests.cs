@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Solution;
 
 [Guard]
 [TestFixture(Description = "Guards that the solution filter of the test run lists every test project")]
-internal class SolutionFilterTests
+internal sealed class SolutionFilterTests
 {
 	#region Data
 	/// <summary>

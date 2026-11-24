@@ -17,7 +17,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
 [TestFixture(Description = $@"Tests of ""{nameof(BookmarkMargin)}"" type")]
-internal class BookmarkMarginTests
+internal sealed class BookmarkMarginTests
 {
 	#region Data
 	/// <summary>

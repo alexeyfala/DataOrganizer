@@ -11,7 +11,7 @@ using System;
 namespace DataOrganizer.Documents.UnitTests.Editor.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TypingPauseFactory)}"" type")]
-internal class TypingPauseFactoryTests
+internal sealed class TypingPauseFactoryTests
 {
 	#region Methods
 	/// <summary>

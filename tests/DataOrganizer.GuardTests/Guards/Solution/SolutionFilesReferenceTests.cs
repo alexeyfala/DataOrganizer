@@ -10,7 +10,7 @@ namespace DataOrganizer.GuardTests.Guards.Solution;
 
 [Guard]
 [TestFixture(Description = "Guards that the solution files reference describes every non-code file it covers")]
-internal class SolutionFilesReferenceTests
+internal sealed class SolutionFilesReferenceTests
 {
 	#region Data
 	/// <summary>

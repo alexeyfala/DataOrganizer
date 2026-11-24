@@ -9,7 +9,7 @@ namespace DataOrganizer.GuardTests.Guards.Versions;
 
 [Guard]
 [TestFixture(Description = "Guards that the Russian satellite of AvaloniaEdit has the version of AvaloniaEdit.dll")]
-internal class AvaloniaEditSatelliteVersionTests
+internal sealed class AvaloniaEditSatelliteVersionTests
 {
 	#region Methods
 	/// <summary>

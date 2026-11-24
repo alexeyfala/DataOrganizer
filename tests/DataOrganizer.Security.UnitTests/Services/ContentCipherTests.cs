@@ -15,7 +15,7 @@ using System;
 namespace DataOrganizer.Security.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentCipher)}"" type")]
-internal class ContentCipherTests
+internal sealed class ContentCipherTests
 {
 	#region Methods
 	/// <summary>

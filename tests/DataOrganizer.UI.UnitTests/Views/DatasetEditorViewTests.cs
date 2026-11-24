@@ -46,7 +46,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetEditorView)}"" type")]
-internal class DatasetEditorViewTests
+internal sealed class DatasetEditorViewTests
 {
 	#region Data
 	/// <summary>

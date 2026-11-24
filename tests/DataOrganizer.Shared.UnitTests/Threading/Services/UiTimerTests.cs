@@ -13,7 +13,7 @@ using System.Threading;
 namespace DataOrganizer.Shared.UnitTests.Threading.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UiTimer)}"" type")]
-internal class UiTimerTests
+internal sealed class UiTimerTests
 {
 	#region Data
 	/// <summary>

@@ -11,7 +11,7 @@ using System.Text;
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DocumentEditorViewModel)}"" type")]
-internal class DocumentEditorViewModelTests
+internal sealed class DocumentEditorViewModelTests
 {
 	#region Methods
 	/// <summary>

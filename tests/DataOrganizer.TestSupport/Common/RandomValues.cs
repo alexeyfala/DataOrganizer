@@ -97,7 +97,7 @@ public static class RandomValues
 	/// </summary>
 	public static string CreateFileName(int length)
 	{
-		return $"{RandomString.Create(length)}_file.{RandomString.Create(3).ToLower()}";
+		return $"{RandomString.Create(length)}_file.{RandomString.Create(3).ToLowerInvariant()}";
 	}
 
 	/// <summary>

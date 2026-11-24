@@ -17,7 +17,7 @@ using System.Threading;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogViewModel)}"" type")]
-internal class ClipboardLogViewModelTests
+internal sealed class ClipboardLogViewModelTests
 {
 	#region Methods
 	/// <summary>

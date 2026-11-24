@@ -5,7 +5,7 @@ using System.Globalization;
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TextCase)}"" type")]
-internal class TextCaseTests
+internal sealed class TextCaseTests
 {
 	#region Methods
 	/// <summary>

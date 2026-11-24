@@ -7,7 +7,7 @@ using System.IO;
 namespace DataOrganizer.Infrastructure.UnitTests.AppInstance.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppDataDirectory)}"" type")]
-internal class AppDataDirectoryTests
+internal sealed class AppDataDirectoryTests
 {
 	#region Methods
 	/// <summary>

@@ -7,7 +7,7 @@ using System.IO;
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Models;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardFileSystemEntry)}"" type")]
-internal class ClipboardFileSystemEntryTests
+internal sealed class ClipboardFileSystemEntryTests
 {
 	#region Methods
 	/// <summary>

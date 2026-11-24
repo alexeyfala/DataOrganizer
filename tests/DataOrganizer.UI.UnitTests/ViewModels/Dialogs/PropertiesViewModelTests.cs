@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PropertiesViewModel)}"" type")]
-internal class PropertiesViewModelTests
+internal sealed class PropertiesViewModelTests
 {
 	#region Methods
 	/// <summary>

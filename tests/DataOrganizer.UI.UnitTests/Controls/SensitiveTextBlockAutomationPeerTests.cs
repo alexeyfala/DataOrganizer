@@ -15,7 +15,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SensitiveTextBlockAutomationPeer)}"" type")]
-internal class SensitiveTextBlockAutomationPeerTests
+internal sealed class SensitiveTextBlockAutomationPeerTests
 {
 	#region Methods
 	/// <summary>

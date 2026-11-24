@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Database.UnitTests.Repository.Interceptors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqlitePragmas)}"" type")]
-internal class SqlitePragmasTests
+internal sealed class SqlitePragmasTests
 {
 	#region Data
 	/// <summary>

@@ -9,7 +9,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that a list item or a tab of an object with a name is named by it for UI Automation")]
-internal class ItemAutomationNameTests
+internal sealed class ItemAutomationNameTests
 {
 	#region Methods
 	/// <summary>

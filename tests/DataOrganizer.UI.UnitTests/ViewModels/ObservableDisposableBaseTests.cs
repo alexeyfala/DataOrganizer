@@ -5,7 +5,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ObservableDisposableBase)}"" type")]
-internal class ObservableDisposableBaseTests
+internal sealed class ObservableDisposableBaseTests
 {
 	#region Methods
 	/// <summary>

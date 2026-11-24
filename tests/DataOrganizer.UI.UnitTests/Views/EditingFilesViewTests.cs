@@ -26,7 +26,7 @@ using System.Linq;
 namespace DataOrganizer.UI.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditingFilesView)}"" type")]
-internal class EditingFilesViewTests
+internal sealed class EditingFilesViewTests
 {
 	#region Methods
 	/// <summary>

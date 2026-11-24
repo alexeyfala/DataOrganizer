@@ -9,7 +9,7 @@ namespace DataOrganizer.GuardTests.Guards.Versions;
 
 [Guard]
 [TestFixture(Description = "Guards that the bundle installs the runtime of the framework the application targets")]
-internal class BundleRuntimeVersionConsistencyTests
+internal sealed class BundleRuntimeVersionConsistencyTests
 {
 	#region Data
 	/// <summary>

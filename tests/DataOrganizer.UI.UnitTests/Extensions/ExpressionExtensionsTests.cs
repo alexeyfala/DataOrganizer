@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 namespace DataOrganizer.UI.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExpressionExtensions)}"" type")]
-internal class ExpressionExtensionsTests
+internal sealed class ExpressionExtensionsTests
 {
 	#region Methods
 	/// <summary>

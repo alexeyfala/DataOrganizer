@@ -19,7 +19,7 @@ using System.Xml.Linq;
 namespace DataOrganizer.UI.UnitTests.Guards;
 
 [TestFixture(Description = "Guards that snackbar text is coloured by its own template instead of the host's inherited Foreground")]
-internal class SnackbarTextColorTests
+internal sealed class SnackbarTextColorTests
 {
 	#region Data
 	/// <summary>

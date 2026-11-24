@@ -13,7 +13,7 @@ namespace DataOrganizer.UI.UnitTests.Guards;
 
 [Guard]
 [TestFixture(Description = "Guards that every resource key the markup references can still be resolved")]
-internal partial class ResourceKeyConsistencyTests
+internal sealed partial class ResourceKeyConsistencyTests
 {
 	#region Data
 	/// <summary>

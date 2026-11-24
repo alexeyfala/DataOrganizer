@@ -9,7 +9,7 @@ namespace DataOrganizer.GuardTests.Guards.Architecture;
 
 [Guard]
 [TestFixture(Description = "Guards the code against reading the time past the time provider")]
-internal partial class SystemClockTests
+internal sealed partial class SystemClockTests
 {
 	#region Data
 	/// <summary>

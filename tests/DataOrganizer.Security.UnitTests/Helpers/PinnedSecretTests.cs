@@ -6,7 +6,7 @@ using System.Text;
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PinnedSecret)}"" type")]
-internal class PinnedSecretTests
+internal sealed class PinnedSecretTests
 {
 	#region Methods
 	/// <summary>

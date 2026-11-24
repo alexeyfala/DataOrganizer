@@ -5,7 +5,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.Services.Documents;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AvaloniaDocumentText)}"" type")]
-internal class AvaloniaDocumentTextTests
+internal sealed class AvaloniaDocumentTextTests
 {
 	#region Methods
 	/// <summary>

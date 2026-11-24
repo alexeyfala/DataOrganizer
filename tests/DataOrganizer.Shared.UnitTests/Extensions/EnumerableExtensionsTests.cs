@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EnumerableExtensions)}"" type")]
-internal class EnumerableExtensionsTests
+internal sealed class EnumerableExtensionsTests
 {
 	#region Methods
 	/// <summary>

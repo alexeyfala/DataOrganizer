@@ -9,7 +9,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DispatcherAccessor)}"" type")]
-internal class DispatcherAccessorTests
+internal sealed class DispatcherAccessorTests
 {
 	#region Methods
 	/// <summary>

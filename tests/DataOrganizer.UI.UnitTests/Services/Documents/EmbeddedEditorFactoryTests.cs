@@ -18,7 +18,7 @@ using System;
 namespace DataOrganizer.UI.UnitTests.Services.Documents;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EmbeddedEditorFactory)}"" type")]
-internal class EmbeddedEditorFactoryTests
+internal sealed class EmbeddedEditorFactoryTests
 {
 	#region Methods
 	/// <summary>

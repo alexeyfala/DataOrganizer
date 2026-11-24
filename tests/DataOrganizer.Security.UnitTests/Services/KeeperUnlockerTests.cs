@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Security.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeeperUnlocker)}"" type")]
-internal class KeeperUnlockerTests
+internal sealed class KeeperUnlockerTests
 {
 	#region Methods
 	/// <summary>

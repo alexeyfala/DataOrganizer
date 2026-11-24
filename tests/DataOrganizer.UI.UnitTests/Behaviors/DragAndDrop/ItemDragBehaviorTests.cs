@@ -14,7 +14,7 @@ using DataOrganizer.UI.UnitTests.TestHelpers;
 namespace DataOrganizer.UI.UnitTests.Behaviors.DragAndDrop;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ItemDragBehavior)}"" type")]
-internal class ItemDragBehaviorTests
+internal sealed class ItemDragBehaviorTests
 {
 	#region Data
 	/// <summary>

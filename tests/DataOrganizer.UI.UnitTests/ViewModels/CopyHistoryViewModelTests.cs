@@ -26,7 +26,7 @@ using System.Threading;
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(CopyHistoryViewModel)}"" type")]
-internal class CopyHistoryViewModelTests
+internal sealed class CopyHistoryViewModelTests
 {
 	#region Methods
 	/// <summary>

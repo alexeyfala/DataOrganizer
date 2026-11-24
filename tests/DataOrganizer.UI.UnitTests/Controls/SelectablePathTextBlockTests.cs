@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.UI.UnitTests.Controls;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SelectablePathTextBlock)}"" type")]
-internal class SelectablePathTextBlockTests
+internal sealed class SelectablePathTextBlockTests
 {
 	#region Data
 	/// <summary>

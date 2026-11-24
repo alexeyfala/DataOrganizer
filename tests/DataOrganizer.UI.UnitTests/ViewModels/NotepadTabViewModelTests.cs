@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NotepadTabViewModel)}"" type")]
-internal class NotepadTabViewModelTests
+internal sealed class NotepadTabViewModelTests
 {
 	#region Methods
 	/// <summary>

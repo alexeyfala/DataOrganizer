@@ -8,7 +8,7 @@ using System.Text.Json;
 namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EventMaskJsonConverter)}"" type")]
-internal class EventMaskJsonConverterTests
+internal sealed class EventMaskJsonConverterTests
 {
 	#region Data
 	/// <summary>
