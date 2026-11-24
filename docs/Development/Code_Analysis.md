@@ -6,6 +6,8 @@ The build runs the .NET, NUnit and Roslynator analyzers; a change adds no warnin
 
 - The levels live in [`.editorconfig`](../../.editorconfig), section `[*.cs]`. A rule that does not fit is switched
   off there as a whole; the code holds no suppressions.
+- The .NET analyzers run in the `Recommended` mode (`AnalysisMode` in `Directory.Build.props`), which reports more of
+  their rules as warnings.
 - Every Roslynator rule is a warning, except the hidden rules listed there as `silent`. When another hidden rule
   fires, fix the code or add the rule to that list.
 
@@ -20,24 +22,10 @@ dotnet build DataOrganizerApp.slnx --no-incremental -v q --nologo
 
 ## Report
 
-The findings of every analyzer and code style rule, hints included, grouped by rule. Run it in PowerShell (`pwsh` on
-Linux and macOS) from the root of the repository:
+The findings of every analyzer and code style rule, hints included, grouped by rule: each rule with its number of
+findings and its message once, then the places. The build gives the warnings, `dotnet format` the hints and the code
+style rules the build does not report; the code stays as it is. On Linux and macOS, run the script with `pwsh`:
 
 ```powershell
-& {
-    dotnet format analyzers DataOrganizerApp.slnx --verify-no-changes --severity info --no-restore
-    dotnet format style DataOrganizerApp.slnx --verify-no-changes --severity info --no-restore
-} 2>&1 |
-    ForEach-Object { "$_" } |
-    Sort-Object -Unique |
-    ForEach-Object {
-        if ($_ -match '^\s*(?<file>.+?)\((?<line>\d+),\d+\): (?<level>\w+) (?<id>\w+): (?<text>.+) \[[^\[]+\]$') {
-            [pscustomobject]@{ Rule = "$($Matches.id)  $($Matches.level)  $($Matches.text)"; Place = "$(Resolve-Path -Relative $Matches.file):$($Matches.line)" }
-        }
-    } |
-    Group-Object Rule |
-    Sort-Object Name |
-    ForEach-Object { ''; $_.Name; $_.Group | ForEach-Object { "    $($_.Place)" } }
+powershell -ExecutionPolicy Bypass -File build/report-analyzers.ps1
 ```
-
-`--verify-no-changes` keeps the code as it is: without it, `dotnet format` applies the fixes.

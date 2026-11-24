@@ -43,6 +43,14 @@
 	</PropertyGroup>
 
 	<!--
+		Runs the .NET analyzers in the Recommended mode, which reports more of their rules as warnings;
+		.editorconfig switches off a rule that does not fit.
+	-->
+	<PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+		<AnalysisMode>Recommended</AnalysisMode>
+	</PropertyGroup>
+
+	<!--
 		Assembly metadata shown on the file's Details tab in Windows Explorer
 		(Authors and PackageLicenseExpression apply to NuGet packages only).
 	-->

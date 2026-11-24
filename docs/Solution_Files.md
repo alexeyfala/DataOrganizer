@@ -7,6 +7,7 @@
   - 💻 [`gen-release-notes.ps1`](../build/gen-release-notes.ps1) — release notes from the template.
   - 💻 [`gen-third-party-notices.ps1`](../build/gen-third-party-notices.ps1) — generates `THIRD-PARTY-NOTICES.txt`.
   - 💻 [`post-publish.sh`](../build/post-publish.sh) — opens the published files to every user before PupNet packs them.
+  - 💻 [`report-analyzers.ps1`](../build/report-analyzers.ps1) — the findings of every analyzer, grouped by rule.
   - 💻 [`run-stryker.ps1`](../build/run-stryker.ps1) — the mutation run.
   - 💻 [`update-dotnet-runtime.ps1`](../build/update-dotnet-runtime.ps1) — pins the bundle to the latest .NET runtime patch.
 - 📁 **`docs/`**
