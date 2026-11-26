@@ -18,7 +18,7 @@
     powershell -ExecutionPolicy Bypass -File build/report-analyzers.ps1
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File build/report-analyzers.ps1 | Set-Content report.txt
+    powershell -ExecutionPolicy Bypass -File build/report-analyzers.ps1 | Set-Content -Encoding utf8 report.txt
 #>
 [CmdletBinding()]
 param()
@@ -36,17 +36,31 @@ $findingLine = '^\s*(?<file>.+?)\((?<line>\d+),(?<column>\d+)\): (?<level>info|w
 
 Push-Location $repoRoot
 
+$consoleEncoding = [Console]::OutputEncoding
+$forceUtf8 = $env:DOTNET_CLI_FORCE_UTF8_ENCODING
+
 try {
-    $output = & {
-        # dotnet format writes its findings to the error stream, which must not stop the script.
-        $ErrorActionPreference = 'Continue'
+    try {
+        # The commands write UTF-8, with a console or without one, and PowerShell reads their output in it.
+        [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+        $env:DOTNET_CLI_FORCE_UTF8_ENCODING = 'true'
 
-        dotnet build $solution --no-incremental -v q --nologo
+        $output = & {
+            # dotnet format writes its findings to the error stream, which must not stop the script.
+            $ErrorActionPreference = 'Continue'
 
-        # Without --verify-no-changes, dotnet format would apply the fixes of the rules.
-        dotnet format analyzers $solution --verify-no-changes --severity info --no-restore
-        dotnet format style $solution --verify-no-changes --severity info --no-restore
-    } 2>&1 | ForEach-Object { "$_" }
+            dotnet build $solution --no-incremental -v q --nologo
+
+            # Without --verify-no-changes, dotnet format would apply the fixes of the rules.
+            dotnet format analyzers $solution --verify-no-changes --severity info --no-restore
+            dotnet format style $solution --verify-no-changes --severity info --no-restore
+        } 2>&1 | ForEach-Object { "$_" }
+    }
+    finally {
+        # The report goes out in the encoding of the console, the one a calling PowerShell reads it in.
+        [Console]::OutputEncoding = $consoleEncoding
+        $env:DOTNET_CLI_FORCE_UTF8_ENCODING = $forceUtf8
+    }
 
     $findings = $output |
         ForEach-Object {
