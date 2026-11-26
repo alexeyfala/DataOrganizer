@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Infrastructure.AppInstance.Extensions;
 using DataOrganizer.Infrastructure.AppInstance.Services;
 using Serilog.Events;
 using System;
@@ -22,10 +21,12 @@ internal sealed class CommandLineOptionsTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		string[] args = Array.Empty<string>()
-			.AddConsoleArg()
-			.AddDebugArg()
-			.AddHelpArg();
+		string[] args =
+		[
+			CommandLineOptions.ConsoleArg,
+			CommandLineOptions.DebugArg,
+			CommandLineOptions.HelpArg
+		];
 
 		// Act
 		CommandLineOptions sut = mock.Create<CommandLineOptions>(TypedParameter.From(args));

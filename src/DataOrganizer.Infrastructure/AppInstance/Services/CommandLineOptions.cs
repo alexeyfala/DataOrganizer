@@ -26,13 +26,13 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 	#region Data
 	/// <inheritdoc cref="ShowConsole" />
-	internal const string ConsoleArg = "--console";
+	public const string ConsoleArg = "--console";
 
 	/// <inheritdoc cref="MinimumLogEventLevel" />
-	internal const string DebugArg = "--debug";
+	public const string DebugArg = "--debug";
 
 	/// <inheritdoc cref="PrintHelp" />
-	internal const string HelpArg = "--help";
+	public const string HelpArg = "--help";
 	#endregion
 
 	#region Constructors

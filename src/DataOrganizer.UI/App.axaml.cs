@@ -20,7 +20,6 @@ using DataOrganizer.Hierarchy.MultipleSelection.Services;
 using DataOrganizer.Hierarchy.Services;
 using DataOrganizer.Hierarchy.Storage.Interfaces;
 using DataOrganizer.Hierarchy.Storage.Services;
-using DataOrganizer.Infrastructure.AppInstance.Extensions;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Services;
 using DataOrganizer.Infrastructure.AppUpdates.Extensions;
@@ -357,10 +356,13 @@ public sealed class App : Application
 	{
 		if (AppInfo.IsDebug)
 		{
-			return args
-				//.AddHelpArg()
-				.AddConsoleArg()
-				.AddDebugArg();
+			return
+			[
+				.. args,
+				//CommandLineOptions.HelpArg,
+				CommandLineOptions.ConsoleArg,
+				CommandLineOptions.DebugArg
+			];
 		}
 
 		return args;

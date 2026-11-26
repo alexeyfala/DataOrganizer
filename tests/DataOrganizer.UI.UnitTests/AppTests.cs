@@ -8,8 +8,8 @@ using DataOrganizer.Documents.Notes.Interfaces;
 using DataOrganizer.Documents.TextProcessing.Interfaces;
 using DataOrganizer.Hierarchy.Dto;
 using DataOrganizer.Hierarchy.Interfaces;
-using DataOrganizer.Infrastructure.AppInstance.Extensions;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
+using DataOrganizer.Infrastructure.AppInstance.Services;
 using DataOrganizer.Infrastructure.Notifications.Constants;
 using DataOrganizer.Infrastructure.Notifications.Dto;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
@@ -85,7 +85,9 @@ internal sealed partial class AppTests
 		// Arrange
 		ServiceCollection services = [];
 
-		((App)Application.Current!).RegisterServices(services, Array.Empty<string>().AddConsoleArg());
+		string[] args = [CommandLineOptions.ConsoleArg];
+
+		((App)Application.Current!).RegisterServices(services, args);
 
 		// The environment of the test keeps the folders of the application untouched.
 		services.AddSingleton(Substitute.For<IAppEnvironment>());
