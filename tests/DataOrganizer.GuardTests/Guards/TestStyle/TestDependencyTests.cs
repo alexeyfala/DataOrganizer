@@ -30,7 +30,8 @@ internal sealed partial class TestDependencyTests
 	};
 
 	/// <summary>
-	/// The forms of reading a localized text, each under the name a failure shows. The culture of the texts stays allowed.
+	/// The forms of reading a localized text, each under the name a failure shows. The culture of the texts and the name
+	/// of a key inside <c>nameof</c> stay allowed.
 	/// </summary>
 	private static readonly Dictionary<string, Regex> LocalizedTextForms = new()
 	{
@@ -147,9 +148,9 @@ internal sealed partial class TestDependencyTests
 	}
 
 	/// <summary>
-	/// Matches a key of the localized texts, their culture left out.
+	/// Matches a key of the localized texts, their culture and the name of a key inside <c>nameof</c> left out.
 	/// </summary>
-	[GeneratedRegex(@"\bStrings\s*\.\s*(?!Culture\b)[A-Z]\w*")]
+	[GeneratedRegex(@"(?<!\bnameof\s*\(\s*(?:\w+\s*\.\s*)*)\bStrings\s*\.\s*(?!Culture\b)[A-Z]\w*")]
 	private static partial Regex LocalizedStringRegex();
 
 	/// <summary>
