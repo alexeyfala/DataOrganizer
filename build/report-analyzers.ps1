@@ -26,7 +26,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $solution = Join-Path $repoRoot 'DataOrganizerApp.slnx'
-$hiddenName = "'$([char]0x2026)'"
+$hiddenName = "'...'"
 
 # A name in quotes; the apostrophe inside a word, as in "user's", opens none.
 $quotedName = "(?<=^|[\s(])'[^']+'(?=[\s.,;:)]|$)"
