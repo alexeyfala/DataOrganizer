@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace DataOrganizer.GuardTests.TestHelpers;
 
@@ -42,7 +43,7 @@ internal static class KnownTypes
 	}
 
 	/// <summary>
-	/// Enumerates the services the constructors of a type of a name take.
+	/// Enumerates the services the instance constructors of a type of a name take, public or not.
 	/// </summary>
 	public static IEnumerable<string> GetTakenServices(string name)
 	{
@@ -50,7 +51,7 @@ internal static class KnownTypes
 
 		IEnumerable<string> parameters = types.Length > 0
 			? types
-				.SelectMany(static x => x.GetConstructors())
+				.SelectMany(static x => x.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
 				.SelectMany(static x => x.GetParameters())
 				.Select(static x => TypeCatalog.Format(x.ParameterType))
 			: TestTypeIndex.GetConstructorParameters(name);
