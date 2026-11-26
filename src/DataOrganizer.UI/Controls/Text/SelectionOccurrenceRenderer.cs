@@ -14,6 +14,11 @@ namespace DataOrganizer.UI.Controls.Text;
 /// </summary>
 internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 {
+	#region Properties
+	/// <inheritdoc />
+	public KnownLayer Layer => KnownLayer.Background;
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Text area whose visible lines are painted.
@@ -42,9 +47,16 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 	}
 	#endregion
 
-	#region Properties
-	/// <inheritdoc />
-	public KnownLayer Layer => KnownLayer.Background;
+	#region Event Handlers
+	/// <summary>
+	/// Handler of the source and of each change of its selection, which repaints the occurrences.
+	/// </summary>
+	private void Source_SelectionChanged(TextArea value)
+	{
+		_source = value;
+
+		_textArea.TextView.InvalidateLayer(Layer);
+	}
 	#endregion
 
 	#region Methods
@@ -96,18 +108,6 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 		return SelectionOccurrenceFinder
 			.Find(document, _source.Selection, start, end)
 			.Where(x => x.Offset != selectedOffset);
-	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// Handler of the source and of each change of its selection, which repaints the occurrences.
-	/// </summary>
-	private void Source_SelectionChanged(TextArea value)
-	{
-		_source = value;
-
-		_textArea.TextView.InvalidateLayer(Layer);
 	}
 	#endregion
 }

@@ -12,6 +12,14 @@ namespace DataOrganizer.Database.Entities.Serialization;
 /// </summary>
 public static class HotkeyXmlSanitizer
 {
+	#region Data
+	/// <summary>
+	/// Characters that separate the flags of a mask, both as the serializer writes them
+	/// and as the enum itself does.
+	/// </summary>
+	private static readonly char[] Separators = [' ', ','];
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// Rewrites every hotkey name in <paramref name="document"/> that cannot be read.
@@ -47,13 +55,5 @@ public static class HotkeyXmlSanitizer
 		return names.Length != 0 && names.All(x => x == nameof(EventMask.None)
 			|| EnumNameReader.Read(x, EventMask.None) != EventMask.None);
 	}
-	#endregion
-
-	#region Data
-	/// <summary>
-	/// Characters that separate the flags of a mask, both as the serializer writes them
-	/// and as the enum itself does.
-	/// </summary>
-	private static readonly char[] Separators = [' ', ','];
 	#endregion
 }

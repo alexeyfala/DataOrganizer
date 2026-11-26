@@ -96,19 +96,19 @@ public sealed partial class DocumentEditorViewModel : ObservableObject, IEditorS
 	public partial bool WordWrap { get; set; }
 	#endregion
 
-	#region Constructors
-	/// <summary>
-	/// Initializes a new instance of the <see cref="DocumentEditorViewModel" /> class.
-	/// </summary>
-	public DocumentEditorViewModel(IDocumentText document) => Document = document;
-	#endregion
-
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Finds <see cref="UnreadableEncodings" /> for the text as it is now.
 	/// </summary>
 	[RelayCommand]
 	internal void FindUnreadableEncodings() => UnreadableEncodings = Codec.FindUnreadableEncodings(Document.Text);
+	#endregion
+
+	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DocumentEditorViewModel" /> class.
+	/// </summary>
+	public DocumentEditorViewModel(IDocumentText document) => Document = document;
 	#endregion
 
 	#region Methods

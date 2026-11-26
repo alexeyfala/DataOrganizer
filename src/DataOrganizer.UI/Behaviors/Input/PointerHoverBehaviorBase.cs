@@ -13,13 +13,6 @@ namespace DataOrganizer.UI.Behaviors.Input;
 /// </summary>
 internal abstract class PointerHoverBehaviorBase : Behavior<InputElement>
 {
-	#region Data
-	/// <summary>
-	/// Cancels the pending action.
-	/// </summary>
-	private IDisposable? _delay;
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Time in milliseconds the pointer has to rest over <see cref="Behavior{T}.AssociatedObject" />
@@ -44,6 +37,13 @@ internal abstract class PointerHoverBehaviorBase : Behavior<InputElement>
 		.Register<PointerHoverBehaviorBase, int>(
 			nameof(Delay),
 			UiConstants.TipDelay);
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Cancels the pending action.
+	/// </summary>
+	private IDisposable? _delay;
 	#endregion
 
 	#region Event Handlers

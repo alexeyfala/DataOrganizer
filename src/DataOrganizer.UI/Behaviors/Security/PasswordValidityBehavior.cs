@@ -184,6 +184,30 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	private readonly CompositeDisposable _disposables = [];
 	#endregion
 
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="ConfirmationInputProperty" /> changed handler.
+	/// </summary>
+	private void ConfirmationInput_Changed(TextBox? input)
+	{
+		_confirmationSubscription.Disposable = input?
+			.GetObservable(TextBox.TextProperty)
+			.Subscribe(TextProperty_Changed);
+
+		Validate();
+	}
+
+	/// <summary>
+	/// <see cref="IsConfirmationRequiredProperty" /> changed handler.
+	/// </summary>
+	private void IsConfirmationRequired_Changed(bool _) => Validate();
+
+	/// <summary>
+	/// <see cref="TextBox.TextProperty" /> changed handler.
+	/// </summary>
+	private void TextProperty_Changed(string? _) => Validate();
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	protected override void OnAttached()
@@ -218,30 +242,6 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 
 		_disposables.Dispose();
 	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="ConfirmationInputProperty" /> changed handler.
-	/// </summary>
-	private void ConfirmationInput_Changed(TextBox? input)
-	{
-		_confirmationSubscription.Disposable = input?
-			.GetObservable(TextBox.TextProperty)
-			.Subscribe(TextProperty_Changed);
-
-		Validate();
-	}
-
-	/// <summary>
-	/// <see cref="IsConfirmationRequiredProperty" /> changed handler.
-	/// </summary>
-	private void IsConfirmationRequired_Changed(bool _) => Validate();
-
-	/// <summary>
-	/// <see cref="TextBox.TextProperty" /> changed handler.
-	/// </summary>
-	private void TextProperty_Changed(string? _) => Validate();
 	#endregion
 
 	#region Helpers

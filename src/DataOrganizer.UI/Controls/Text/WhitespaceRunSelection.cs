@@ -13,20 +13,6 @@ namespace DataOrganizer.UI.Controls.Text;
 /// </summary>
 internal static class WhitespaceRunSelection
 {
-	#region Methods
-	/// <summary>
-	/// Starts to take the double clicks on spaces and tabs of a text area from the engine.
-	/// </summary>
-	public static void Attach(TextArea textArea)
-	{
-		// The engine would select its word again when the button is released, so the press never reaches it.
-		textArea.AddHandler(
-			InputElement.PointerPressedEvent,
-			TextArea_PointerPressed,
-			RoutingStrategies.Tunnel);
-	}
-	#endregion
-
 	#region Event Handlers
 	/// <summary>
 	/// <see cref="InputElement.PointerPressedEvent" /> handler of the text area, before the engine sees the press.
@@ -46,6 +32,20 @@ internal static class WhitespaceRunSelection
 		textArea.Selection = Selection.Create(textArea, run.Start, run.End);
 
 		e.Handled = true;
+	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Starts to take the double clicks on spaces and tabs of a text area from the engine.
+	/// </summary>
+	public static void Attach(TextArea textArea)
+	{
+		// The engine would select its word again when the button is released, so the press never reaches it.
+		textArea.AddHandler(
+			InputElement.PointerPressedEvent,
+			TextArea_PointerPressed,
+			RoutingStrategies.Tunnel);
 	}
 	#endregion
 

@@ -7,13 +7,6 @@ namespace DataOrganizer.SystemIntegration.Clipboard.Dto;
 /// </summary>
 public sealed class PersistedClipboardLog
 {
-	#region Data
-	/// <summary>
-	/// Current payload schema version. Bump when the persisted layout changes.
-	/// </summary>
-	public const int CurrentVersion = 1;
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Log entries, newest first.
@@ -24,5 +17,12 @@ public sealed class PersistedClipboardLog
 	/// Payload schema version (see <see cref="CurrentVersion" />).
 	/// </summary>
 	public int Version { get; set; } = CurrentVersion;
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Current payload schema version. Bump when the persisted layout changes.
+	/// </summary>
+	public const int CurrentVersion = 1;
 	#endregion
 }

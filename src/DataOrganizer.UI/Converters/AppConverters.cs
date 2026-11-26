@@ -14,13 +14,6 @@ namespace DataOrganizer.UI.Converters;
 /// </summary>
 internal static class AppConverters
 {
-	#region Data
-	/// <summary>
-	/// Material vertical scrollbar thickness; the right gutter reserved while content overflows.
-	/// </summary>
-	private const double ScrollBarThickness = 10.0;
-	#endregion
-
 	#region Properties
 	/// <inheritdoc cref="EnumToBoolConverter" />
 	public static EnumToBoolConverter EnumToBool { get; } = new();
@@ -62,6 +55,13 @@ internal static class AppConverters
 
 	/// <inheritdoc cref="WindowStateToBoolConverter" />
 	public static WindowStateToBoolConverter WindowStateToBool { get; } = new();
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Material vertical scrollbar thickness; the right gutter reserved while content overflows.
+	/// </summary>
+	private const double ScrollBarThickness = 10.0;
 	#endregion
 
 	#region Helpers

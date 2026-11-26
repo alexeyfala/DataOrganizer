@@ -36,18 +36,6 @@ internal static class ClearOnEscapeAssist
 	}
 	#endregion
 
-	#region Methods
-	/// <summary>
-	/// Returns whether Escape clears <paramref name="textBox" />.
-	/// </summary>
-	public static bool GetIsEnabled(TextBox textBox) => textBox.GetValue(IsEnabledProperty);
-
-	/// <summary>
-	/// Sets whether Escape clears <paramref name="textBox" />.
-	/// </summary>
-	public static void SetIsEnabled(TextBox textBox, bool value) => textBox.SetValue(IsEnabledProperty, value);
-	#endregion
-
 	#region Event Handlers
 	/// <summary>
 	/// <see cref="IsEnabledProperty" /> changed handler: adds or removes the key binding.
@@ -68,5 +56,17 @@ internal static class ClearOnEscapeAssist
 			Gesture = EscapeGesture
 		});
 	}
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Returns whether Escape clears <paramref name="textBox" />.
+	/// </summary>
+	public static bool GetIsEnabled(TextBox textBox) => textBox.GetValue(IsEnabledProperty);
+
+	/// <summary>
+	/// Sets whether Escape clears <paramref name="textBox" />.
+	/// </summary>
+	public static void SetIsEnabled(TextBox textBox, bool value) => textBox.SetValue(IsEnabledProperty, value);
 	#endregion
 }

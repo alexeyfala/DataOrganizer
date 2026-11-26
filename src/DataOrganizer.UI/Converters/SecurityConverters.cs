@@ -18,13 +18,6 @@ namespace DataOrganizer.UI.Converters;
 /// </summary>
 internal static class SecurityConverters
 {
-	#region Data
-	/// <summary>
-	/// Time left at which the auto-lock countdown starts warning.
-	/// </summary>
-	private static readonly TimeSpan AutoLockWarningThreshold = TimeSpan.FromSeconds(20.0);
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Caption of an auto-lock delay in minutes, where <c>0</c> stands for no auto-lock.
@@ -110,6 +103,13 @@ internal static class SecurityConverters
 	/// </summary>
 	public static FuncValueConverter<PasswordStrength, double> PasswordStrengthToValue { get; } =
 		new(strength => (double)strength);
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Time left at which the auto-lock countdown starts warning.
+	/// </summary>
+	private static readonly TimeSpan AutoLockWarningThreshold = TimeSpan.FromSeconds(20.0);
 	#endregion
 
 	#region Helpers

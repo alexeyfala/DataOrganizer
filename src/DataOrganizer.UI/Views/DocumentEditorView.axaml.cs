@@ -239,13 +239,6 @@ internal sealed partial class DocumentEditorView :
 		static (action, delay) => DispatcherTimer.RunOnce(action, delay);
 	#endregion
 
-	#region Commands
-	/// <summary>
-	/// Brings every line break of the document to the style of a choice of <see cref="LineEndingChoices" />, by its id.
-	/// </summary>
-	public RelayCommand<string?> ConvertLineEndingsCommand { get; }
-	#endregion
-
 	#region Styled Properties
 	/// <summary>
 	/// Identifies the <see cref="DefaultEncoding" /> avalonia property.
@@ -370,6 +363,13 @@ internal sealed partial class DocumentEditorView :
 	/// </summary>
 	public static readonly StyledProperty<bool> WordWrapProperty = AvaloniaProperty
 		.Register<DocumentEditorView, bool>(name: nameof(WordWrap));
+	#endregion
+
+	#region Commands
+	/// <summary>
+	/// Brings every line break of the document to the style of a choice of <see cref="LineEndingChoices" />, by its id.
+	/// </summary>
+	public RelayCommand<string?> ConvertLineEndingsCommand { get; }
 	#endregion
 
 	#region Data

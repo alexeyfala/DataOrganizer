@@ -13,13 +13,6 @@ namespace DataOrganizer.UI.Behaviors.Input;
 /// </summary>
 internal sealed class FilePreviewToolTipBehavior : PointerHoverBehaviorBase
 {
-	#region Data
-	/// <summary>
-	/// <c>True</c> while a preview is read, so that another hover does not read it again meanwhile.
-	/// </summary>
-	private bool _isReading;
-	#endregion
-
 	#region Properties
 	/// <inheritdoc cref="IFilePreviewReader" />
 	public IFilePreviewReader? Reader
@@ -33,6 +26,13 @@ internal sealed class FilePreviewToolTipBehavior : PointerHoverBehaviorBase
 	/// <inheritdoc cref="Reader" />
 	public static readonly StyledProperty<IFilePreviewReader?> ReaderProperty = AvaloniaProperty
 		.Register<FilePreviewToolTipBehavior, IFilePreviewReader?>(nameof(Reader));
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// <c>True</c> while a preview is read, so that another hover does not read it again meanwhile.
+	/// </summary>
+	private bool _isReading;
 	#endregion
 
 	#region Methods

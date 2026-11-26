@@ -23,6 +23,14 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	IClipboardLogPersistenceCoordinator,
 	IRecipient<ClipboardLogChangedMessage>
 {
+	#region Properties
+	/// <inheritdoc />
+	public bool HasPassword => _store.KeyFileExists;
+
+	/// <inheritdoc />
+	public bool RequiresUnlock => _settingsStore.Settings.PersistClipboardHistory && !_store.IsUnlocked;
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Default delay after the last change before writing the encrypted journal,
@@ -127,14 +135,6 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 		_saveDebounce = saveDebounce;
 	}
-	#endregion
-
-	#region Properties
-	/// <inheritdoc />
-	public bool HasPassword => _store.KeyFileExists;
-
-	/// <inheritdoc />
-	public bool RequiresUnlock => _settingsStore.Settings.PersistClipboardHistory && !_store.IsUnlocked;
 	#endregion
 
 	#region Methods

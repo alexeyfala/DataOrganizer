@@ -14,6 +14,13 @@ namespace DataOrganizer.SystemIntegration.FileExecution.Services;
 /// <inheritdoc cref="IExecutionSandbox" />
 public sealed class ExecutionSandbox : IExecutionSandbox
 {
+	#region Properties
+	/// <summary>
+	/// Path of the folder.
+	/// </summary>
+	private string DirectoryPath => _appEnvironment.SandboxDirectoryPath;
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Number of attempts to remove the folder.
@@ -62,13 +69,6 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 
 		_timeProvider = timeProvider;
 	}
-	#endregion
-
-	#region Properties
-	/// <summary>
-	/// Path of the folder.
-	/// </summary>
-	private string DirectoryPath => _appEnvironment.SandboxDirectoryPath;
 	#endregion
 
 	#region Methods

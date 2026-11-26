@@ -45,6 +45,21 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	public partial bool WordWrap { get; set; }
 	#endregion
 
+	#region Partial
+	/// <summary>
+	/// Called when <see cref="IsPaused" /> changes.
+	/// </summary>
+	partial void OnIsPausedChanged(bool value)
+	{
+		if (value)
+		{
+			return;
+		}
+
+		ReadFromLog();
+	}
+	#endregion
+
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Clears the log.
@@ -61,21 +76,6 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IDirectoryAccessor.OpenAppDirectory" />
 	[RelayCommand]
 	private void OpenAppDirectory() => _directoryAccessor.OpenAppDirectory();
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="IsPaused" /> changes.
-	/// </summary>
-	partial void OnIsPausedChanged(bool value)
-	{
-		if (value)
-		{
-			return;
-		}
-
-		ReadFromLog();
-	}
 	#endregion
 
 	#region Data

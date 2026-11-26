@@ -66,6 +66,17 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	private Task YesButtonPressed() => SetResultAsync(YesNoCancelAnswer.Yes);
 	#endregion
 
+	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="YesNoCancelBoxViewModel" /> class.
+	/// </summary>
+	public YesNoCancelBoxViewModel(
+		IDialogCloser dialogCloser,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
+	{
+	}
+	#endregion
+
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
 	public Task<YesNoCancelAnswer> GetResultAsync(
@@ -103,17 +114,6 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 			dialogClosed,
 			defaultResult: YesNoCancelAnswer.Cancel,
 			token: token);
-	}
-	#endregion
-
-	#region Constructors
-	/// <summary>
-	/// Initializes a new instance of the <see cref="YesNoCancelBoxViewModel" /> class.
-	/// </summary>
-	public YesNoCancelBoxViewModel(
-		IDialogCloser dialogCloser,
-		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
-	{
 	}
 	#endregion
 }

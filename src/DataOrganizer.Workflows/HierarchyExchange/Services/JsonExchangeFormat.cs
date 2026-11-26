@@ -14,6 +14,17 @@ namespace DataOrganizer.Workflows.HierarchyExchange.Services;
 /// </summary>
 public sealed class JsonExchangeFormat : SerializedExchangeFormatBase
 {
+	#region Properties
+	/// <inheritdoc />
+	public override string Extension => KnownFileExtensions.Json;
+
+	/// <inheritdoc />
+	public override string FileTypeName => "JSON File";
+
+	/// <inheritdoc />
+	public override string MimeType => "application/json";
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="IJsonSerializer" />
 	private readonly IJsonSerializer _jsonSerializer;
@@ -30,17 +41,6 @@ public sealed class JsonExchangeFormat : SerializedExchangeFormatBase
 	{
 		_jsonSerializer = jsonSerializer;
 	}
-	#endregion
-
-	#region Properties
-	/// <inheritdoc />
-	public override string Extension => KnownFileExtensions.Json;
-
-	/// <inheritdoc />
-	public override string FileTypeName => "JSON File";
-
-	/// <inheritdoc />
-	public override string MimeType => "application/json";
 	#endregion
 
 	#region Methods

@@ -12,6 +12,20 @@ namespace DataOrganizer.Workflows.HierarchyExchange.Services;
 /// </summary>
 public sealed class SqliteExchangeFormat : IExchangeFormat
 {
+	#region Properties
+	/// <inheritdoc />
+	public string Extension => KnownFileExtensions.Sqlite;
+
+	/// <inheritdoc />
+	public string FileTypeName => "SQLite Database File";
+
+	/// <inheritdoc />
+	public bool IsDatabaseCopy => true;
+
+	/// <inheritdoc />
+	public string MimeType => "application/x-sqlite3";
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="IDbBackupService" />
 	private readonly IDbBackupService _dbBackupService;
@@ -30,20 +44,6 @@ public sealed class SqliteExchangeFormat : IExchangeFormat
 
 		_dbImporter = dbImporter;
 	}
-	#endregion
-
-	#region Properties
-	/// <inheritdoc />
-	public string Extension => KnownFileExtensions.Sqlite;
-
-	/// <inheritdoc />
-	public string FileTypeName => "SQLite Database File";
-
-	/// <inheritdoc />
-	public bool IsDatabaseCopy => true;
-
-	/// <inheritdoc />
-	public string MimeType => "application/x-sqlite3";
 	#endregion
 
 	#region Methods

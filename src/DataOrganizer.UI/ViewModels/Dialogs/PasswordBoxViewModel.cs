@@ -14,13 +14,6 @@ namespace DataOrganizer.UI.ViewModels.Dialogs;
 /// </summary>
 public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 {
-	#region Data
-	/// <summary>
-	/// Least number of characters a new password is accepted with.
-	/// </summary>
-	public const int MinimumPasswordLength = 8;
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Explanation shown under the header; hidden when empty.
@@ -88,6 +81,13 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Least number of characters a new password is accepted with.
+	/// </summary>
+	public const int MinimumPasswordLength = 8;
 	#endregion
 
 	#region Constructors

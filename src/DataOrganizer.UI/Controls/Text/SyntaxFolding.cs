@@ -105,6 +105,26 @@ internal sealed class SyntaxFolding : IDisposable
 	}
 	#endregion
 
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="InputElement.PointerPressedEvent" /> handler of the text view, which leaves the unfolding of a block to a
+	/// double click on its box, as in Visual Studio.
+	/// </summary>
+	private void TextView_PointerPressed(object? sender, PointerPressedEventArgs e)
+	{
+		bool isDoubleClick = e.ClickCount == 2
+			&& e.GetCurrentPoint(_textView).Properties.PointerUpdateKind is PointerUpdateKind.LeftButtonPressed;
+
+		// Only the second press of a double click goes on to the box, which then unfolds its block.
+		if (isDoubleClick || FindBox(e.GetPosition(_textView)) is null)
+		{
+			return;
+		}
+
+		e.Handled = true;
+	}
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// Removes the blocks and their margin from the text area, and the folded text comes back into view.
@@ -222,26 +242,6 @@ internal sealed class SyntaxFolding : IDisposable
 		IEnumerable<NewFolding> foldings = _strategy.CreateNewFoldings(Document, out int firstErrorOffset);
 
 		_manager.UpdateFoldings(foldings, firstErrorOffset);
-	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="InputElement.PointerPressedEvent" /> handler of the text view, which leaves the unfolding of a block to a
-	/// double click on its box, as in Visual Studio.
-	/// </summary>
-	private void TextView_PointerPressed(object? sender, PointerPressedEventArgs e)
-	{
-		bool isDoubleClick = e.ClickCount == 2
-			&& e.GetCurrentPoint(_textView).Properties.PointerUpdateKind is PointerUpdateKind.LeftButtonPressed;
-
-		// Only the second press of a double click goes on to the box, which then unfolds its block.
-		if (isDoubleClick || FindBox(e.GetPosition(_textView)) is null)
-		{
-			return;
-		}
-
-		e.Handled = true;
 	}
 	#endregion
 

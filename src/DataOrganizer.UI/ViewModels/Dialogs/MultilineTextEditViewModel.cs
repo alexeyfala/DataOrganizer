@@ -31,17 +31,6 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	public partial string? Text { get; set; }
 	#endregion
 
-	#region Constructors
-	/// <summary>
-	/// Initializes a new instance of the <see cref="MultilineTextEditViewModel" /> class.
-	/// </summary>
-	public MultilineTextEditViewModel(
-		IDialogCloser dialogCloser,
-		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
-	{
-	}
-	#endregion
-
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Closes the dialog and discards the edit.
@@ -54,5 +43,16 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	/// </summary>
 	[RelayCommand]
 	private Task Save() => SetResultAsync(true);
+	#endregion
+
+	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MultilineTextEditViewModel" /> class.
+	/// </summary>
+	public MultilineTextEditViewModel(
+		IDialogCloser dialogCloser,
+		ITaskExceptionHandler exceptionHandler) : base(dialogCloser, exceptionHandler)
+	{
+	}
 	#endregion
 }

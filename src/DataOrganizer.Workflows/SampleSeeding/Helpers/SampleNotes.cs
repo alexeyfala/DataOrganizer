@@ -15,42 +15,6 @@ namespace DataOrganizer.Workflows.SampleSeeding.Helpers;
 [ExcludeFromCodeCoverage(Justification = "Sample data for debugging, kept without tests")]
 internal static class SampleNotes
 {
-	#region Data
-	/// <summary>
-	/// Number of items in a checklist.
-	/// </summary>
-	private const int ChecklistItemCount = 4;
-
-	/// <summary>
-	/// Domain of the links, reserved for examples, so that no link leads to a real site.
-	/// </summary>
-	private const string LinkDomain = "example.com";
-
-	/// <summary>
-	/// Number of words in the path of a long link.
-	/// </summary>
-	private const int LongLinkWordCount = 16;
-
-	/// <summary>
-	/// Number of paragraphs in a long note.
-	/// </summary>
-	private const int LongTextParagraphCount = 6;
-
-	/// <summary>
-	/// Makers of the made-up notes, one for each shape, in the order the shapes take turns.
-	/// </summary>
-	private static readonly Func<Faker, string>[] Shapes =
-	[
-		static x => x.Lorem.Sentence(),
-		static x => x.Lorem.Paragraph(),
-		CreateLongText,
-		CreateChecklist,
-		CreateLinks,
-		CreateLongLink,
-		SampleDocuments.CreateRussianText
-	];
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Note of a file whose contents are binary data.
@@ -229,6 +193,42 @@ internal static class SampleNotes
 		The editor reads it in the code page of the system, which is right on a Russian system.
 		Elsewhere its letters come out garbled until Windows-1251 is chosen in the status bar.
 		""".ReplaceLineEndings();
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Number of items in a checklist.
+	/// </summary>
+	private const int ChecklistItemCount = 4;
+
+	/// <summary>
+	/// Domain of the links, reserved for examples, so that no link leads to a real site.
+	/// </summary>
+	private const string LinkDomain = "example.com";
+
+	/// <summary>
+	/// Number of words in the path of a long link.
+	/// </summary>
+	private const int LongLinkWordCount = 16;
+
+	/// <summary>
+	/// Number of paragraphs in a long note.
+	/// </summary>
+	private const int LongTextParagraphCount = 6;
+
+	/// <summary>
+	/// Makers of the made-up notes, one for each shape, in the order the shapes take turns.
+	/// </summary>
+	private static readonly Func<Faker, string>[] Shapes =
+	[
+		static x => x.Lorem.Sentence(),
+		static x => x.Lorem.Paragraph(),
+		CreateLongText,
+		CreateChecklist,
+		CreateLinks,
+		CreateLongLink,
+		SampleDocuments.CreateRussianText
+	];
 	#endregion
 
 	#region Methods

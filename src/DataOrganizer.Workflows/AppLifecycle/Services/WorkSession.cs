@@ -21,23 +21,6 @@ public sealed class WorkSession :
 	ISessionReadOnlyMode,
 	ISessionTreeState
 {
-	#region Data
-	/// <summary>
-	/// States of the objects checked in the tree, whole or in part; an unchecked object has no entry.
-	/// </summary>
-	private readonly ConcurrentDictionary<Guid, bool?> _checkStates = new();
-
-	/// <summary>
-	/// Identifiers of the objects the tree shows expanded; a set that folders expanded all at once may change in parallel.
-	/// </summary>
-	private readonly ConcurrentDictionary<Guid, byte> _expandedIds = new();
-
-	/// <summary>
-	/// Identifiers of the objects selected in the tree.
-	/// </summary>
-	private readonly ConcurrentDictionary<Guid, byte> _selectedIds = new();
-	#endregion
-
 	#region Properties
 	/// <inheritdoc />
 	public EditorTabsState? EditorTabs { get; set; }
@@ -53,6 +36,23 @@ public sealed class WorkSession :
 
 	/// <inheritdoc />
 	public bool IsReadOnly { get; set; }
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// States of the objects checked in the tree, whole or in part; an unchecked object has no entry.
+	/// </summary>
+	private readonly ConcurrentDictionary<Guid, bool?> _checkStates = new();
+
+	/// <summary>
+	/// Identifiers of the objects the tree shows expanded; a set that folders expanded all at once may change in parallel.
+	/// </summary>
+	private readonly ConcurrentDictionary<Guid, byte> _expandedIds = new();
+
+	/// <summary>
+	/// Identifiers of the objects selected in the tree.
+	/// </summary>
+	private readonly ConcurrentDictionary<Guid, byte> _selectedIds = new();
 	#endregion
 
 	#region Methods

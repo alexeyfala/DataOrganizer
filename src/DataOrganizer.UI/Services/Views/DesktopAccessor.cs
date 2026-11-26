@@ -19,6 +19,18 @@ namespace DataOrganizer.UI.Services.Views;
 /// </summary>
 public sealed class DesktopAccessor : IAppShutdown, IDialogHostFinder, IWindowCloser, IWindowFinder
 {
+	#region Properties
+	/// <summary>
+	/// The desktop lifetime of the application; <c>null</c> where there is no desktop.
+	/// </summary>
+	private IClassicDesktopStyleApplicationLifetime? Desktop => _app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+
+	/// <summary>
+	/// The open windows, the first opened first.
+	/// </summary>
+	private IReadOnlyList<Window> Windows => Desktop?.Windows ?? [];
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -37,18 +49,6 @@ public sealed class DesktopAccessor : IAppShutdown, IDialogHostFinder, IWindowCl
 
 		_processTerminator = processTerminator;
 	}
-	#endregion
-
-	#region Properties
-	/// <summary>
-	/// The desktop lifetime of the application; <c>null</c> where there is no desktop.
-	/// </summary>
-	private IClassicDesktopStyleApplicationLifetime? Desktop => _app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-
-	/// <summary>
-	/// The open windows, the first opened first.
-	/// </summary>
-	private IReadOnlyList<Window> Windows => Desktop?.Windows ?? [];
 	#endregion
 
 	#region Methods

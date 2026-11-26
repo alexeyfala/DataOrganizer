@@ -24,16 +24,16 @@ internal sealed class SensitiveTextBlock : TextBlock
 	protected override Type StyleKeyOverride { get; } = typeof(TextBlock);
 	#endregion
 
-	#region Methods
-	/// <inheritdoc />
-	protected override AutomationPeer OnCreateAutomationPeer() => new SensitiveTextBlockAutomationPeer(this);
-	#endregion
-
 	#region Styled Properties
 	/// <summary>
 	/// Identifies the <see cref="IsSensitive" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
 		.Register<SensitiveTextBlock, bool>(name: nameof(IsSensitive));
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	protected override AutomationPeer OnCreateAutomationPeer() => new SensitiveTextBlockAutomationPeer(this);
 	#endregion
 }

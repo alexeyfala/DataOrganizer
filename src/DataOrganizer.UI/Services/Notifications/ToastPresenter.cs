@@ -15,6 +15,17 @@ namespace DataOrganizer.UI.Services.Notifications;
 /// <inheritdoc cref="IToastPresenter" />
 public sealed class ToastPresenter : IToastPresenter
 {
+	#region Properties
+	/// <inheritdoc />
+	/// <remarks>
+	/// A toast has a window of its own, so there is nothing that could take the surface away.
+	/// </remarks>
+	public bool CanShow => true;
+
+	/// <inheritdoc />
+	public bool IsPointerOverMessage => _window?.IsPointerOver == true;
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -46,17 +57,6 @@ public sealed class ToastPresenter : IToastPresenter
 
 		_windowFinder = windowFinder;
 	}
-	#endregion
-
-	#region Properties
-	/// <inheritdoc />
-	/// <remarks>
-	/// A toast has a window of its own, so there is nothing that could take the surface away.
-	/// </remarks>
-	public bool CanShow => true;
-
-	/// <inheritdoc />
-	public bool IsPointerOverMessage => _window?.IsPointerOver == true;
 	#endregion
 
 	#region Methods

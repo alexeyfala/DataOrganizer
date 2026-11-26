@@ -17,34 +17,6 @@ namespace DataOrganizer.UI.Converters;
 /// </summary>
 internal static class ClipboardLogConverters
 {
-	#region Data
-	/// <summary>
-	/// Most characters of the name of an entry for UI Automation; the rest of a long text is cut.
-	/// </summary>
-	private const int AutomationNameMaxLength = 100;
-
-	/// <summary>
-	/// Total maximum number of lines rendered by the preview of a list of files.
-	/// </summary>
-	private const int FilesPreviewMaxLines = 7;
-
-	/// <summary>
-	/// Total maximum number of lines rendered by the tooltip of a list of files
-	/// (full expanded list, capped to avoid a screen-tall tooltip).
-	/// </summary>
-	private const int FilesToolTipMaxLines = 22;
-
-	/// <summary>
-	/// Maximum characters per wrapped line of the tooltip of a URL.
-	/// </summary>
-	private const int UrlToolTipMaxLineLength = 64;
-
-	/// <summary>
-	/// Maximum number of lines rendered by the tooltip of a URL.
-	/// </summary>
-	private const int UrlToolTipMaxLines = 10;
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Name of an entry for UI Automation: its text or the names of its files on one line, the size of an image, or a
@@ -78,6 +50,34 @@ internal static class ClipboardLogConverters
 	/// Human-readable kind of an entry, with the formats of a text or the counts of a list of files.
 	/// </summary>
 	public static FuncValueConverter<ClipboardLogEntryBase?, string?> TypeToolTip { get; } = new(GetTypeToolTip);
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Most characters of the name of an entry for UI Automation; the rest of a long text is cut.
+	/// </summary>
+	private const int AutomationNameMaxLength = 100;
+
+	/// <summary>
+	/// Total maximum number of lines rendered by the preview of a list of files.
+	/// </summary>
+	private const int FilesPreviewMaxLines = 7;
+
+	/// <summary>
+	/// Total maximum number of lines rendered by the tooltip of a list of files
+	/// (full expanded list, capped to avoid a screen-tall tooltip).
+	/// </summary>
+	private const int FilesToolTipMaxLines = 22;
+
+	/// <summary>
+	/// Maximum characters per wrapped line of the tooltip of a URL.
+	/// </summary>
+	private const int UrlToolTipMaxLineLength = 64;
+
+	/// <summary>
+	/// Maximum number of lines rendered by the tooltip of a URL.
+	/// </summary>
+	private const int UrlToolTipMaxLines = 10;
 	#endregion
 
 	#region Helpers

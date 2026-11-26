@@ -16,6 +16,17 @@ namespace DataOrganizer.Workflows.HierarchyExchange.Services;
 /// </summary>
 public sealed class XmlExchangeFormat : SerializedExchangeFormatBase
 {
+	#region Properties
+	/// <inheritdoc />
+	public override string Extension => KnownFileExtensions.Xml;
+
+	/// <inheritdoc />
+	public override string FileTypeName => "XML File";
+
+	/// <inheritdoc />
+	public override string MimeType => "application/xml";
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="IXmlSerializer" />
 	private readonly IXmlSerializer _xmlSerializer;
@@ -32,17 +43,6 @@ public sealed class XmlExchangeFormat : SerializedExchangeFormatBase
 	{
 		_xmlSerializer = xmlSerializer;
 	}
-	#endregion
-
-	#region Properties
-	/// <inheritdoc />
-	public override string Extension => KnownFileExtensions.Xml;
-
-	/// <inheritdoc />
-	public override string FileTypeName => "XML File";
-
-	/// <inheritdoc />
-	public override string MimeType => "application/xml";
 	#endregion
 
 	#region Methods

@@ -7,13 +7,6 @@ namespace DataOrganizer.Documents.Editor.Dto;
 /// </summary>
 public readonly struct FileEditorState
 {
-	#region Data
-	/// <summary>
-	/// Value of <see cref="SyntaxLanguage" /> for a text kept plain, although the extension of its file has a grammar.
-	/// </summary>
-	public const string PlainTextLanguage = "plaintext";
-	#endregion
-
 	#region Properties
 	/// <summary>
 	/// Numbers of the bookmarked lines.
@@ -84,5 +77,12 @@ public readonly struct FileEditorState
 	/// <c>True</c> when long lines are wrapped.
 	/// </summary>
 	public bool WordWrap { get; init; }
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Value of <see cref="SyntaxLanguage" /> for a text kept plain, although the extension of its file has a grammar.
+	/// </summary>
+	public const string PlainTextLanguage = "plaintext";
 	#endregion
 }

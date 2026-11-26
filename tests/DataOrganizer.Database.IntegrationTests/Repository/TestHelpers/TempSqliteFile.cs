@@ -13,6 +13,30 @@ namespace DataOrganizer.Database.IntegrationTests.Repository.TestHelpers;
 /// </summary>
 internal sealed class TempSqliteFile : IDisposable
 {
+	#region Properties
+	/// <summary>
+	/// Connection string of the database.
+	/// </summary>
+	public string ConnectionString { get; }
+
+	/// <summary>
+	/// Path of the database file.
+	/// </summary>
+	public string FilePath { get; }
+
+	/// <summary>
+	/// Folder that holds the folders of the test processes, one per process.
+	/// </summary>
+	public static string RootDirectoryPath { get; } = Path.Combine(Path.GetTempPath(), "DataOrganizerTests");
+
+	/// <summary>
+	/// Folder of the temporary databases of this test process, named after its id.
+	/// </summary>
+	public static string RunDirectoryPath { get; } = Path.Combine(
+		RootDirectoryPath,
+		Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Folder holding the database file.
@@ -39,30 +63,6 @@ internal sealed class TempSqliteFile : IDisposable
 			Pooling = false
 		}.ToString();
 	}
-	#endregion
-
-	#region Properties
-	/// <summary>
-	/// Connection string of the database.
-	/// </summary>
-	public string ConnectionString { get; }
-
-	/// <summary>
-	/// Path of the database file.
-	/// </summary>
-	public string FilePath { get; }
-
-	/// <summary>
-	/// Folder that holds the folders of the test processes, one per process.
-	/// </summary>
-	public static string RootDirectoryPath { get; } = Path.Combine(Path.GetTempPath(), "DataOrganizerTests");
-
-	/// <summary>
-	/// Folder of the temporary databases of this test process, named after its id.
-	/// </summary>
-	public static string RunDirectoryPath { get; } = Path.Combine(
-		RootDirectoryPath,
-		Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
 	#endregion
 
 	#region Methods

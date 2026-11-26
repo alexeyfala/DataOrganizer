@@ -48,6 +48,23 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	public partial DatasetEditorState? ViewState { get; set; }
 	#endregion
 
+	#region Partial
+	/// <summary>
+	/// Called when <see cref="ViewState" /> changes.
+	/// </summary>
+	partial void OnViewStateChanged(DatasetEditorState? value)
+	{
+		// The state read with the records is not a change, and the view may still report its state for a moment after
+		// the file has been closed.
+		if (value is not { } state || !CanSaveEditorState)
+		{
+			return;
+		}
+
+		SaveEditorState(state);
+	}
+	#endregion
+
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Reads the records and the stored view state once.
@@ -492,23 +509,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_dispatcher = dispatcher;
 
 		_textInputPrompt = textInputPrompt;
-	}
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="ViewState" /> changes.
-	/// </summary>
-	partial void OnViewStateChanged(DatasetEditorState? value)
-	{
-		// The state read with the records is not a change, and the view may still report its state for a moment after
-		// the file has been closed.
-		if (value is not { } state || !CanSaveEditorState)
-		{
-			return;
-		}
-
-		SaveEditorState(state);
 	}
 	#endregion
 

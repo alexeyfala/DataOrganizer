@@ -10,6 +10,13 @@ namespace DataOrganizer.TestSupport.Database;
 /// </summary>
 public sealed class TestDatabase : IDisposable
 {
+	#region Properties
+	/// <summary>
+	/// Context bound to the in-memory database.
+	/// </summary>
+	public SqliteDbContext Context { get; }
+	#endregion
+
 	#region Data
 	private readonly SqliteConnection _connection;
 	#endregion
@@ -32,13 +39,6 @@ public sealed class TestDatabase : IDisposable
 
 		Context.Database.EnsureCreated();
 	}
-	#endregion
-
-	#region Properties
-	/// <summary>
-	/// Context bound to the in-memory database.
-	/// </summary>
-	public SqliteDbContext Context { get; }
 	#endregion
 
 	#region Methods

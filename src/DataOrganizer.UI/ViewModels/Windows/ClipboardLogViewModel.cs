@@ -65,6 +65,31 @@ public sealed partial class ClipboardLogViewModel :
 	public ReadOnlyObservableCollection<ClipboardLogEntryBase> VisibleEntries { get; }
 	#endregion
 
+	#region Partial
+	/// <summary>
+	/// Stashes the search query when switching to a filter whose entries have no searchable text (so a
+	/// leftover query does not leave the list empty), and restores it when returning to a searchable filter.
+	/// </summary>
+	partial void OnActiveFilterChanged(ClipboardLogEntryFilter value)
+	{
+		if (IsSearchEnabled)
+		{
+			if (_stashedSearchText is { } stashed)
+			{
+				SearchText = stashed;
+
+				_stashedSearchText = null;
+			}
+		}
+		else if (SearchText is { } current)
+		{
+			_stashedSearchText = current;
+
+			SearchText = null;
+		}
+	}
+	#endregion
+
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Clears the history list. Disabled while it is empty.
@@ -132,31 +157,6 @@ public sealed partial class ClipboardLogViewModel :
 		_clipboardLog.TogglePin(entry);
 
 		ClearCommand.NotifyCanExecuteChanged();
-	}
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Stashes the search query when switching to a filter whose entries have no searchable text (so a
-	/// leftover query does not leave the list empty), and restores it when returning to a searchable filter.
-	/// </summary>
-	partial void OnActiveFilterChanged(ClipboardLogEntryFilter value)
-	{
-		if (IsSearchEnabled)
-		{
-			if (_stashedSearchText is { } stashed)
-			{
-				SearchText = stashed;
-
-				_stashedSearchText = null;
-			}
-		}
-		else if (SearchText is { } current)
-		{
-			_stashedSearchText = current;
-
-			SearchText = null;
-		}
 	}
 	#endregion
 

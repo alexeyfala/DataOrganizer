@@ -106,6 +106,22 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected bool CanSaveEditorState => IsInitialized && !IsContentUnavailable && !IsDisposed;
 	#endregion
 
+	#region Partial
+	/// <summary>
+	/// Called before <see cref="IsReadOnly" /> changes.
+	/// </summary>
+	partial void OnIsReadOnlyChanging(bool value)
+	{
+		// The mode keeps a pause in typing from saving, so an edit still waiting for one is queued now.
+		if (!value)
+		{
+			return;
+		}
+
+		QueuePendingChanges();
+	}
+	#endregion
+
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Displays object in the list.
@@ -189,22 +205,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		_sessionReadOnlyMode = sessionReadOnlyMode;
 
 		messenger.RegisterAll(this);
-	}
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called before <see cref="IsReadOnly" /> changes.
-	/// </summary>
-	partial void OnIsReadOnlyChanging(bool value)
-	{
-		// The mode keeps a pause in typing from saving, so an edit still waiting for one is queued now.
-		if (!value)
-		{
-			return;
-		}
-
-		QueuePendingChanges();
 	}
 	#endregion
 

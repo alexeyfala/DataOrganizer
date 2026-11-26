@@ -18,6 +18,20 @@ namespace DataOrganizer.Workflows.HierarchyExchange.Services;
 /// </summary>
 public abstract class SerializedExchangeFormatBase : IPartialExportFormat
 {
+	#region Properties
+	/// <inheritdoc />
+	public abstract string Extension { get; }
+
+	/// <inheritdoc />
+	public abstract string FileTypeName { get; }
+
+	/// <inheritdoc />
+	public bool IsDatabaseCopy => false;
+
+	/// <inheritdoc />
+	public abstract string MimeType { get; }
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Size of the buffer of the streams the document is written to and read from.
@@ -41,20 +55,6 @@ public abstract class SerializedExchangeFormatBase : IPartialExportFormat
 
 		_fileSystem = fileSystem;
 	}
-	#endregion
-
-	#region Properties
-	/// <inheritdoc />
-	public abstract string Extension { get; }
-
-	/// <inheritdoc />
-	public abstract string FileTypeName { get; }
-
-	/// <inheritdoc />
-	public bool IsDatabaseCopy => false;
-
-	/// <inheritdoc />
-	public abstract string MimeType { get; }
 	#endregion
 
 	#region Methods

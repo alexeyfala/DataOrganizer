@@ -13,6 +13,17 @@ namespace DataOrganizer.UI.Services.Notifications;
 /// <inheritdoc cref="ISnackbarPresenter" />
 public sealed class SnackbarPresenter : ISnackbarPresenter
 {
+	#region Properties
+	/// <inheritdoc />
+	public bool CanShow => _host is not null;
+
+	/// <inheritdoc />
+	/// <remarks>
+	/// Only the message counts, not the window content the host wraps.
+	/// </remarks>
+	public bool IsPointerOverMessage => GetMessageVisual()?.IsPointerOver == true;
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// The host handed over by the window that carries it; <c>null</c> while no such window is open.
@@ -28,17 +39,6 @@ public sealed class SnackbarPresenter : ISnackbarPresenter
 	/// The message handed over to the host; <c>null</c> while none is shown.
 	/// </summary>
 	private SnackbarModel? _posted;
-	#endregion
-
-	#region Properties
-	/// <inheritdoc />
-	public bool CanShow => _host is not null;
-
-	/// <inheritdoc />
-	/// <remarks>
-	/// Only the message counts, not the window content the host wraps.
-	/// </remarks>
-	public bool IsPointerOverMessage => GetMessageVisual()?.IsPointerOver == true;
 	#endregion
 
 	#region Methods

@@ -14,6 +14,13 @@ namespace DataOrganizer.Database.Repository.Services.Database;
 /// </summary>
 public sealed class DatabaseBackup : IDisposable
 {
+	#region Properties
+	/// <summary>
+	/// Path of the copy.
+	/// </summary>
+	public string FilePath { get; }
+	#endregion
+
 	#region Data
 	/// <summary>
 	/// Folder the copies live in, next to the database.
@@ -53,13 +60,6 @@ public sealed class DatabaseBackup : IDisposable
 
 		_logger = logger;
 	}
-	#endregion
-
-	#region Properties
-	/// <summary>
-	/// Path of the copy.
-	/// </summary>
-	public string FilePath { get; }
 	#endregion
 
 	#region Methods

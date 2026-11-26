@@ -19,18 +19,18 @@ public sealed class StubHttpMessageHandler : HttpMessageHandler
 	public List<StubHttpRequest> Requests { get; } = [];
 	#endregion
 
-	#region Constructors
-	/// <summary>
-	/// Initializes a new instance of the <see cref="StubHttpMessageHandler" /> class.
-	/// </summary>
-	public StubHttpMessageHandler(Func<StubHttpRequest, HttpResponseMessage> responder) => _responder = responder;
-	#endregion
-
 	#region Data
 	/// <summary>
 	/// Produces the answer to a received request.
 	/// </summary>
 	private readonly Func<StubHttpRequest, HttpResponseMessage> _responder;
+	#endregion
+
+	#region Constructors
+	/// <summary>
+	/// Initializes a new instance of the <see cref="StubHttpMessageHandler" /> class.
+	/// </summary>
+	public StubHttpMessageHandler(Func<StubHttpRequest, HttpResponseMessage> responder) => _responder = responder;
 	#endregion
 
 	#region Methods
