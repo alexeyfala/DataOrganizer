@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.GuardTests.TestHelpers;
+using DataOrganizer.GuardTests.TestHelpers.Dto;
 using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Collections.Generic;
@@ -69,15 +70,13 @@ internal sealed partial class LocalizedTextQuotesTests
 	{
 		foreach ((string path, string text) in RepositoryFiles.EnumerateSourceCode())
 		{
-			string code = CodeText.WithoutCommentsAndLiterals(text);
-
-			foreach (Match match in InterpolatedStringRegex().Matches(code))
+			foreach (InterpolatedString value in CodeLiteralReader.ReadInterpolatedStrings(text))
 			{
-				if (match.Value.Contains("Strings.", StringComparison.Ordinal)
-					&& QuoteAtHoleRegex().IsMatch(GetText(match))
-					&& !IsLogArgument(code, match.Index))
+				if (value.Holes.Any(static x => x.Contains("Strings.", StringComparison.Ordinal))
+					&& HasQuoteAtHole(value)
+					&& !IsLogArgument(text, value.Index))
 				{
-					yield return $"{path}: {match.Value}";
+					yield return $"{path}: {value.Value}";
 				}
 			}
 		}
@@ -95,50 +94,25 @@ internal sealed partial class LocalizedTextQuotesTests
 	}
 
 	/// <summary>
-	/// Returns the text of an interpolated string between its delimiters, with its quotes unescaped.
+	/// <c>True</c> when a piece of the text of a string ends with a quote right before a hole or starts with one right
+	/// after it.
 	/// </summary>
-	private static string GetText(Match match)
+	private static bool HasQuoteAtHole(InterpolatedString value)
 	{
-		if (match.Groups["verbatim"] is { Success: true } verbatim)
-		{
-			return verbatim.Value.Replace(@"""""", @"""", StringComparison.Ordinal);
-		}
-
-		if (match.Groups["regular"] is { Success: true } regular)
-		{
-			return regular.Value.Replace(@"\""", @"""", StringComparison.Ordinal);
-		}
-
-		return match.Groups["raw"].Value;
+		return Enumerable
+			.Range(0, value.Holes.Length)
+			.Any(x => value.Texts[x].EndsWith('"') || value.Texts[x + 1].StartsWith('"'));
 	}
-
-	/// <summary>
-	/// Matches an interpolated string, raw, verbatim or regular, with its text between the delimiters.
-	/// </summary>
-	[GeneratedRegex(
-		"""
-		\$+(?<delimiter>"{3,})(?<raw>[\s\S]*?)\k<delimiter>
-		|(?:\$@|@\$)"(?<verbatim>(?:[^"]|"")*)"
-		|\$"(?<regular>(?:\\.|[^"\\\r\n])*)"
-		""",
-		RegexOptions.IgnorePatternWhitespace)]
-	private static partial Regex InterpolatedStringRegex();
 
 	/// <summary>
 	/// <c>True</c> when the string at <paramref name="index" /> is handed straight to a log call.
 	/// </summary>
-	private static bool IsLogArgument(string code, int index) => LogCallEndRegex().IsMatch(code.AsSpan(0, index));
+	private static bool IsLogArgument(string text, int index) => LogCallEndRegex().IsMatch(text.AsSpan(0, index));
 
 	/// <summary>
 	/// Matches the end of the code right before the argument of a log call.
 	/// </summary>
 	[GeneratedRegex(@"\.Log\w*\s*\(\s*$")]
 	private static partial Regex LogCallEndRegex();
-
-	/// <summary>
-	/// Matches a quote written next to a hole.
-	/// </summary>
-	[GeneratedRegex(@"""\{|\}""")]
-	private static partial Regex QuoteAtHoleRegex();
 	#endregion
 }
