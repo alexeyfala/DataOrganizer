@@ -5,6 +5,7 @@ using DataOrganizer.TestSupport.Guards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.TestStyle;
@@ -70,28 +71,20 @@ internal sealed partial class ContainerBuiltClassTests
 
 	/// <summary>
 	/// Finds the names of the classes the container of the application builds: a constructor takes a service, the
-	/// application never builds the class with <c>new</c>, and the class is neither a record nor an object of the
-	/// interface.
+	/// compiled application never calls a constructor of the class with <c>new</c>, and the class is neither a record
+	/// nor an object of the interface.
 	/// </summary>
 	private static IEnumerable<string> FindContainerBuiltClasses()
 	{
-		HashSet<string> builtByApp =
-		[
-			.. RepositoryFiles
-				.EnumerateSourceCode()
-				.Select(static x => CodeText.WithoutCommentsAndLiterals(x.Text))
-				.SelectMany(static code => NewRegex()
-					.Matches(code)
-					.Concat(TargetTypedNewRegex().Matches(code)))
-				.Select(static x => x.Groups["type"].Value)
-		];
+		Assembly[] assemblies = AppAssemblies.Enumerate();
 
-		return AppAssemblies
-			.Enumerate()
+		HashSet<Type> builtByApp = [.. assemblies.SelectMany(ConstructorCallReader.ReadBuiltTypes)];
+
+		return assemblies
 			.SelectMany(static x => x.GetTypes())
 			.Where(IsContainerCandidate)
-			.Select(static x => x.Name)
-			.Where(name => !builtByApp.Contains(name));
+			.Where(type => !builtByApp.Contains(type))
+			.Select(ReadSourceName);
 	}
 
 	/// <summary>
@@ -117,27 +110,21 @@ internal sealed partial class ContainerBuiltClassTests
 	private static bool IsRecord(Type type) => type.GetMethod(RecordCloneMethodName) is not null;
 
 	/// <summary>
-	/// Matches a class built with <c>new</c> and its name.
+	/// Matches a class, generic or not, built with <c>new</c> and arguments, and its name.
 	/// </summary>
-	[GeneratedRegex(@"\bnew\s+(?<type>\w+)\s*\(")]
-	private static partial Regex NewRegex();
-
-	/// <summary>
-	/// Matches a class built with <c>new</c> and arguments, and its name.
-	/// </summary>
-	[GeneratedRegex(@"\bnew\s+(?<type>\w+)\s*\(\s*(?!\))")]
+	[GeneratedRegex(@"\bnew\s+(?<type>\w+)\s*(?:<[^()]*?>)?\s*\(\s*(?!\))")]
 	private static partial Regex NewWithArgumentsRegex();
 
 	/// <summary>
-	/// Matches a declaration of a class built with a target-typed <c>new</c>, and the name of the class.
+	/// Reads the name of a class as a source writes it, without the number of its type parameters.
 	/// </summary>
-	[GeneratedRegex(@"\b(?<type>\w+)\s+\w+\s*=\s*new\s*\(")]
-	private static partial Regex TargetTypedNewRegex();
+	private static string ReadSourceName(Type type) => type.Name.Split('`')[0];
 
 	/// <summary>
-	/// Matches a declaration of a class built with a target-typed <c>new</c> and arguments, and the name of the class.
+	/// Matches a declaration of a class, generic or not, built with a target-typed <c>new</c> and arguments, and the name
+	/// of the class.
 	/// </summary>
-	[GeneratedRegex(@"\b(?<type>\w+)\s+\w+\s*=\s*new\s*\(\s*(?!\))")]
+	[GeneratedRegex(@"\b(?<type>\w+)(?:<[^()=;]*?>)?\s+\w+\s*=\s*new\s*\(\s*(?!\))")]
 	private static partial Regex TargetTypedNewWithArgumentsRegex();
 	#endregion
 }
