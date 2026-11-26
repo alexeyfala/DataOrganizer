@@ -80,12 +80,6 @@ internal static partial class ContainerSetupReader
 	private static partial Regex BuildRegex();
 
 	/// <summary>
-	/// Matches what may follow the closing brace of a block that does not end its statement.
-	/// </summary>
-	[GeneratedRegex(@"\G\s*(?:[;),.]|else\b|catch\b|finally\b)")]
-	private static partial Regex ContinuationRegex();
-
-	/// <summary>
 	/// Matches a member of a variable.
 	/// </summary>
 	[GeneratedRegex(@"^(?<variable>[a-z_]\w*)\.(?<member>[A-Z]\w*)$")]
@@ -260,7 +254,7 @@ internal static partial class ContainerSetupReader
 		string body = lambda[(lambda.IndexOf("=>", StringComparison.Ordinal) + 2)..^1].Trim();
 
 		return body.StartsWith('{')
-			? SplitStatements(body[1..CodeText.FindClosing(body, 0)])
+			? CodeText.SplitStatements(body[1..CodeText.FindClosing(body, 0)])
 			: [body];
 	}
 
@@ -281,43 +275,6 @@ internal static partial class ContainerSetupReader
 	/// </summary>
 	[GeneratedRegex(@"\.\s*SingleInstance\s*\(")]
 	private static partial Regex SingleInstanceRegex();
-
-	/// <summary>
-	/// Splits the code of a block into its statements; a block statement such as an <c>if</c> stays whole.
-	/// </summary>
-	private static IEnumerable<string> SplitStatements(string block)
-	{
-		int depth = 0;
-
-		int start = 0;
-
-		for (int i = 0; i < block.Length; i++)
-		{
-			depth += block[i] switch
-			{
-				'(' or '[' or '{' => 1,
-				')' or ']' or '}' => -1,
-				_ => 0
-			};
-
-			bool isEnd = depth == 0
-				&& (block[i] == ';' || (block[i] == '}' && !ContinuationRegex().IsMatch(block, i + 1)));
-
-			if (!isEnd)
-			{
-				continue;
-			}
-
-			string statement = block[start..(i + 1)].Trim();
-
-			start = i + 1;
-
-			if (statement.Length > 0)
-			{
-				yield return statement;
-			}
-		}
-	}
 
 	/// <summary>
 	/// Splits a list of type arguments into normalized type names.

@@ -137,15 +137,21 @@ internal sealed partial class ContainerSetupStyleTests
 	private static partial Regex DoubleDeclarationRegex();
 
 	/// <summary>
+	/// Matches an <c>else</c> that opens the rest of a statement.
+	/// </summary>
+	[GeneratedRegex(@"^else\b")]
+	private static partial Regex ElseRegex();
+
+	/// <summary>
 	/// Finds the statements of a setup after its first registration that are no registrations.
 	/// </summary>
 	private static IEnumerable<string> FindAfterRegistrations(ContainerSetup setup)
 	{
 		Regex registration = new($@"^{Regex.Escape(setup.Builder)}\s*\.");
 
-		int first = Array.FindIndex(setup.Statements, registration.IsMatch);
+		int first = Array.FindIndex(setup.Statements, x => IsRegistration(x, registration));
 
-		return first < 0 ? [] : setup.Statements.Skip(first + 1).Where(x => !registration.IsMatch(x));
+		return first < 0 ? [] : setup.Statements.Skip(first + 1).Where(x => !IsRegistration(x, registration));
 	}
 
 	/// <summary>
@@ -166,6 +172,50 @@ internal sealed partial class ContainerSetupStyleTests
 				yield return name;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Matches an <c>if</c> statement.
+	/// </summary>
+	[GeneratedRegex(@"^if\s*\(")]
+	private static partial Regex IfRegex();
+
+	/// <summary>
+	/// Tells whether an <c>if</c> statement only registers: each of its branches does, the <c>else</c> one included.
+	/// </summary>
+	private static bool IsIfOfRegistrations(string statement, Regex registration)
+	{
+		string rest = statement[(CodeText.FindClosing(statement, statement.IndexOf('(')) + 1)..].TrimStart();
+
+		int end = rest.StartsWith('{') ? CodeText.FindClosing(rest, 0) : CodeText.FindStatementEnd(rest, 0);
+
+		string alternative = rest[(end + 1)..].Trim();
+
+		return IsRegistration(rest[..(end + 1)], registration)
+			&& (alternative.Length == 0
+				|| (ElseRegex().Match(alternative) is { Success: true } other
+					&& IsRegistration(alternative[other.Length..].TrimStart(), registration)));
+	}
+
+	/// <summary>
+	/// Tells whether a statement only registers: a call on the builder, or a block or an <c>if</c> whose statements
+	/// only register.
+	/// </summary>
+	private static bool IsRegistration(string statement, Regex registration)
+	{
+		if (registration.IsMatch(statement))
+		{
+			return true;
+		}
+
+		if (statement.StartsWith('{'))
+		{
+			return CodeText
+				.SplitStatements(statement[1..CodeText.FindClosing(statement, 0)])
+				.All(x => IsRegistration(x, registration));
+		}
+
+		return IfRegex().IsMatch(statement) && IsIfOfRegistrations(statement, registration);
 	}
 
 	/// <summary>
