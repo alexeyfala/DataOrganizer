@@ -69,17 +69,30 @@ internal sealed class StrykerIgnoreMethodsConsistencyTests
 	}
 
 	/// <summary>
-	/// Turns a pattern into a search for its call: <c>*</c> stands for a part of a name, and a constructor is looked for after <c>new</c>.
+	/// Turns a pattern into a search for the calls Stryker leaves out with it, regardless of case: one that starts with a
+	/// dot is a call after <c>?</c>, any other starts a part of a name, and a constructor is looked for after <c>new</c>.
 	/// </summary>
 	private static Regex ToCallRegex(string pattern)
 	{
-		bool isConstructor = pattern.EndsWith(ConstructorSuffix, StringComparison.Ordinal);
+		if (pattern.EndsWith(ConstructorSuffix, StringComparison.Ordinal))
+		{
+			return new Regex($@"\bnew\s+{ToNameRegex(pattern[..^ConstructorSuffix.Length])}\s*\(", RegexOptions.IgnoreCase);
+		}
 
-		string name = Regex
-			.Escape(isConstructor ? pattern[..^ConstructorSuffix.Length] : pattern)
+		string start = pattern.StartsWith('.') ? @"\?" : @"(?<!\w)";
+
+		return new Regex($@"{start}{ToNameRegex(pattern)}\s*(?:<[^<>()]*>)?\s*\(", RegexOptions.IgnoreCase);
+	}
+
+	/// <summary>
+	/// Turns the name of a pattern into a search: a dot may stand between spaces, and <c>*</c> stands for a part of a name.
+	/// </summary>
+	private static string ToNameRegex(string name)
+	{
+		return Regex
+			.Escape(name)
+			.Replace(@"\.", @"\s*\.\s*", StringComparison.Ordinal)
 			.Replace(@"\*", @"\w*", StringComparison.Ordinal);
-
-		return new Regex(isConstructor ? $@"\bnew\s+{name}\s*\(" : $@"{name}\s*\(");
 	}
 	#endregion
 }
