@@ -20,6 +20,7 @@ using DataOrganizer.Infrastructure.AppInstance.Messages;
 using DataOrganizer.Infrastructure.AppUpdates.Messages;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Messages;
@@ -778,7 +779,8 @@ public sealed partial class EditorViewModel :
 
 		KeyValueInputParameters parameters = new()
 		{
-			DefaultButtonText = Strings.Rename,
+			DefaultButtonText = Strings.Save,
+			Header = ObjectHeaderBuilder.Build(Strings.Rename, dto.Name),
 			Key = dto.Name,
 			KeyHint = Strings.Name
 		};

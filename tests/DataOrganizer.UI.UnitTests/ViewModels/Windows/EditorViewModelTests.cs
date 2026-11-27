@@ -41,6 +41,7 @@ using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Security.Messages;
 using DataOrganizer.Security.Services;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using DataOrganizer.SystemIntegration.Clipboard.Interfaces;
@@ -5321,6 +5322,40 @@ internal sealed class EditorViewModelTests
 		folders.Select(x => session.IsExpanded(x.Id))
 			.Should()
 			.OnlyContain(static x => x);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.RenameCommand" />: the dialog is headed by the rename of the object.
+	/// </summary>
+	[Test]
+	public async Task RenameCommand_Heads_The_Dialog_With_The_Name_Of_The_Object()
+	{
+		// Arrange
+		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(textInputPrompt);
+
+			builder
+				.RegisterType<WorkSession>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut
+			.RenameCommand
+			.ExecuteAsync(file);
+
+		// Assert
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x.Header != null && x.Header.EndsWith(QuoteBuilder.Build(file.Name))),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

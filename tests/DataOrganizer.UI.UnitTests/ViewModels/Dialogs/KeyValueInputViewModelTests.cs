@@ -67,6 +67,8 @@ internal sealed class KeyValueInputViewModelTests
 
 		string defaultButtonText = RandomString.Create(length);
 
+		string header = RandomString.Create(length);
+
 		string key = RandomString.Create(length);
 
 		string keyHint = RandomString.Create(length);
@@ -83,6 +85,7 @@ internal sealed class KeyValueInputViewModelTests
 		sut.Initialize(new()
 		{
 			DefaultButtonText = defaultButtonText,
+			Header = header,
 			Key = key,
 			KeyHint = keyHint,
 			Value = value,
@@ -93,6 +96,10 @@ internal sealed class KeyValueInputViewModelTests
 		sut.DefaultButtonText
 			.Should()
 			.Be(defaultButtonText);
+
+		sut.Header
+			.Should()
+			.Be(header);
 
 		sut.Key
 			.Should()

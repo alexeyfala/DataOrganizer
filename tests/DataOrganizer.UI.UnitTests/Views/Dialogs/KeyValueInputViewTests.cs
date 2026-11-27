@@ -19,6 +19,54 @@ internal sealed class KeyValueInputViewTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="KeyValueInputViewModel.Header" />: a dialog without a header shows no header line.
+	/// </summary>
+	[AvaloniaTest]
+	public void Header_Missing_Hides_The_Header_Text()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel viewModel = mock.Create<KeyValueInputViewModel>();
+
+		// Act
+		KeyValueInputView view = new(viewModel);
+
+		// Assert
+		view.HeaderText.IsVisible
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="KeyValueInputViewModel.Header" />: the header shows above the inputs.
+	/// </summary>
+	[AvaloniaTest]
+	public void Header_Reaches_The_Header_Text()
+	{
+		// Arrange
+		const string header = "Header";
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel viewModel = mock.Create<KeyValueInputViewModel>();
+
+		KeyValueInputView view = new(viewModel);
+
+		// Act
+		viewModel.Header = header;
+
+		// Assert
+		view.HeaderText.Text
+			.Should()
+			.Be(header);
+
+		view.HeaderText.IsVisible
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="KeyValueInputViewModel.IsKeyMasked" />, <see cref="KeyValueInputViewModel.IsValueMasked" />: a masked key
 	/// or value is not given to UI Automation as a value, with the eye open or closed, and an open one is.
 	/// </summary>
@@ -121,6 +169,28 @@ internal sealed class KeyValueInputViewTests
 			.HaveCount(2)
 			.And
 			.OnlyContain(x => x.IsSensitive == isSensitive);
+	}
+
+	/// <summary>
+	/// <see cref="KeyValueInputViewModel.IsSensitive" />: the declaration hides the header from UI Automation too.
+	/// </summary>
+	[AvaloniaTest]
+	public void IsSensitive_Reaches_The_Header_Text([Values] bool isSensitive)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel viewModel = mock.Create<KeyValueInputViewModel>();
+
+		KeyValueInputView view = new(viewModel);
+
+		// Act
+		viewModel.IsSensitive = isSensitive;
+
+		// Assert
+		view.HeaderText.IsSensitive
+			.Should()
+			.Be(isSensitive);
 	}
 	#endregion
 }

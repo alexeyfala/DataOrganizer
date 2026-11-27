@@ -10,6 +10,7 @@ using DataOrganizer.Documents.FileContents.Interfaces;
 using DataOrganizer.Infrastructure.AppInstance.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Shared.Extensions;
@@ -408,8 +409,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
+			Header = ObjectHeaderBuilder.Build(Strings.Rename, group.Name ?? string.Empty),
+			IsSensitive = IsEncrypted,
 			Key = group.Name,
-			KeyHint = Strings.Rename
+			KeyHint = Strings.Name
 		};
 
 		if (await _textInputPrompt

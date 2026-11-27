@@ -23,6 +23,7 @@ using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Security.Helpers;
 using DataOrganizer.Security.Interfaces;
 using DataOrganizer.Shared.Extensions;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Interfaces;
 using DataOrganizer.Shared.Services;
 using DataOrganizer.Shared.Threading.Interfaces;
@@ -3295,6 +3296,62 @@ internal sealed class DatasetEditorViewModelTests
 			Arg.Any<Guid>(),
 			Arg.Any<byte[]>(),
 			Arg.Any<DateTime?>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.RenameGroupCommand" />: the name of a group of an encrypted dataset is declared
+	/// sensitive to the dialog.
+	/// </summary>
+	[Test]
+	public async Task RenameGroupCommand_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
+	{
+		// Arrange
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(keeperId: isEncrypted ? Guid.NewGuid() : null));
+
+		// Act
+		await sut
+			.RenameGroupCommand
+			.ExecuteAsync(new RecordsGroup());
+
+		// Assert
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x.IsSensitive == isEncrypted),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.RenameGroupCommand" />: the dialog is headed by the rename of the group.
+	/// </summary>
+	[Test]
+	public async Task RenameGroupCommand_Heads_The_Dialog_With_The_Name_Of_The_Group()
+	{
+		// Arrange
+		RecordsGroup group = new()
+		{
+			Name = "Group"
+		};
+
+		ITextInputPrompt textInputPrompt = Substitute.For<ITextInputPrompt>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(textInputPrompt));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut
+			.RenameGroupCommand
+			.ExecuteAsync(group);
+
+		// Assert
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x.Header != null && x.Header.EndsWith(QuoteBuilder.Build(group.Name))),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

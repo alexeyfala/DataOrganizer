@@ -7,6 +7,7 @@ using DataOrganizer.Documents.TextProcessing.Interfaces;
 using DataOrganizer.Infrastructure.Diagnostics.Interfaces;
 using DataOrganizer.Infrastructure.DialogContracts.Constants;
 using DataOrganizer.Infrastructure.DialogContracts.Dto;
+using DataOrganizer.Infrastructure.DialogContracts.Helpers;
 using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Constants;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
@@ -170,8 +171,9 @@ public sealed partial class NotepadViewModel : ObservableDisposableBase
 
 		KeyValueInputParameters parameters = new()
 		{
-			DefaultButtonText = Strings.Rename,
+			DefaultButtonText = Strings.Save,
 			DialogHostIdentifier = DialogHostIdentifiers.Notepad,
+			Header = ObjectHeaderBuilder.Build(Strings.Rename, tab.Header),
 			Key = tab.Header,
 			KeyHint = Strings.Name
 		};

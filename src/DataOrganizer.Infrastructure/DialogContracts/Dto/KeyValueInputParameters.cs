@@ -19,6 +19,11 @@ public sealed class KeyValueInputParameters
 	public string DialogHostIdentifier { get; init; } = DialogHostIdentifiers.Main;
 
 	/// <summary>
+	/// Text shown above the input fields; none when <see langword="null" />.
+	/// </summary>
+	public string? Header { get; init; }
+
+	/// <summary>
 	/// <c>True</c> when the edited text is sensitive: a copy of it carries the clipboard sensitivity markers.
 	/// </summary>
 	public bool IsSensitive { get; init; }

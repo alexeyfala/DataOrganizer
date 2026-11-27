@@ -19,8 +19,17 @@
 	</UserControl.Styles>
 
 	<StackPanel
+		MaxWidth="{StaticResource DialogMaxWidth}"
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
+
+		<controls:SensitiveTextBlock
+			x:Name="HeaderText"
+			Classes="HeaderTextBlockStyle"
+			IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+			IsVisible="{Binding Header, Converter={x:Static StringConverters.IsNotNullOrEmpty}, Mode=OneWay}"
+			Text="{Binding Header, Mode=OneWay}"
+			TextTrimming="CharacterEllipsis" />
 
 		<controls:SecretTextBox
 			assists:TextFieldAssist.Label="{Binding KeyHint, Mode=OneWay}"

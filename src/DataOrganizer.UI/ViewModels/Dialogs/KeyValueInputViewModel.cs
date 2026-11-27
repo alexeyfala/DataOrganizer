@@ -20,6 +20,12 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	public partial string? DefaultButtonText { get; set; }
 
 	/// <summary>
+	/// Text shown above the input fields.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Header { get; set; }
+
+	/// <summary>
 	/// <c>True</c> when <see cref="Key" /> holds something other than whitespace.
 	/// </summary>
 	public bool IsKeyAccepted => !string.IsNullOrWhiteSpace(Key);
@@ -107,6 +113,8 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	public void Initialize(KeyValueInputParameters parameters)
 	{
 		DefaultButtonText = parameters.DefaultButtonText;
+
+		Header = parameters.Header;
 
 		IsKeyMasked = parameters.MaskKeyInput;
 

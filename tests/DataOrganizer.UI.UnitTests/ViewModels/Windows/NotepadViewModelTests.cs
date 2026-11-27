@@ -16,6 +16,7 @@ using DataOrganizer.Infrastructure.DialogContracts.Interfaces;
 using DataOrganizer.Infrastructure.Notifications.Constants;
 using DataOrganizer.Infrastructure.Notifications.Interfaces;
 using DataOrganizer.Infrastructure.WindowContracts.Interfaces;
+using DataOrganizer.Shared.Helpers;
 using DataOrganizer.Shared.Threading.Interfaces;
 using DataOrganizer.Shared.UnitTests.Threading.TestHelpers.Fakes;
 using DataOrganizer.UI.Services.Documents;
@@ -2647,8 +2648,8 @@ internal sealed class NotepadViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="NotepadViewModel.RenameTabCommand" />: the name is asked in a dialog of the notepad that starts from the
-	/// header of the tab.
+	/// <see cref="NotepadViewModel.RenameTabCommand" />: the name is asked in a dialog of the notepad, headed by the rename of
+	/// the tab, that starts from the header of the tab.
 	/// </summary>
 	[Test]
 	public async Task RenameTabCommand_Asks_For_The_Name_In_A_Dialog_Of_The_Notepad()
@@ -2681,6 +2682,10 @@ internal sealed class NotepadViewModelTests
 
 		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
 			Arg.Is<KeyValueInputParameters>(x => x.Key == tab.Header),
+			Arg.Any<CancellationToken>());
+
+		await textInputPrompt.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x.Header != null && x.Header.EndsWith(QuoteBuilder.Build(tab.Header))),
 			Arg.Any<CancellationToken>());
 	}
 
