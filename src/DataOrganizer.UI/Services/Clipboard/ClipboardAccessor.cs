@@ -358,7 +358,9 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 		// Stable order: folders first, then files; alphabetical within each group.
 		result.Sort(static (x, y) =>
 		{
-			int byKind = y.IsFolder.CompareTo(x.IsFolder);
+			int byKind = y
+				.IsFolder
+				.CompareTo(x.IsFolder);
 
 			return byKind != 0
 				? byKind

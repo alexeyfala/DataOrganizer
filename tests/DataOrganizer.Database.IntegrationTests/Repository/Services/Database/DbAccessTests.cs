@@ -540,7 +540,9 @@ internal sealed class DbAccessTests
 
 		await using (SqliteDbContext context = new(options))
 		{
-			await context.Database.EnsureCreatedAsync();
+			await context
+				.Database
+				.EnsureCreatedAsync();
 
 			context.Add(new FolderEntity
 			{

@@ -50,14 +50,18 @@ internal sealed class ObservableExtensionsTests
 
 		time.Advance(Delay - TimeSpan.FromTicks(1));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		int[] receivedBefore = [.. received];
 
 		// Act
 		time.Advance(TimeSpan.FromTicks(1));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		receivedBefore
@@ -94,7 +98,9 @@ internal sealed class ObservableExtensionsTests
 			.Run(() => time.Advance(Delay))
 			.Wait();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		isOnUiThread

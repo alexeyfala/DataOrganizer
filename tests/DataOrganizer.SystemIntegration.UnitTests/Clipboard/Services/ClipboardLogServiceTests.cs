@@ -93,7 +93,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
 		// Restoring marks it active.
 		await sut.RestoreAsync(pinned);
@@ -174,9 +176,13 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -220,7 +226,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		List<ClipboardLogEntryCountChangedMessage> received = messenger.CaptureCountChanges();
 
@@ -257,7 +265,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -373,7 +383,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -410,7 +422,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]));
 
 		// Act
 		await sut.ClearEntriesAsync();
@@ -588,7 +602,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		await sut.RestoreAsync(restored);
 
@@ -644,7 +660,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		await sut.RestoreAsync(restored);
 
@@ -700,7 +718,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		await sut.RestoreAsync(restored);
 
@@ -752,7 +772,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		await sut.RestoreAsync(restored);
 
@@ -800,7 +822,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [1]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
 		await sut.RestoreAsync(pinned, keepPosition: true);
 
@@ -1159,7 +1183,9 @@ internal sealed class ClipboardLogServiceTests
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// The entry was on the clipboard; the clipboard now holds nothing capturable.
-		sut.Entries.Add(entry);
+		sut
+			.Entries
+			.Add(entry);
 
 		entry.IsActive = true;
 
@@ -1359,7 +1385,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(entry);
+		sut
+			.Entries
+			.Add(entry);
 
 		await sut.DisposeAsync();
 
@@ -1396,7 +1424,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -1440,7 +1470,9 @@ internal sealed class ClipboardLogServiceTests
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// The active entry's content is the one held in the system clipboard.
-		sut.Entries.Add(entry);
+		sut
+			.Entries
+			.Add(entry);
 
 		entry.IsActive = true;
 
@@ -1480,7 +1512,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
-		sut.Entries.Add(entry);
+		sut
+			.Entries
+			.Add(entry);
 
 		entry.IsActive = true;
 
@@ -1524,9 +1558,13 @@ internal sealed class ClipboardLogServiceTests
 		ClipboardTextEntry old = ClipboardEntryFactory.CreateTextEntry("old", [2]);
 
 		// The newest entry is the active one; "old" sits below it and is not on the system clipboard.
-		sut.Entries.Add(active);
+		sut
+			.Entries
+			.Add(active);
 
-		sut.Entries.Add(old);
+		sut
+			.Entries
+			.Add(old);
 
 		active.IsActive = true;
 
@@ -1572,7 +1610,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(entry);
+		sut
+			.Entries
+			.Add(entry);
 
 		List<ClipboardLogEntryCountChangedMessage> received = messenger.CaptureCountChanges();
 
@@ -1611,9 +1651,13 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("p", [1]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("u", [2]));
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -1866,9 +1910,13 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
 
-		sut.Entries.Add(other);
+		sut
+			.Entries
+			.Add(other);
 
-		sut.Entries.Add(target);
+		sut
+			.Entries
+			.Add(target);
 
 		// Act
 		await sut.RestoreAsync(target);
@@ -1948,9 +1996,13 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
 
-		sut.Entries.Add(other);
+		sut
+			.Entries
+			.Add(other);
 
-		sut.Entries.Add(target);
+		sut
+			.Entries
+			.Add(target);
 
 		// Act
 		await sut.RestoreAsync(target);
@@ -1999,9 +2051,13 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("other", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("other", [1]));
 
-		sut.Entries.Add(target);
+		sut
+			.Entries
+			.Add(target);
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -2040,7 +2096,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		sut.Entries.Add(entry);
+		sut
+			.Entries
+			.Add(entry);
 
 		// Act
 		await sut.RestoreAsync(entry);
@@ -2085,7 +2143,9 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry top = ClipboardEntryFactory.CreateTextEntry("top", [1]);
 
-		sut.Entries.Add(top);
+		sut
+			.Entries
+			.Add(top);
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -2316,7 +2376,9 @@ internal sealed class ClipboardLogServiceTests
 
 		foreach (ClipboardLogEntryBase entry in entries)
 		{
-			sut.Entries.Add(entry);
+			sut
+				.Entries
+				.Add(entry);
 		}
 
 		// Act
@@ -2375,9 +2437,13 @@ internal sealed class ClipboardLogServiceTests
 
 		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [2]);
 
-		sut.Entries.Add(first);
+		sut
+			.Entries
+			.Add(first);
 
-		sut.Entries.Add(target);
+		sut
+			.Entries
+			.Add(target);
 
 		// Act
 		await sut.RestoreAsync(target, keepPosition: true);

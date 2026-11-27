@@ -47,7 +47,9 @@ internal sealed class PasswordBoxViewTests
 			input.RevealPassword = isRevealed;
 		}
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string?[] values =

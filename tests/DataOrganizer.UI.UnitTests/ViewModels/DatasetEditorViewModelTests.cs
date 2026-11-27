@@ -2570,7 +2570,9 @@ internal sealed class DatasetEditorViewModelTests
 			.Records
 			.AddRange([first, second]);
 
-		using IDisposable subscription = first.HighlightSignal.Subscribe(_ => highlighted = true);
+		using IDisposable subscription = first
+			.HighlightSignal
+			.Subscribe(_ => highlighted = true);
 
 		DatasetRecordMove move = new()
 		{
@@ -2638,7 +2640,9 @@ internal sealed class DatasetEditorViewModelTests
 			.Records
 			.AddRange([first, second]);
 
-		using IDisposable subscription = first.HighlightSignal.Subscribe(_ => highlighted = true);
+		using IDisposable subscription = first
+			.HighlightSignal
+			.Subscribe(_ => highlighted = true);
 
 		DatasetRecordMove move = new()
 		{
@@ -2715,7 +2719,9 @@ internal sealed class DatasetEditorViewModelTests
 
 		sut.Records.CollectionChanged += (_, _) => changes++;
 
-		using IDisposable subscription = second.HighlightSignal.Subscribe(_ => highlighted = true);
+		using IDisposable subscription = second
+			.HighlightSignal
+			.Subscribe(_ => highlighted = true);
 
 		// The slot right after the first record is where the second one already is.
 		DatasetRecordMove move = new()
@@ -2795,7 +2801,9 @@ internal sealed class DatasetEditorViewModelTests
 			.Records
 			.AddRange([first, second, third]);
 
-		using IDisposable subscription = first.HighlightSignal.Subscribe(_ => highlighted = true);
+		using IDisposable subscription = first
+			.HighlightSignal
+			.Subscribe(_ => highlighted = true);
 
 		DatasetRecordMove move = new()
 		{
@@ -3520,10 +3528,14 @@ internal sealed class DatasetEditorViewModelTests
 
 		RecordsGroup group = CreateGroup("B", "A");
 
-		sut.Records.Add(group);
+		sut
+			.Records
+			.Add(group);
 
 		// Act
-		await sut.SortAscendingCommand.ExecuteAsync(group);
+		await sut
+			.SortAscendingCommand
+			.ExecuteAsync(group);
 
 		// Assert
 		group.Children
@@ -3574,10 +3586,14 @@ internal sealed class DatasetEditorViewModelTests
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
-		sut.Records.AddRange([.. CreateGroup("B", "A", "C").Children]);
+		sut
+			.Records
+			.AddRange([.. CreateGroup("B", "A", "C").Children]);
 
 		// Act
-		await sut.SortAscendingDescendingCommand.ExecuteAsync(direction);
+		await sut
+			.SortAscendingDescendingCommand
+			.ExecuteAsync(direction);
 
 		// Assert
 		sut.Records
@@ -3800,10 +3816,14 @@ internal sealed class DatasetEditorViewModelTests
 
 		RecordsGroup group = CreateGroup("A", "B");
 
-		sut.Records.Add(group);
+		sut
+			.Records
+			.Add(group);
 
 		// Act
-		await sut.SortDescendingCommand.ExecuteAsync(group);
+		await sut
+			.SortDescendingCommand
+			.ExecuteAsync(group);
 
 		// Assert
 		group.Children

@@ -41,14 +41,18 @@ internal sealed class PropertiesViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
 		window.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Close();
 

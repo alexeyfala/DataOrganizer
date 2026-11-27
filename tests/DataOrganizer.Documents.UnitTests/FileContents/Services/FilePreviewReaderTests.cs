@@ -446,7 +446,9 @@ internal sealed class FilePreviewReaderTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		byte[] decrypted = Encoding.UTF8.GetBytes("Hi");
+		byte[] decrypted = Encoding
+			.UTF8
+			.GetBytes("Hi");
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

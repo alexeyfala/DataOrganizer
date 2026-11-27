@@ -49,7 +49,9 @@ internal sealed class ExpanderToggledByUserBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ExpanderToggledByUserBehavior sut = new()
 		{

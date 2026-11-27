@@ -66,11 +66,15 @@ internal sealed class ExplorerNodeExtensionsTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		using FolderNodeViewModel row = new(
 			outer,
@@ -104,11 +108,15 @@ internal sealed class ExplorerNodeExtensionsTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		using FolderNodeViewModel row = new(
 			outer,
@@ -139,7 +147,9 @@ internal sealed class ExplorerNodeExtensionsTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		root.Children.Add(folder);
+		root
+			.Children
+			.Add(folder);
 
 		using FolderNodeViewModel row = new(
 			root,
@@ -151,7 +161,9 @@ internal sealed class ExplorerNodeExtensionsTests
 			.MergeManyInTree(x => x.Model.WhenPropertyChanged(y => y.Name, notifyOnInitialValue: false))
 			.Subscribe(x => renamed.Add(x.Sender.Name));
 
-		folder.Children.Add(file);
+		folder
+			.Children
+			.Add(file);
 
 		// Act
 		file.Name = "added";
@@ -177,9 +189,13 @@ internal sealed class ExplorerNodeExtensionsTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(file);
+		folder
+			.Children
+			.Add(file);
 
-		root.Children.Add(folder);
+		root
+			.Children
+			.Add(folder);
 
 		using FolderNodeViewModel row = new(
 			root,
@@ -191,7 +207,9 @@ internal sealed class ExplorerNodeExtensionsTests
 			.MergeManyInTree(x => x.Model.WhenPropertyChanged(y => y.Name, notifyOnInitialValue: false))
 			.Subscribe(x => renamed.Add(x.Sender.Name));
 
-		folder.Children.Remove(file);
+		folder
+			.Children
+			.Remove(file);
 
 		// Act
 		file.Name = "removed";
@@ -222,13 +240,21 @@ internal sealed class ExplorerNodeExtensionsTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		innerFolder.Children.Add(innerFile);
+		innerFolder
+			.Children
+			.Add(innerFile);
 
-		folder.Children.Add(innerFolder);
+		folder
+			.Children
+			.Add(innerFolder);
 
-		root.Children.Add(folder);
+		root
+			.Children
+			.Add(folder);
 
-		root.Children.Add(file);
+		root
+			.Children
+			.Add(file);
 
 		using FolderNodeViewModel row = new(
 			root,

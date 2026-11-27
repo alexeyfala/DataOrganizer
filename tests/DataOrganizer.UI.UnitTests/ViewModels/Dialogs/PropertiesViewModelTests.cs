@@ -45,10 +45,14 @@ internal sealed class PropertiesViewModelTests
 
 		Task dialogClosed = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
-		sut.CloseCommand.Execute(null);
+		sut
+			.CloseCommand
+			.Execute(null);
 
 		bool isClosed = dialogClosed.IsCompleted;
 

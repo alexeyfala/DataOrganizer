@@ -32,7 +32,9 @@ internal static class ClearOnEscapeAssist
 	#region Constructors
 	static ClearOnEscapeAssist()
 	{
-		IsEnabledProperty.Changed.AddClassHandler<TextBox, bool>(IsEnabledProperty_Changed);
+		IsEnabledProperty
+			.Changed
+			.AddClassHandler<TextBox, bool>(IsEnabledProperty_Changed);
 	}
 	#endregion
 
@@ -44,7 +46,9 @@ internal static class ClearOnEscapeAssist
 	{
 		if (!e.NewValue.GetValueOrDefault())
 		{
-			textBox.KeyBindings.RemoveAll(static x => ReferenceEquals(x.Gesture, EscapeGesture));
+			textBox
+				.KeyBindings
+				.RemoveAll(static x => ReferenceEquals(x.Gesture, EscapeGesture));
 
 			return;
 		}

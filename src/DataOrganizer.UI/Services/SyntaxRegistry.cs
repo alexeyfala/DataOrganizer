@@ -183,9 +183,13 @@ internal sealed class SyntaxRegistry : IRegistryOptions, ISyntaxRegistry
 			return null;
 		}
 
-		Comments? comments = found.Configuration?.Comments;
+		Comments? comments = found
+			.Configuration?
+			.Comments;
 
-		Folding? folding = found.Configuration?.Folding;
+		Folding? folding = found
+			.Configuration?
+			.Folding;
 
 		// A token of blanks, as some languages have for the end, would close a block comment anywhere.
 		(string Start, string End)? blockComment = comments?.BlockComment is [var start, var end]

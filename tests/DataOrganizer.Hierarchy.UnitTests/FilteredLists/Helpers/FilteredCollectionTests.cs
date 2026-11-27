@@ -85,7 +85,9 @@ internal sealed class FilteredCollectionTests
 			sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
 
 			// Assert
-			int countBeforeTheContextRuns = sut.Visible.Count;
+			int countBeforeTheContextRuns = sut
+				.Visible
+				.Count;
 
 			context.RunPosted();
 

@@ -119,7 +119,9 @@ internal sealed class DocumentTabControlTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetMenuButtons(window)[^1].Header
@@ -147,7 +149,9 @@ internal sealed class DocumentTabControlTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		IEnumerable<Separator> separators = GetMenu(window)
@@ -184,7 +188,9 @@ internal sealed class DocumentTabControlTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		IEnumerable<Type> parts = GetMenu(window)
@@ -225,7 +231,9 @@ internal sealed class DocumentTabControlTests
 
 		window.Click(window.CenterOf(sut.GetHeaderText("second")), MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(GetMenuButtons(window)[index]);
 
@@ -265,14 +273,18 @@ internal sealed class DocumentTabControlTests
 
 		window.Click(window.CenterOf(sut.GetHeaderText("second")), MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(GetMenuButtons(window)[index]);
 
 		// Act
 		window.Click(point, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		window.GetVisualDescendants().OfType<FlyoutPresenter>()
@@ -300,14 +312,18 @@ internal sealed class DocumentTabControlTests
 
 		window.Click(window.CenterOf(sut.GetHeaderText("first")), MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(GetMenuButtons(window)[0]);
 
 		// Act
 		window.Click(point, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.ContainerFromIndex(0)!.IsFocused
@@ -340,7 +356,9 @@ internal sealed class DocumentTabControlTests
 
 		window.Click(window.CenterOf(sut.GetHeaderText("second")), MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(GetMenuButtons(window)[index]);
 
@@ -436,11 +454,15 @@ internal sealed class DocumentTabControlTests
 		};
 
 		// Act
-		bool canExecuteWithSingleTab = sut.CloseOtherTabsCommand.CanExecute("first");
+		bool canExecuteWithSingleTab = sut
+			.CloseOtherTabsCommand
+			.CanExecute("first");
 
 		items.Add("second");
 
-		bool canExecuteWithSecondTab = sut.CloseOtherTabsCommand.CanExecute("first");
+		bool canExecuteWithSecondTab = sut
+			.CloseOtherTabsCommand
+			.CanExecute("first");
 
 		// Assert
 		canExecuteWithSingleTab
@@ -471,7 +493,9 @@ internal sealed class DocumentTabControlTests
 
 		window.Drag(window.CenterOf(sut.GetHeaderText("second")), window.CenterOf(sut.GetHeaderText("third")));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		PressCtrlTab(window);
@@ -505,7 +529,9 @@ internal sealed class DocumentTabControlTests
 
 		items.Remove("fourth");
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		PressCtrlTab(window);
@@ -538,7 +564,9 @@ internal sealed class DocumentTabControlTests
 
 		items.Remove("first");
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		PressCtrlTab(window);
@@ -595,7 +623,9 @@ internal sealed class DocumentTabControlTests
 
 		items.Remove("first");
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		PressCtrlTab(window);
@@ -626,7 +656,9 @@ internal sealed class DocumentTabControlTests
 		// Act
 		PressCtrlTab(window);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.ContainerFromIndex(1)!.IsFocused
@@ -652,7 +684,9 @@ internal sealed class DocumentTabControlTests
 
 		sut.SelectedIndex = 2;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		PressCtrlTab(window);
@@ -1148,7 +1182,9 @@ internal sealed class DocumentTabControlTests
 
 		sut.IsVisible = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.PreviousItem
@@ -1176,7 +1212,9 @@ internal sealed class DocumentTabControlTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetMenuButtons(window).Select(x => x.Icon)
@@ -1348,7 +1386,9 @@ internal sealed class DocumentTabControlTests
 		// Act
 		sut.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		outside.IsFocused

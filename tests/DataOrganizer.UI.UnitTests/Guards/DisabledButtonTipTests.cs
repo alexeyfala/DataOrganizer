@@ -36,7 +36,9 @@ internal sealed class DisabledButtonTipTests
 		// Act
 		window.MouseMove(window.CenterOf(button));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ToolTip.GetIsOpen(button)

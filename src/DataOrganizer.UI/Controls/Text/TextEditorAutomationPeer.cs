@@ -71,7 +71,9 @@ internal sealed class TextEditorAutomationPeer : ControlAutomationPeer, IValuePr
 	protected override void SetFocusCore()
 	{
 		// The text area takes the keys, not the editor around it.
-		_ = Editor.TextArea.Focus();
+		_ = Editor
+			.TextArea
+			.Focus();
 	}
 	#endregion
 }

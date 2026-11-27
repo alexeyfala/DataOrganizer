@@ -86,7 +86,9 @@ internal sealed class SnackbarPresenterContractTests
 
 		sut.Remove();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		host
 			.SnackbarModels
@@ -152,7 +154,9 @@ internal sealed class SnackbarPresenterContractTests
 	/// </summary>
 	private static Card ShowMessage(Window window)
 	{
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.UpdateLayout();
 

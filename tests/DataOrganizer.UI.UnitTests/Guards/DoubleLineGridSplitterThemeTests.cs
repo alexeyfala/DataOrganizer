@@ -82,7 +82,10 @@ internal sealed class DoubleLineGridSplitterThemeTests
 		GridSplitterHost.Show(sut);
 
 		// Assert
-		Size grip = GridSplitterHost.GetPart(sut, GripPartName).Bounds.Size;
+		Size grip = GridSplitterHost
+			.GetPart(sut, GripPartName)
+			.Bounds
+			.Size;
 
 		grip.Width
 			.Should()
@@ -107,7 +110,9 @@ internal sealed class DoubleLineGridSplitterThemeTests
 		// Act
 		window.MouseMove(window.CenterOf(sut));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Border grip = GridSplitterHost.GetPart(sut, GripPartName);
@@ -159,7 +164,9 @@ internal sealed class DoubleLineGridSplitterThemeTests
 		// Act
 		window.MouseDown(window.CenterOf(sut), MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Border grip = GridSplitterHost.GetPart(sut, GripPartName);
@@ -235,7 +242,9 @@ internal sealed class DoubleLineGridSplitterThemeTests
 		// Act
 		window.MouseDown(window.CenterOf(sut), MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Border lines = GridSplitterHost.GetPart(sut, LinesPartName);

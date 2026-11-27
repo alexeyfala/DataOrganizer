@@ -27,7 +27,9 @@ internal sealed class TitleBarSystemMenuBehavior : Behavior<Interactive>
 
 		// Avalonia opens the menu when the button goes up over the caption; the capture it takes on a press would turn
 		// that release into a client one.
-		e.Pointer.Capture(null);
+		e
+			.Pointer
+			.Capture(null);
 	}
 	#endregion
 

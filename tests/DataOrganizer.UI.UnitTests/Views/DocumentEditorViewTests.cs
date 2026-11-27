@@ -166,9 +166,13 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
-		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+		DocumentTextEditor splitEditor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!;
 
 		Panel caretBlock = sut.GetControl<Panel>(CaretBlockName);
 
@@ -209,7 +213,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+		DocumentTextEditor splitEditor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!;
 
 		// Act
 		splitEditor
@@ -243,7 +249,9 @@ internal sealed class DocumentEditorViewTests
 		HeadlessWindow.Show(sut);
 
 		// Assert
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		ICommand[] commands = [.. sut
 			.GetControl<StackPanel>(ToolBarName)
@@ -272,7 +280,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+		DocumentTextEditor splitEditor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!;
 
 		splitEditor.Select(40, 3);
 
@@ -280,7 +290,9 @@ internal sealed class DocumentEditorViewTests
 
 		GetSplitScrollViewer(sut).Offset = offset;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		splitEditor
@@ -327,7 +339,9 @@ internal sealed class DocumentEditorViewTests
 
 		scrollViewer.Offset = new(0.0, 500.0);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Vector offset = new(0.0, 800.0);
 
@@ -336,7 +350,9 @@ internal sealed class DocumentEditorViewTests
 
 		scrollViewer.Offset = offset;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		scrollViewer.Offset
@@ -386,7 +402,9 @@ internal sealed class DocumentEditorViewTests
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
-		int[]? foldedBlocks = sut.ViewState?.FoldedBlocks;
+		int[]? foldedBlocks = sut
+			.ViewState?
+			.FoldedBlocks;
 
 		foldedBlocks
 			.Should()
@@ -463,9 +481,13 @@ internal sealed class DocumentEditorViewTests
 
 		// Assert
 		// Locals keep the assertions from being skipped by the null-conditional operator when there is no state.
-		int[]? foldedBlocks = sut.ViewState?.FoldedBlocks;
+		int[]? foldedBlocks = sut
+			.ViewState?
+			.FoldedBlocks;
 
-		int[]? unfoldedBlocks = sut.ViewState?.UnfoldedBlocks;
+		int[]? unfoldedBlocks = sut
+			.ViewState?
+			.UnfoldedBlocks;
 
 		foldedBlocks
 			.Should()
@@ -492,7 +514,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		VisualLine line = editor
 			.TextArea
@@ -549,7 +573,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+		DocumentTextEditor splitEditor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!;
 
 		splitEditor
 			.TextArea
@@ -561,7 +587,9 @@ internal sealed class DocumentEditorViewTests
 
 		GetSplitScrollViewer(sut).Offset = offset;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		CaptureViewState(sut);
@@ -601,7 +629,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		editor.Select(20, 4);
 
@@ -609,7 +639,9 @@ internal sealed class DocumentEditorViewTests
 
 		GetScrollViewer(sut).Offset = offset;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		CaptureViewState(sut);
@@ -702,22 +734,32 @@ internal sealed class DocumentEditorViewTests
 
 		FlyoutBase flyout = editor.ContextFlyout!;
 
-		editor.PrimaryEditor.Select(0, 4);
+		editor
+			.PrimaryEditor
+			.Select(0, 4);
 
 		flyout.ShowAt(editor);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		flyout.Hide();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		editor.PrimaryEditor.Select(0, 0);
+		editor
+			.PrimaryEditor
+			.Select(0, 0);
 
 		// Act
 		flyout.ShowAt(editor);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Button copy = ((Control)((Flyout)flyout).Content!)
@@ -751,7 +793,9 @@ internal sealed class DocumentEditorViewTests
 
 		flyout.ShowAt(editor);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// The submenu is the button whose flyout holds the command of the block at the caret.
 		Button folding = ((Control)((Flyout)flyout).Content!)
@@ -807,9 +851,13 @@ internal sealed class DocumentEditorViewTests
 
 		Button button = block.GetControl<Button>(CurrentChoiceName);
 
-		button.Flyout!.ShowAt(button);
+		button
+			.Flyout!
+			.ShowAt(button);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ListBox list = block.GetControl<ListBox>(ChoicesListName);
 
@@ -823,7 +871,9 @@ internal sealed class DocumentEditorViewTests
 		// Act
 		window.Click(point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Document!.Text
@@ -937,7 +987,9 @@ internal sealed class DocumentEditorViewTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		// Act
 		window.MouseWheel(window.CenterOf(editor), new(0.0, 1.0), RawInputModifiers.Control);
@@ -1087,7 +1139,9 @@ internal sealed class DocumentEditorViewTests
 		HeadlessWindow.Show(sut);
 
 		// Assert
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		GetFoldingMargin(editor).FoldingMarkerBrush
 			.Should()
@@ -1232,7 +1286,9 @@ internal sealed class DocumentEditorViewTests
 
 		Window window = HeadlessWindow.Show(sut);
 
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		editor.Select(20, 4);
 
@@ -1240,16 +1296,22 @@ internal sealed class DocumentEditorViewTests
 
 		GetScrollViewer(sut).Offset = offset;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Content = sut;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		editor.SelectionStart
@@ -1366,7 +1428,9 @@ internal sealed class DocumentEditorViewTests
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -1392,7 +1456,9 @@ internal sealed class DocumentEditorViewTests
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -1434,7 +1500,9 @@ internal sealed class DocumentEditorViewTests
 		// The first focus comes after a pause, which runs out here, so that it cannot come later.
 		time.RunJobsFor(PastThePause);
 
-		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+		DocumentTextEditor splitEditor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!;
 
 		splitEditor
 			.TextArea
@@ -1442,12 +1510,16 @@ internal sealed class DocumentEditorViewTests
 
 		tabs.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		tabs.SelectedIndex = 0;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		splitEditor.TextArea.IsFocused
@@ -1498,14 +1570,18 @@ internal sealed class DocumentEditorViewTests
 
 		tabs.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		outside.Focus();
 
 		// Act
 		tabs.SelectedIndex = 0;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		outside.IsFocused
@@ -1549,15 +1625,21 @@ internal sealed class DocumentEditorViewTests
 
 		tabs.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		tabs.SelectedIndex = 0;
 
 		// Queued after the loading of the control, which the switch has queued already.
-		Dispatcher.UIThread.Post(() => tab.Focus(), DispatcherPriority.Loaded);
+		Dispatcher
+			.UIThread
+			.Post(() => tab.Focus(), DispatcherPriority.Loaded);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.TextArea.IsFocused
@@ -1601,14 +1683,18 @@ internal sealed class DocumentEditorViewTests
 
 		tabs.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		tab.Focus();
 
 		// Act
 		tabs.SelectedIndex = 0;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.TextArea.IsFocused
@@ -1647,7 +1733,9 @@ internal sealed class DocumentEditorViewTests
 		};
 
 		// Act
-		other.Bookmarks.Toggle(3);
+		other
+			.Bookmarks
+			.Toggle(3);
 
 		// Assert
 		sut.ViewState
@@ -1688,7 +1776,9 @@ internal sealed class DocumentEditorViewTests
 		};
 
 		// Act
-		other.FoldAllCommand.Execute(null);
+		other
+			.FoldAllCommand
+			.Execute(null);
 
 		// Assert
 		sut.ViewState
@@ -1724,7 +1814,11 @@ internal sealed class DocumentEditorViewTests
 		HeadlessWindow.Show(sut);
 
 		// Act
-		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.FoldAllCommand.Execute(null);
+		sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!
+			.FoldAllCommand
+			.Execute(null);
 
 		// Assert
 		sut.ViewState
@@ -1747,14 +1841,20 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		// Act
-		editor.Bookmarks.Toggle(3);
+		editor
+			.Bookmarks
+			.Toggle(3);
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
-		int[]? bookmarks = sut.ViewState?.Bookmarks;
+		int[]? bookmarks = sut
+			.ViewState?
+			.Bookmarks;
 
 		bookmarks
 			.Should()
@@ -1777,13 +1877,19 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor splitEditor = sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!;
+		DocumentTextEditor splitEditor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.SecondaryEditor!;
 
 		// Act
-		splitEditor.Bookmarks.Toggle(3);
+		splitEditor
+			.Bookmarks
+			.Toggle(3);
 
 		// Assert
-		int[]? bookmarks = sut.ViewState?.Bookmarks;
+		int[]? bookmarks = sut
+			.ViewState?
+			.Bookmarks;
 
 		bookmarks
 			.Should()
@@ -1807,10 +1913,16 @@ internal sealed class DocumentEditorViewTests
 		HeadlessWindow.Show(sut);
 
 		// Act
-		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.FoldAllCommand.Execute(null);
+		sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor
+			.FoldAllCommand
+			.Execute(null);
 
 		// Assert
-		int[]? unfoldedBlocks = sut.ViewState?.UnfoldedBlocks;
+		int[]? unfoldedBlocks = sut
+			.ViewState?
+			.UnfoldedBlocks;
 
 		unfoldedBlocks
 			.Should()
@@ -1905,7 +2017,9 @@ internal sealed class DocumentEditorViewTests
 
 		window.MouseUp(end, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SplitShare
@@ -1958,7 +2072,9 @@ internal sealed class DocumentEditorViewTests
 		// The blocks on the right keep their widths, and the block of the caret gets half of its own.
 		window.Width = sut.Bounds.Width - slot.Bounds.Right + (slot.Bounds.Width / 2.0);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		block.Children.OfType<TextBlock>().Select(static x => x.TextLayout.TextLines[0].HasCollapsed)
@@ -1983,19 +2099,25 @@ internal sealed class DocumentEditorViewTests
 
 		ChoiceSelector block = sut.GetControl<ChoiceSelector>(EncodingBlockName);
 
-		double width = block.Bounds.Width;
+		double width = block
+			.Bounds
+			.Width;
 
 		// Act
 		window.Width = 400.0;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		block.Bounds.Width
 			.Should()
 			.Be(width);
 
-		double? right = block.TranslatePoint(new(width, 0.0), sut)?.X;
+		double? right = block
+			.TranslatePoint(new(width, 0.0), sut)?
+			.X;
 
 		right
 			.Should()
@@ -2029,7 +2151,9 @@ internal sealed class DocumentEditorViewTests
 
 		sut.EncodingName = "UTF-8";
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Control[] numbers =
@@ -2163,7 +2287,9 @@ internal sealed class DocumentEditorViewTests
 		// Act
 		window.MouseMove(window.CenterOf(block));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		block.IsEffectivelyEnabled
@@ -2353,10 +2479,14 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 80
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		editor.SelectionStart
 			.Should()
@@ -2403,17 +2533,24 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		GetScrollViewer(sut).Offset = new(0.0, 500.0);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		CaptureViewState(sut);
 
 		// Assert
-		double? offset = sut.ViewState?.ScrollOffset.Y;
+		double? offset = sut
+			.ViewState?
+			.ScrollOffset
+			.Y;
 
 		offset
 			.Should()
@@ -2457,10 +2594,14 @@ internal sealed class DocumentEditorViewTests
 
 		sut.Document = TextDocumentFactory.CreateDocument(lineCount: 1000);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		editor.SelectionStart
 			.Should()
@@ -2491,7 +2632,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		int start = editor.GetBlockStarts(isFolded: false)[0];
 
@@ -2511,7 +2654,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		editor.GetBlockStarts(isFolded: true)
@@ -2548,7 +2693,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.Bookmarks.GetLines()
@@ -2586,7 +2733,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetControl<SplitDocumentEditor>(EditorName).SecondaryEditor!.Bookmarks.GetLines()
@@ -2609,7 +2758,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		VisualLine line = editor
 			.TextArea
@@ -2634,7 +2785,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		editor.TextArea.Caret.Position
@@ -2662,7 +2815,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		int[] starts = editor.GetBlockStarts(isFolded: false);
 
@@ -2681,7 +2836,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		editor.GetBlockStarts(isFolded: true)
@@ -2707,7 +2864,9 @@ internal sealed class DocumentEditorViewTests
 
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
 
-		int start = editor.PrimaryEditor.GetBlockStarts(isFolded: false)[1];
+		int start = editor
+			.PrimaryEditor
+			.GetBlockStarts(isFolded: false)[1];
 
 		// Act
 		sut.ViewState = new DocumentViewState
@@ -2724,7 +2883,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		editor.SecondaryEditor!.GetBlockStarts(isFolded: true)
@@ -2766,7 +2927,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetScrollViewer(sut).Offset
@@ -2811,7 +2974,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 0
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetSplitScrollViewer(sut).Offset
@@ -2835,13 +3000,19 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(source);
 
-		DocumentTextEditor sourceEditor = source.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor sourceEditor = source
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
-		sourceEditor.FoldAllCommand.Execute(null);
+		sourceEditor
+			.FoldAllCommand
+			.Execute(null);
 
 		GetScrollViewer(source).Offset = new(0.0, 1000.0);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		CaptureViewState(source);
 
@@ -2856,10 +3027,15 @@ internal sealed class DocumentEditorViewTests
 		// Act
 		sut.ViewState = source.ViewState;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		int[] shownLines = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor.GetShownLines(count: 5);
+		int[] shownLines = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor
+			.GetShownLines(count: 5);
 
 		shownLines
 			.Should()
@@ -2899,10 +3075,14 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 20
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		TextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		TextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		editor.SelectionStart
 			.Should()
@@ -2948,7 +3128,9 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 20
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		SplitDocumentEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName);
@@ -2983,7 +3165,9 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
 		int start = editor.GetBlockStarts(isFolded: false)[1];
 
@@ -3002,7 +3186,9 @@ internal sealed class DocumentEditorViewTests
 			UnfoldedBlocks = [start]
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		editor.GetBlockStarts(isFolded: false)
@@ -3068,7 +3254,9 @@ internal sealed class DocumentEditorViewTests
 
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.ViewState = new DocumentViewState
 		{
@@ -3087,12 +3275,16 @@ internal sealed class DocumentEditorViewTests
 			SelectionStart = 20
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		window.Content = sut;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetScrollViewer(sut).Offset
@@ -3116,9 +3308,13 @@ internal sealed class DocumentEditorViewTests
 
 		HeadlessWindow.Show(sut);
 
-		DocumentTextEditor editor = sut.GetControl<SplitDocumentEditor>(EditorName).PrimaryEditor;
+		DocumentTextEditor editor = sut
+			.GetControl<SplitDocumentEditor>(EditorName)
+			.PrimaryEditor;
 
-		int length = editor.Document.TextLength;
+		int length = editor
+			.Document
+			.TextLength;
 
 		// The second block, which holds lines 5 to 8, among offsets where no block starts.
 		int[] blocks =
@@ -3149,7 +3345,9 @@ internal sealed class DocumentEditorViewTests
 			UnfoldedBlocks = isMostlyFolded ? blocks : null
 		};
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		// Either every block but the second one folds, or the second one alone.
@@ -3206,7 +3404,9 @@ internal sealed class DocumentEditorViewTests
 	{
 		flyout?.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		if (flyout is not Flyout { Content: Control content })
 		{

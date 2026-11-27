@@ -77,7 +77,9 @@ internal sealed class TextBoxButtonTipTests
 		{
 			textBox.Text = BoxText;
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 
 		Button clearButton = FindPart<Button>(textBox, ClearButtonName);
@@ -87,9 +89,13 @@ internal sealed class TextBoxButtonTipTests
 			Theme = clearButton.Theme
 		};
 
-		panel.Children.Add(themed);
+		panel
+			.Children
+			.Add(themed);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		object? tip = ToolTip.GetTip(clearButton);
@@ -114,7 +120,9 @@ internal sealed class TextBoxButtonTipTests
 
 		if (!isMaskedLater)
 		{
-			textBox.Classes.Add(RevealToggleClass);
+			textBox
+				.Classes
+				.Add(RevealToggleClass);
 		}
 
 		StackPanel panel = new()
@@ -131,9 +139,13 @@ internal sealed class TextBoxButtonTipTests
 		// theme then builds the toggle apart from the template of the box.
 		if (isMaskedLater)
 		{
-			textBox.Classes.Add(RevealToggleClass);
+			textBox
+				.Classes
+				.Add(RevealToggleClass);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 
 		ToggleButton toggle = FindPart<ToggleButton>(textBox, RevealToggleName);
@@ -146,9 +158,13 @@ internal sealed class TextBoxButtonTipTests
 			Theme = toggle.Theme
 		};
 
-		panel.Children.Add(themed);
+		panel
+			.Children
+			.Add(themed);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		object? tip = ToolTip.GetTip(toggle);

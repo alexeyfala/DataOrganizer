@@ -55,7 +55,9 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 	{
 		_source = value;
 
-		_textArea.TextView.InvalidateLayer(Layer);
+		_textArea
+			.TextView
+			.InvalidateLayer(Layer);
 	}
 	#endregion
 
@@ -98,11 +100,20 @@ internal sealed class SelectionOccurrenceRenderer : IBackgroundRenderer
 			return [];
 		}
 
-		int start = textView.VisualLines[0].FirstDocumentLine.Offset;
+		int start = textView
+			.VisualLines[0]
+			.FirstDocumentLine
+			.Offset;
 
-		int end = textView.VisualLines[^1].LastDocumentLine.EndOffset;
+		int end = textView
+			.VisualLines[^1]
+			.LastDocumentLine
+			.EndOffset;
 
-		int? selectedOffset = _textArea.Selection.SurroundingSegment?.Offset;
+		int? selectedOffset = _textArea
+			.Selection
+			.SurroundingSegment?
+			.Offset;
 
 		// The piece selected in this view keeps the pure color of the selection.
 		return SelectionOccurrenceFinder

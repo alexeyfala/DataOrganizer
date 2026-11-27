@@ -95,9 +95,13 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 			return;
 		}
 
-		double y = e.GetPosition(AssociatedObject).Y;
+		double y = e
+			.GetPosition(AssociatedObject)
+			.Y;
 
-		double height = AssociatedObject.Bounds.Height;
+		double height = AssociatedObject
+			.Bounds
+			.Height;
 
 		double maxY = Math.Max(AssociatedObject.Extent.Height - height, 0.0);
 
@@ -189,7 +193,9 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 			return false;
 		}
 
-		double offsetY = AssociatedObject.Offset.Y;
+		double offsetY = AssociatedObject
+			.Offset
+			.Y;
 
 		double maxY = Math.Max(AssociatedObject.Extent.Height - AssociatedObject.Bounds.Height, 0.0);
 

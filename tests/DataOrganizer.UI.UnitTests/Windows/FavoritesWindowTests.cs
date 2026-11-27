@@ -59,7 +59,9 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.NotepadButton);
 
@@ -120,19 +122,27 @@ internal sealed class FavoritesWindowTests
 		FavoritesViewModel viewModel = mock.Create<FavoritesViewModel>();
 
 		// The favorites show the files of the category chosen before.
-		viewModel.FavoritesSettings.SelectedCategoryId = viewModel.FavoritesSettings.Categories.Single().Id;
+		viewModel.FavoritesSettings.SelectedCategoryId = viewModel
+			.FavoritesSettings
+			.Categories
+			.Single()
+			.Id;
 
 		FavoritesWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel.PopupContent = shown;
 
 		viewModel.IsPopupOpen = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		int shownFiles = sut
 			.GetLogicalDescendants()
@@ -151,7 +161,9 @@ internal sealed class FavoritesWindowTests
 			// Act
 			viewModel.Dispose();
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		finally
 		{
@@ -194,7 +206,9 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.FixSwitch);
 
@@ -234,7 +248,9 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TextBlock title = sut
 			.GetLogicalDescendants()
@@ -280,7 +296,9 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.NotepadButton);
 
@@ -319,7 +337,9 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.NotepadButton);
 
@@ -387,19 +407,27 @@ internal sealed class FavoritesWindowTests
 		FavoritesViewModel viewModel = mock.Create<FavoritesViewModel>();
 
 		// The favorites show the files of the category chosen before.
-		viewModel.FavoritesSettings.SelectedCategoryId = viewModel.FavoritesSettings.Categories.Single().Id;
+		viewModel.FavoritesSettings.SelectedCategoryId = viewModel
+			.FavoritesSettings
+			.Categories
+			.Single()
+			.Id;
 
 		FavoritesWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel.PopupContent = shown;
 
 		viewModel.IsPopupOpen = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		int shownFiles = sut
 			.GetLogicalDescendants()
@@ -418,7 +446,9 @@ internal sealed class FavoritesWindowTests
 			// Act
 			viewModel.PopupContent = next;
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		finally
 		{
@@ -474,11 +504,15 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel.ShowFavorites();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Grid row = sut
 			.GetLogicalDescendants()
@@ -488,11 +522,17 @@ internal sealed class FavoritesWindowTests
 			.OfType<Grid>()
 			.First(static x => x.DataContext is FavoriteCategory && x.ContextFlyout is not null);
 
-		row.ContextFlyout!.ShowAt(row);
+		row
+			.ContextFlyout!
+			.ShowAt(row);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		bool isMenuOpen = row.ContextFlyout.IsOpen;
+		bool isMenuOpen = row
+			.ContextFlyout
+			.IsOpen;
 
 		ILogSink? previous = Logger.Sink;
 
@@ -503,7 +543,9 @@ internal sealed class FavoritesWindowTests
 			// Act
 			viewModel.PopupContent = FavoritesPopupContentKind.None;
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		finally
 		{
@@ -554,14 +596,18 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		object?[] shown =
 		[
@@ -612,12 +658,16 @@ internal sealed class FavoritesWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.ShowFavorites();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		object? shown = sut
 			.GetLogicalDescendants()

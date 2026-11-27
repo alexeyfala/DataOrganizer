@@ -299,9 +299,13 @@ internal sealed class FolderDtoTests
 
 		FolderDto subfolder = ItemDtoFactory.CreateFolderDto();
 
-		sut.Children.Add(ItemDtoFactory.CreateFileDto());
+		sut
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		sut.Children.Add(subfolder);
+		sut
+			.Children
+			.Add(subfolder);
 
 		// Act
 		List<ExplorerItemDtoBase> result = [.. sut.WithSubfolders()];
@@ -321,7 +325,9 @@ internal sealed class FolderDtoTests
 	{
 		child.Parent = parent;
 
-		parent.Children.Add(child);
+		parent
+			.Children
+			.Add(child);
 	}
 	#endregion
 }

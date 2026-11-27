@@ -40,7 +40,9 @@ internal sealed class ToastPresenterTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()

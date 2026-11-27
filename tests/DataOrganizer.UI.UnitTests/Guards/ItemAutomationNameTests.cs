@@ -37,7 +37,9 @@ internal sealed class ItemAutomationNameTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string itemName = ControlAutomationPeer

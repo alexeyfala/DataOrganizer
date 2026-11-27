@@ -102,13 +102,19 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TextArea secondText = GetShownTextArea(sut);
 
-		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+		sut.ViewModel.SelectedTab = sut
+			.ViewModel
+			.Tabs[0];
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// The first focus of both editors comes after a pause, which runs out here, so that it cannot come later.
 		time.RunJobsFor(PastThePause);
@@ -118,7 +124,9 @@ internal sealed class NotepadWindowTests
 		// Act
 		sut.Click(point, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		secondText.IsFocused
@@ -149,7 +157,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[0].Header));
 
@@ -194,11 +204,15 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.Click(sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		FlyoutButton item = sut
 			.GetVisualDescendants()
@@ -235,7 +249,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.Tabs.GetAddButton());
 
@@ -275,7 +291,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.Tabs.GetCloseButton(0));
 
@@ -327,9 +345,13 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		NotepadTabViewModel closed = sut.ViewModel.Tabs[1];
+		NotepadTabViewModel closed = sut
+			.ViewModel
+			.Tabs[1];
 
 		object? selected = null;
 
@@ -371,7 +393,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.HomeButton);
 
@@ -417,11 +441,15 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.Click(sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[0].Header)), MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		FlyoutButton item = sut
 			.GetVisualDescendants()
@@ -562,7 +590,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
@@ -621,13 +651,19 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TextArea secondText = GetShownTextArea(sut);
 
-		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+		sut.ViewModel.SelectedTab = sut
+			.ViewModel
+			.Tabs[0];
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// The first focus of both editors comes after a pause, which runs out here, so that it cannot come later.
 		time.RunJobsFor(PastThePause);
@@ -637,7 +673,9 @@ internal sealed class NotepadWindowTests
 
 		sut.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		secondText.IsFocused
@@ -668,7 +706,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.HomeButton);
 
@@ -721,7 +761,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		NotepadTabViewModel[] tabs = [.. sut.ViewModel.Tabs];
 
@@ -809,18 +851,24 @@ internal sealed class NotepadWindowTests
 			.DataTemplates
 			.Add(mock.Create<DocumentTabTemplate>());
 
-		NotepadTabViewModel tab = sut.ViewModel.Tabs[0];
+		NotepadTabViewModel tab = sut
+			.ViewModel
+			.Tabs[0];
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ChoiceSelector encodings = GetEncodingBlock(sut);
 
 		// Act
 		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, Encoding.Unicode.WebName);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		tab.Editor.Document.Text
@@ -889,14 +937,18 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ChoiceSelector encodings = GetEncodingBlock(sut);
 
 		// Act
 		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, Encoding.Unicode.WebName);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		encodings.SelectedChoice
@@ -927,10 +979,14 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
-		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+		sut.ViewModel.SelectedTab = sut
+			.ViewModel
+			.Tabs[0];
 
 		// Assert
 		sut.ViewModel.PreviousTab
@@ -984,7 +1040,9 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.ViewModel.Tabs[0].Name = "Notes";
@@ -1039,12 +1097,18 @@ internal sealed class NotepadWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
-		sut.ViewModel.SelectedTab = sut.ViewModel.Tabs[0];
+		sut.ViewModel.SelectedTab = sut
+			.ViewModel
+			.Tabs[0];
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Tabs.GetVisualDescendants().OfType<NotepadTabView>().Single().DataContext
@@ -1071,7 +1135,9 @@ internal sealed class NotepadWindowTests
 		// Act
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		IEnumerable<string?> texts = sut
@@ -1109,7 +1175,9 @@ internal sealed class NotepadWindowTests
 		// Act
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ToolTip.GetTip(sut.Tabs.GetHeaderText(name))

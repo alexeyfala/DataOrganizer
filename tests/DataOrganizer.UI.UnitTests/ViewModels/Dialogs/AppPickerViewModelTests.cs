@@ -35,7 +35,9 @@ internal sealed class AppPickerViewModelTests
 		AppPickerViewModel sut = mock.Create<AppPickerViewModel>();
 
 		// Act
-		await sut.BrowseCommand.ExecuteAsync(null);
+		await sut
+			.BrowseCommand
+			.ExecuteAsync(null);
 
 		// Assert
 		parameters!.AllowMultiple

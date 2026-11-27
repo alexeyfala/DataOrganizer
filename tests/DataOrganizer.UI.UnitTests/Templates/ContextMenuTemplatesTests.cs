@@ -68,7 +68,9 @@ internal sealed class ContextMenuTemplatesTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		menu.GetVisualDescendants()
@@ -122,7 +124,9 @@ internal sealed class ContextMenuTemplatesTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string?[] names =
@@ -178,7 +182,9 @@ internal sealed class ContextMenuTemplatesTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		string? header = menu

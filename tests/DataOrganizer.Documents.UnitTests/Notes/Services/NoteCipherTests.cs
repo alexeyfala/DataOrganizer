@@ -211,7 +211,9 @@ internal sealed class NoteCipherTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		file.Note = Encoding.UTF8.GetBytes(text);
+		file.Note = Encoding
+			.UTF8
+			.GetBytes(text);
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -239,7 +241,9 @@ internal sealed class NoteCipherTests
 	public void Decode_Zeroes_The_Decrypted_Buffer()
 	{
 		// Arrange
-		byte[] decrypted = Encoding.UTF8.GetBytes(RandomString.Create(20));
+		byte[] decrypted = Encoding
+			.UTF8
+			.GetBytes(RandomString.Create(20));
 
 		FolderDto keeper = ItemDtoFactory.CreateKeeperDto(isUnlocked: true);
 

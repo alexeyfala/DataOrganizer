@@ -35,9 +35,14 @@ internal sealed class NotepadTabViewTests
 		};
 
 		// Bytes of UTF-8, read in UTF-16 by choice.
-		viewModel.Editor.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
+		viewModel
+			.Editor
+			.Codec
+			.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
 
-		viewModel.Editor.RefreshEncoding();
+		viewModel
+			.Editor
+			.RefreshEncoding();
 
 		// Act
 		using NotepadTabView sut = new(viewModel);
@@ -106,14 +111,21 @@ internal sealed class NotepadTabViewTests
 
 		using NotepadTabView sut = new(viewModel);
 
-		TextDocument document = sut.Editor.Document!;
+		TextDocument document = sut
+			.Editor
+			.Document!;
 
 		// Act
 		document.Insert(0, "Hello");
 
-		string edited = viewModel.Editor.Document.Text;
+		string edited = viewModel
+			.Editor
+			.Document
+			.Text;
 
-		document.UndoStack.Undo();
+		document
+			.UndoStack
+			.Undo();
 
 		// Assert
 		edited
@@ -191,7 +203,9 @@ internal sealed class NotepadTabViewTests
 			Number = 1
 		};
 
-		viewModel.Editor.RefreshEncoding();
+		viewModel
+			.Editor
+			.RefreshEncoding();
 
 		// Act
 		using NotepadTabView sut = new(viewModel);
@@ -612,7 +626,9 @@ internal sealed class NotepadTabViewTests
 
 		viewModel.Editor.Document.AsTextDocument().Text = "Hi!";
 
-		viewModel.Editor.FindUnreadableEncodings();
+		viewModel
+			.Editor
+			.FindUnreadableEncodings();
 
 		// Act
 		using NotepadTabView sut = new(viewModel);

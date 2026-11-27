@@ -24,7 +24,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto child = ItemDtoFactory.CreateFileDto(isEditing: true);
 
-		root.Children.Add(child);
+		root
+			.Children
+			.Add(child);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -47,7 +49,9 @@ internal sealed class HierarchyExtensionsTests
 		// Arrange
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		ExplorerItemDtoBase[] hierarchy = [folder];
 
@@ -71,7 +75,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(nested);
+		root
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -97,7 +103,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		ExplorerItemDtoBase[] hierarchy = [folder, file];
 
@@ -146,7 +154,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		ExplorerItemDtoBase[] hierarchy = [folder, file];
 
@@ -177,9 +187,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto target = ItemDtoFactory.CreateFileDto();
 
-		nested.Children.Add(target);
+		nested
+			.Children
+			.Add(target);
 
-		root.Children.Add(nested);
+		root
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -207,9 +221,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto second = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(first);
+		folder
+			.Children
+			.Add(first);
 
-		folder.Children.Add(second);
+		folder
+			.Children
+			.Add(second);
 
 		ExplorerItemDtoBase[] hierarchy = [folder];
 
@@ -256,7 +274,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto target = ItemDtoFactory.CreateFileDto();
 
-		root.Children.Add(target);
+		root
+			.Children
+			.Add(target);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -287,11 +307,17 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
 
-		nested.Children.Add(nestedFile);
+		nested
+			.Children
+			.Add(nestedFile);
 
-		folder.Children.Add(folderFile);
+		folder
+			.Children
+			.Add(folderFile);
 
-		folder.Children.Add(nested);
+		folder
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [folder, file];
 
@@ -317,9 +343,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto file2 = ItemDtoFactory.CreateFileDto();
 
-		root.Children.Add(file1);
+		root
+			.Children
+			.Add(file1);
 
-		root.Children.Add(file2);
+		root
+			.Children
+			.Add(file2);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -349,7 +379,9 @@ internal sealed class HierarchyExtensionsTests
 
 		foreach (FileDto file in files)
 		{
-			root.Children.Add(file);
+			root
+				.Children
+				.Add(file);
 		}
 
 		ExplorerItemDtoBase[] hierarchy = [root];
@@ -379,9 +411,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto target = ItemDtoFactory.CreateFileDto();
 
-		nested.Children.Add(target);
+		nested
+			.Children
+			.Add(target);
 
-		root.Children.Add(nested);
+		root
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -425,9 +461,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto second = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(first);
+		folder
+			.Children
+			.Add(first);
 
-		folder.Children.Add(second);
+		folder
+			.Children
+			.Add(second);
 
 		ExplorerItemDtoBase[] hierarchy = [folder];
 
@@ -453,7 +493,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		ExplorerItemDtoBase[] hierarchy = [folder, file];
 
@@ -482,7 +524,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto target = ItemDtoFactory.CreateFileDto();
 
-		root.Children.Add(target);
+		root
+			.Children
+			.Add(target);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -506,9 +550,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
 
-		root.Children.Add(file);
+		root
+			.Children
+			.Add(file);
 
-		root.Children.Add(ItemDtoFactory.CreateFolderDto());
+		root
+			.Children
+			.Add(ItemDtoFactory.CreateFolderDto());
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -530,7 +578,9 @@ internal sealed class HierarchyExtensionsTests
 		// Arrange
 		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(ItemDtoFactory.CreateFileDto());
+		root
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -554,7 +604,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FolderDto target = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(target);
+		root
+			.Children
+			.Add(target);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -576,7 +628,9 @@ internal sealed class HierarchyExtensionsTests
 		// Arrange
 		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(ItemDtoFactory.CreateFolderDto());
+		root
+			.Children
+			.Add(ItemDtoFactory.CreateFolderDto());
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -598,7 +652,9 @@ internal sealed class HierarchyExtensionsTests
 		// Arrange
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto(kind: EntityKind.Dataset));
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto(kind: EntityKind.Dataset));
 
 		ExplorerItemDtoBase[] hierarchy = [folder];
 
@@ -624,15 +680,23 @@ internal sealed class HierarchyExtensionsTests
 		// Arrange
 		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(ItemDtoFactory.CreateFileDto());
+		root
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		root.Children.Add(ItemDtoFactory.CreateFileDto());
+		root
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		nested.Children.Add(ItemDtoFactory.CreateFileDto());
+		nested
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		root.Children.Add(nested);
+		root
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -663,13 +727,21 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto dataset = ItemDtoFactory.CreateFileDto(kind: EntityKind.Dataset);
 
-		root.Children.Add(ItemDtoFactory.CreateFileDto());
+		root
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		nested.Children.Add(dataset);
+		nested
+			.Children
+			.Add(dataset);
 
-		nested.Children.Add(ItemDtoFactory.CreateFileDto());
+		nested
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		root.Children.Add(nested);
+		root
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -705,11 +777,17 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
 
-		nested.Children.Add(nestedFile);
+		nested
+			.Children
+			.Add(nestedFile);
 
-		folder.Children.Add(folderFile);
+		folder
+			.Children
+			.Add(folderFile);
 
-		folder.Children.Add(nested);
+		folder
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [folder, file];
 
@@ -735,9 +813,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FileDto idle = ItemDtoFactory.CreateFileDto();
 
-		root.Children.Add(editing);
+		root
+			.Children
+			.Add(editing);
 
-		root.Children.Add(idle);
+		root
+			.Children
+			.Add(idle);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -766,7 +848,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		first.Children.Add(nested);
+		first
+			.Children
+			.Add(nested);
 
 		ExplorerItemDtoBase[] hierarchy = [first, second];
 
@@ -790,9 +874,13 @@ internal sealed class HierarchyExtensionsTests
 
 		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(nested);
+		root
+			.Children
+			.Add(nested);
 
-		root.Children.Add(ItemDtoFactory.CreateFileDto());
+		root
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -820,7 +908,9 @@ internal sealed class HierarchyExtensionsTests
 
 		FolderDto target = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(target);
+		root
+			.Children
+			.Add(target);
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -855,9 +945,13 @@ internal sealed class HierarchyExtensionsTests
 
 		child2.Index = 10;
 
-		folder.Children.Add(child1);
+		folder
+			.Children
+			.Add(child1);
 
-		folder.Children.Add(child2);
+		folder
+			.Children
+			.Add(child2);
 
 		FileDto rootFile = ItemDtoFactory.CreateFileDto();
 
@@ -898,11 +992,17 @@ internal sealed class HierarchyExtensionsTests
 
 		earlier.Index = 10;
 
-		subfolder.Children.Add(later);
+		subfolder
+			.Children
+			.Add(later);
 
-		subfolder.Children.Add(earlier);
+		subfolder
+			.Children
+			.Add(earlier);
 
-		folder.Children.Add(subfolder);
+		folder
+			.Children
+			.Add(subfolder);
 
 		// Act
 		folder.SortChildrenByIndexRecursively();

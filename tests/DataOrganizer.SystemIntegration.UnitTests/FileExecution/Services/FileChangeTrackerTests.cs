@@ -178,7 +178,9 @@ internal sealed class FileChangeTrackerTests
 		{
 			builder.RegisterInstance<IFileSystem>(files);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(notification);
 
@@ -257,7 +259,9 @@ internal sealed class FileChangeTrackerTests
 
 			builder.RegisterInstance(fileContentsWriter);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
@@ -355,7 +359,9 @@ internal sealed class FileChangeTrackerTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -460,7 +466,9 @@ internal sealed class FileChangeTrackerTests
 		{
 			builder.RegisterInstance<IFileSystem>(files);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
@@ -795,7 +803,9 @@ internal sealed class FileChangeTrackerTests
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -812,7 +822,9 @@ internal sealed class FileChangeTrackerTests
 			FilePath = TrackedFilePath
 		};
 
-		DateTime updatedAt = parameters.File.UpdatedAt;
+		DateTime updatedAt = parameters
+			.File
+			.UpdatedAt;
 
 		// Act
 		await sut.TrackChangesAsync(parameters, cancellation.Token);
@@ -1013,7 +1025,9 @@ internal sealed class FileChangeTrackerTests
 
 			builder.RegisterInstance(dbFailureReporter);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder
 				.RegisterType<FakeTimeProvider>()
@@ -1137,7 +1151,9 @@ internal sealed class FileChangeTrackerTests
 
 			builder.RegisterInstance(fileContentsWriter);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});
@@ -1306,7 +1322,9 @@ internal sealed class FileChangeTrackerTests
 				.RegisterType<FileContentsWriter>()
 				.As<IFileContentsWriter>();
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();

@@ -63,9 +63,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -122,9 +126,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -171,7 +179,9 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance<TimeProvider>(time);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -240,9 +250,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -296,9 +310,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -343,7 +361,9 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -388,9 +408,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -433,7 +457,9 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -492,9 +518,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -552,7 +582,9 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance<TimeProvider>(time);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -609,9 +641,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();
@@ -718,9 +754,13 @@ internal sealed class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterType<SystemTextJsonSerializer>().As<IJsonSerializer>();
+			builder
+				.RegisterType<SystemTextJsonSerializer>()
+				.As<IJsonSerializer>();
 
-			builder.RegisterType<FakeTimeProvider>().As<TimeProvider>();
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
 		});
 
 		UpdateCheckService sut = mock.Create<UpdateCheckService>();

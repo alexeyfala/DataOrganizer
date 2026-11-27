@@ -68,7 +68,9 @@ internal sealed class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -157,7 +159,9 @@ internal sealed class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 		});
@@ -1179,7 +1183,9 @@ internal sealed class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(hotkey.ToHotkeyDtos());
 
-		byte[] decrypted = TextDefaults.Encoding.GetBytes(LoremIpsum);
+		byte[] decrypted = TextDefaults
+			.Encoding
+			.GetBytes(LoremIpsum);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

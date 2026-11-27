@@ -294,7 +294,9 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 				return;
 			}
 
-			double currentY = scrollViewer.Offset.Y;
+			double currentY = scrollViewer
+				.Offset
+				.Y;
 
 			double step = Math.Sign(delta) * Math.Min(Math.Abs(delta), stepPx);
 
@@ -456,7 +458,9 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 		// the records may have moved off.
 		if (ViewState is not { } state || state.TopRecordIndex < 0 || state.TopRecordIndex >= records.Count)
 		{
-			scrollViewer.Offset = scrollViewer.Offset.WithY(0.0);
+			scrollViewer.Offset = scrollViewer
+				.Offset
+				.WithY(0.0);
 
 			return;
 		}

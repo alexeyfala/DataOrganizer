@@ -300,7 +300,9 @@ internal sealed class ExplorerItemSignalsBehavior : StyledElementBehavior<ItemsC
 
 		token.ThrowIfCancellationRequested();
 
-		return loaded.Task.IsCompleted;
+		return loaded
+			.Task
+			.IsCompleted;
 	}
 	#endregion
 }

@@ -68,7 +68,9 @@ internal sealed class ScrollMarkMarginTests
 		// Act
 		window.Click(point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		scrollViewer.Offset.Y
@@ -199,7 +201,9 @@ internal sealed class ScrollMarkMarginTests
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ToolTip tip = GetTip(sut).FindAncestorOfType<ToolTip>()!;
@@ -447,7 +451,9 @@ internal sealed class ScrollMarkMarginTests
 		// Act
 		window.MouseMove(sut.TranslatePoint(new(sut.Bounds.Width / 2.0, row), window) ?? default);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		StackPanel tip = GetTip(sut);
@@ -491,7 +497,9 @@ internal sealed class ScrollMarkMarginTests
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -549,7 +557,9 @@ internal sealed class ScrollMarkMarginTests
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
-		editor.Bookmarks.Toggle(500);
+		editor
+			.Bookmarks
+			.Toggle(500);
 
 		editor.Select(editor.Document.GetLineByNumber(500).Offset, 6);
 
@@ -591,7 +601,10 @@ internal sealed class ScrollMarkMarginTests
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
-		editor.CaretOffset = editor.Document.GetLineByNumber(500).Offset;
+		editor.CaretOffset = editor
+			.Document
+			.GetLineByNumber(500)
+			.Offset;
 
 		// Act
 		double[] rows = GetRows(sut.Draw(), ((ISolidColorBrush)editor.TextArea.Foreground!).Color);
@@ -621,13 +634,21 @@ internal sealed class ScrollMarkMarginTests
 
 		ScrollMarkMargin sut = GetMargin(editor);
 
-		editor.Bookmarks.Toggle(1);
+		editor
+			.Bookmarks
+			.Toggle(1);
 
-		editor.Bookmarks.Toggle(500);
+		editor
+			.Bookmarks
+			.Toggle(500);
 
-		editor.Bookmarks.Toggle(1000);
+		editor
+			.Bookmarks
+			.Toggle(1000);
 
-		double height = sut.Bounds.Height;
+		double height = sut
+			.Bounds
+			.Height;
 
 		// Act
 		Rect[] marks = GetShapes(sut.Draw(), GetBookmarkBrush());
@@ -665,7 +686,9 @@ internal sealed class ScrollMarkMarginTests
 
 		sut.UpdateMarks();
 
-		double height = sut.Bounds.Height;
+		double height = sut
+			.Bounds
+			.Height;
 
 		// Act
 		double[] rows = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color);
@@ -692,7 +715,9 @@ internal sealed class ScrollMarkMarginTests
 			Document = TextDocumentFactory.CreateDocument(lineCount: 1000)
 		};
 
-		editor.Bookmarks.Toggle(500);
+		editor
+			.Bookmarks
+			.Toggle(500);
 
 		// Act
 		HeadlessWindow.ShowInFluentTheme(editor);
@@ -761,7 +786,9 @@ internal sealed class ScrollMarkMarginTests
 
 		foreach (int line in Enumerable.Range(1, 1000))
 		{
-			editor.Bookmarks.Toggle(line);
+			editor
+				.Bookmarks
+				.Toggle(line);
 		}
 
 		// Act

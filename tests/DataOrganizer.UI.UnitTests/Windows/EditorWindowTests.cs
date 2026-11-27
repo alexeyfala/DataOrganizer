@@ -122,7 +122,9 @@ internal sealed class EditorWindowTests
 				{
 					added.Parent = folder;
 
-					folder.Children.Add(added);
+					folder
+						.Children
+						.Add(added);
 
 					return answer.Task;
 				});
@@ -226,13 +228,17 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(folder);
+		viewModel
+			.Hierarchy
+			.Add(folder);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		await viewModel.AddAsync(
@@ -240,7 +246,9 @@ internal sealed class EditorWindowTests
 			EntityKind.File,
 			folder);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isExpanded = sut.FindTreeItem(folder) is { IsExpanded: true };
 
@@ -546,7 +554,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button button = sut
 			.GetVisualDescendants()
@@ -556,7 +566,9 @@ internal sealed class EditorWindowTests
 		// Act
 		sut.Click(sut.CenterOf(button));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isOpened = viewModel.IsRightSideSheetOpened;
 
@@ -610,13 +622,17 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button button = sut
 			.GetVisualDescendants()
@@ -626,7 +642,9 @@ internal sealed class EditorWindowTests
 		// Act
 		sut.Click(sut.CenterOf(button));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		RightSideSheetContentKind content = viewModel.RightSideSheetContent;
 
@@ -673,7 +691,9 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(favorite);
+		viewModel
+			.Hierarchy
+			.Add(favorite);
 
 		EditorWindow sut = new(viewModel);
 
@@ -682,7 +702,9 @@ internal sealed class EditorWindowTests
 		// The menu is in the side drawer, which the user opens first.
 		viewModel.IsLeftDrawerOpened = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		NavigationDrawer drawer = sut
 			.GetLogicalDescendants()
@@ -790,7 +812,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.NotepadButton);
 
@@ -819,11 +843,15 @@ internal sealed class EditorWindowTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
 			.RegisterType<WorkSession>()
@@ -832,29 +860,41 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(outer);
+		viewModel
+			.Hierarchy
+			.Add(outer);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeViewItem outerItem = sut.FindTreeItem(outer)!;
 
 		outerItem.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeViewItem innerItem = sut.FindTreeItem(inner)!;
 
 		innerItem.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		sut.FindTreeItem(file)!.SetCurrentValue(TreeViewItem.IsSelectedProperty, true);
+		sut
+			.FindTreeItem(file)!
+			.SetCurrentValue(TreeViewItem.IsSelectedProperty, true);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeView tree = sut
 			.GetVisualDescendants()
@@ -869,7 +909,9 @@ internal sealed class EditorWindowTests
 			.CollapseAllFoldersCommand
 			.ExecuteAsync(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool[] states = [outerItem.IsExpanded, innerItem.IsExpanded];
 
@@ -935,20 +977,28 @@ internal sealed class EditorWindowTests
 		// The launcher gives every editor window the width of its navigation column.
 		viewModel.SetDefaultNavigationColumnWidth(1000.0);
 
-		viewModel.Hierarchy.Add(dto);
+		viewModel
+			.Hierarchy
+			.Add(dto);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Grid row = sut.FindTreeRow(dto)!;
 
 		// Act
-		row.ContextFlyout!.ShowAt(row);
+		row
+			.ContextFlyout!
+			.ShowAt(row);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		object?[] parameters =
 		[
@@ -959,7 +1009,9 @@ internal sealed class EditorWindowTests
 				.Select(static x => x.CommandParameter)
 		];
 
-		row.ContextFlyout.Hide();
+		row
+			.ContextFlyout
+			.Hide();
 
 		sut.Close();
 
@@ -1011,20 +1063,26 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeViewItem item = sut.FindTreeItem(file)!;
 
 		IBrush? background = item.Background;
 
 		// Act
-		await viewModel.CopyContentByContextMenuCommand.ExecuteAsync(file);
+		await viewModel
+			.CopyContentByContextMenuCommand
+			.ExecuteAsync(file);
 
 		IBrush? highlight = item.Background;
 
@@ -1052,20 +1110,26 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeViewItem item = sut.FindTreeItem(file)!;
 
 		IBrush? background = item.Background;
 
 		// Act
-		viewModel.CopyNameCommand.Execute(file);
+		viewModel
+			.CopyNameCommand
+			.Execute(file);
 
 		IBrush? highlight = item.Background;
 
@@ -1100,16 +1164,22 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
-		viewModel.CopyNameCommand.Execute(file);
+		viewModel
+			.CopyNameCommand
+			.Execute(file);
 
 		sut.Close();
 
@@ -1157,7 +1227,9 @@ internal sealed class EditorWindowTests
 				.DeleteAsync(checkedFile, Arg.Any<Collection<ExplorerItemDtoBase>>(), Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
-					folder.Children.Remove(checkedFile);
+					folder
+						.Children
+						.Remove(checkedFile);
 
 					return answer.Task;
 				});
@@ -1262,7 +1334,9 @@ internal sealed class EditorWindowTests
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
-					folder.Children.Remove(checkedFile);
+					folder
+						.Children
+						.Remove(checkedFile);
 
 					return answer.Task;
 				});
@@ -1359,17 +1433,23 @@ internal sealed class EditorWindowTests
 		// The launcher gives every editor window the width of its navigation column.
 		viewModel.SetDefaultNavigationColumnWidth(1000.0);
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.Click(sut.CenterOf(sut.FindTreeRow(file)!));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		await viewModel
@@ -1430,13 +1510,17 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		int shownFiles = sut
 			.GetVisualDescendants()
@@ -1452,7 +1536,9 @@ internal sealed class EditorWindowTests
 			// Act
 			viewModel.Dispose();
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		finally
 		{
@@ -1490,13 +1576,17 @@ internal sealed class EditorWindowTests
 		// The launcher gives every editor window the width of its navigation column.
 		viewModel.SetDefaultNavigationColumnWidth(1000.0);
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Grid item = sut.FindTreeRow(file)!;
 
@@ -1509,7 +1599,9 @@ internal sealed class EditorWindowTests
 
 		bool isOpen = item.ContextFlyout is { IsOpen: true };
 
-		item.ContextFlyout?.Hide();
+		item
+			.ContextFlyout?
+			.Hide();
 
 		sut.Close();
 
@@ -1543,7 +1635,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = sut.CenterOf(sut.NotepadButton);
 
@@ -1592,7 +1686,9 @@ internal sealed class EditorWindowTests
 		// Act
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.Close();
 
@@ -1634,7 +1730,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button button = sut
 			.GetVisualDescendants()
@@ -1643,7 +1741,9 @@ internal sealed class EditorWindowTests
 
 		sut.Click(sut.CenterOf(button));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool wasOpened = viewModel.IsRightSideSheetOpened;
 
@@ -1652,7 +1752,9 @@ internal sealed class EditorWindowTests
 
 		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isOpened = viewModel.IsRightSideSheetOpened;
 
@@ -1708,13 +1810,17 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Visual[] list =
 		[
@@ -1731,7 +1837,9 @@ internal sealed class EditorWindowTests
 
 		target.Focus();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool wasFocusInside = sut
 			.GetVisualDescendants()
@@ -1744,7 +1852,9 @@ internal sealed class EditorWindowTests
 
 		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isOpened = viewModel.IsRightSideSheetOpened;
 
@@ -1791,26 +1901,38 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		sut.NotepadButton.Focus();
+		sut
+			.NotepadButton
+			.Focus();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		bool wasButtonFocused = sut.NotepadButton.IsKeyboardFocusWithin;
+		bool wasButtonFocused = sut
+			.NotepadButton
+			.IsKeyboardFocusWithin;
 
 		// Act
 		sut.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
 		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isOpened = viewModel.IsRightSideSheetOpened;
 
@@ -1867,13 +1989,17 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button button = sut
 			.GetVisualDescendants()
@@ -1888,14 +2014,18 @@ internal sealed class EditorWindowTests
 
 		button.Focus();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
 		sut.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isOpened = viewModel.IsRightSideSheetOpened;
 
@@ -1921,7 +2051,9 @@ internal sealed class EditorWindowTests
 
 		file.Parent = folder;
 
-		folder.Children.Add(file);
+		folder
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
 			.RegisterType<WorkSession>()
@@ -1932,31 +2064,43 @@ internal sealed class EditorWindowTests
 
 		first.IsReadOnly = isReadOnly;
 
-		first.Hierarchy.Add(folder);
+		first
+			.Hierarchy
+			.Add(folder);
 
 		EditorWindow firstWindow = new(first);
 
 		firstWindow.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		firstWindow.FindTreeItem(folder)!.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
+		firstWindow
+			.FindTreeItem(folder)!
+			.SetCurrentValue(TreeViewItem.IsExpandedProperty, true);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// The switch to the favorites closes the window and drops its view model.
 		firstWindow.Close();
 
 		first.Dispose();
 
-		using ILifetimeScope scope = mock.Container.BeginLifetimeScope();
+		using ILifetimeScope scope = mock
+			.Container
+			.BeginLifetimeScope();
 
 		EditorWindow sut = new(scope.Resolve<EditorViewModel>());
 
 		// Act
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isExpanded = sut.FindTreeItem(folder) is { IsExpanded: true };
 
@@ -1981,7 +2125,9 @@ internal sealed class EditorWindowTests
 
 		file.Parent = folder;
 
-		folder.Children.Add(file);
+		folder
+			.Children
+			.Add(file);
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
@@ -1997,13 +2143,17 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(folder);
+		viewModel
+			.Hierarchy
+			.Add(folder);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeViewItem item = sut.FindTreeItem(folder)!;
 
@@ -2033,11 +2183,15 @@ internal sealed class EditorWindowTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
 			.RegisterType<WorkSession>()
@@ -2046,20 +2200,26 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(outer);
+		viewModel
+			.Hierarchy
+			.Add(outer);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		await viewModel
 			.ExpandAllFoldersCommand
 			.ExecuteAsync(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool[] states =
 		[
@@ -2102,14 +2262,20 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.IsLeftDrawerOpened = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		bool isItemEnabled = sut.ClipboardHistorySeeding.IsEffectivelyEnabled;
+		bool isItemEnabled = sut
+			.ClipboardHistorySeeding
+			.IsEffectivelyEnabled;
 
 		bool hasTip = ToolTip.GetTip(sut.ClipboardHistorySeeding) is not null;
 
@@ -2252,7 +2418,9 @@ internal sealed class EditorWindowTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Hide();
 
@@ -2299,7 +2467,9 @@ internal sealed class EditorWindowTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.Nodes.Single().IsSelected = true;
@@ -2336,7 +2506,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		FindNavigationColumn(sut).Width = new GridLength(222.0);
@@ -2373,7 +2545,9 @@ internal sealed class EditorWindowTests
 		// Act
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		GridLength width = FindNavigationColumn(sut).Width;
 
@@ -2402,18 +2576,24 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.Receive(new ShowInEditorMessage(file.Id));
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
@@ -2542,13 +2722,17 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		int shownFiles = sut
 			.GetVisualDescendants()
@@ -2564,7 +2748,9 @@ internal sealed class EditorWindowTests
 			// Act
 			viewModel.RightSideSheetContent = next;
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		finally
 		{
@@ -2626,13 +2812,17 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Grid row = sut
 			.GetVisualDescendants()
@@ -2642,11 +2832,17 @@ internal sealed class EditorWindowTests
 			.OfType<Grid>()
 			.First(static x => x.DataContext is FileDto && x.ContextFlyout is LazyMenuFlyout);
 
-		row.ContextFlyout!.ShowAt(row);
+		row
+			.ContextFlyout!
+			.ShowAt(row);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		bool isMenuOpen = row.ContextFlyout!.IsOpen;
+		bool isMenuOpen = row
+			.ContextFlyout!
+			.IsOpen;
 
 		ILogSink? previous = Logger.Sink;
 
@@ -2657,7 +2853,9 @@ internal sealed class EditorWindowTests
 			// Act
 			viewModel.RightSideSheetContent = RightSideSheetContentKind.None;
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		finally
 		{
@@ -2696,7 +2894,9 @@ internal sealed class EditorWindowTests
 					{
 						child.Parent = folder;
 
-						folder.Children.Add(child);
+						folder
+							.Children
+							.Add(child);
 					}
 
 					return new ExplorerItemDtoBase[] { folder, ItemDtoFactory.CreateFileDto() };
@@ -2730,13 +2930,17 @@ internal sealed class EditorWindowTests
 			// Act
 			sut.Show();
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 
 			await viewModel
 				.ExpandAllFoldersCommand
 				.ExecuteAsync(null);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 
 			ScrollViewer scroller = sut
 				.GetVisualDescendants()
@@ -2748,7 +2952,9 @@ internal sealed class EditorWindowTests
 			{
 				scroller.Offset = new(0.0, scroller.Extent.Height * share);
 
-				Dispatcher.UIThread.RunJobs();
+				Dispatcher
+					.UIThread
+					.RunJobs();
 			}
 
 			sut.Close();
@@ -2784,7 +2990,9 @@ internal sealed class EditorWindowTests
 					{
 						child.Parent = folder;
 
-						folder.Children.Add(child);
+						folder
+							.Children
+							.Add(child);
 					}
 
 					return new ExplorerItemDtoBase[] { folder, ItemDtoFactory.CreateFileDto() };
@@ -2809,7 +3017,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ScrollViewer scroller = sut
 			.GetVisualDescendants()
@@ -2822,7 +3032,9 @@ internal sealed class EditorWindowTests
 		{
 			scroller.Offset = new(0.0, scroller.Extent.Height * share);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 
 		(ExplorerItemDtoBase Dto, int Count)[] shown =
@@ -2880,14 +3092,18 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		object? shown = sut
 			.GetVisualDescendants()
@@ -2933,14 +3149,18 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel
 			.ShowExecutingFilesCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Control[] shown =
 		[
@@ -3006,13 +3226,17 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel
 			.ShowCopyHistoryCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		int shownFiles = sut
 			.GetVisualDescendants()
@@ -3028,7 +3252,9 @@ internal sealed class EditorWindowTests
 			// Act
 			viewModel.ShowFavorites();
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		finally
 		{
@@ -3064,18 +3290,26 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
-		viewModel.ShowInListCommand.Execute(file.Id);
+		viewModel
+			.ShowInListCommand
+			.Execute(file.Id);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == file);
 
 		sut.Close();
 
@@ -3103,11 +3337,15 @@ internal sealed class EditorWindowTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
 			.RegisterType<WorkSession>()
@@ -3124,7 +3362,9 @@ internal sealed class EditorWindowTests
 			.Hierarchy
 			.AddRange(ItemDtoFactory.CreateFileDtos(100));
 
-		viewModel.Hierarchy.Add(outer);
+		viewModel
+			.Hierarchy
+			.Add(outer);
 
 		EditorWindow sut = new(viewModel);
 
@@ -3137,7 +3377,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.ShowObject(file.Id);
@@ -3188,14 +3430,20 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.ShowObject(shown.Id);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == shown);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => viewModel.SelectedNode?.Model == shown);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isShown = sut.FindTreeItem(shown) is { IsEffectivelyVisible: true };
 
@@ -3222,11 +3470,15 @@ internal sealed class EditorWindowTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
@@ -3242,18 +3494,24 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(outer);
+		viewModel
+			.Hierarchy
+			.Add(outer);
 
 		EditorWindow sut = new(viewModel);
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.ShowObject(file.Id);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool[] states =
 		[
@@ -3296,11 +3554,15 @@ internal sealed class EditorWindowTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -3318,7 +3580,9 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(outer);
+		viewModel
+			.Hierarchy
+			.Add(outer);
 
 		EditorWindow sut = new(viewModel);
 
@@ -3331,7 +3595,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeViewItem item = sut.FindTreeItem(file)!;
 
@@ -3370,7 +3636,9 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(file);
+		viewModel
+			.Hierarchy
+			.Add(file);
 
 		EditorWindow sut = new(viewModel);
 
@@ -3383,7 +3651,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		TreeViewItem item = sut.FindTreeItem(file)!;
 
@@ -3422,11 +3692,15 @@ internal sealed class EditorWindowTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
 			.RegisterType<WorkSession>()
@@ -3435,7 +3709,9 @@ internal sealed class EditorWindowTests
 
 		EditorViewModel viewModel = mock.Create<EditorViewModel>();
 
-		viewModel.Hierarchy.Add(outer);
+		viewModel
+			.Hierarchy
+			.Add(outer);
 
 		EditorWindow sut = new(viewModel);
 
@@ -3448,7 +3724,9 @@ internal sealed class EditorWindowTests
 
 		sut.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.ShowObject(file.Id);

@@ -38,7 +38,10 @@ internal sealed class ConsoleLogViewerTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(7);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(7);
 
 		// Act
 		for (int i = 0; i < 2; i++)
@@ -46,7 +49,9 @@ internal sealed class ConsoleLogViewerTests
 			window.Click(point);
 		}
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SelectedText
@@ -77,7 +82,9 @@ internal sealed class ConsoleLogViewerTests
 				.Range(1, 1000)
 				.Select(static x => $"Line {x:D4}")));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ScrollViewer scrollViewer = GetScrollViewer(sut);

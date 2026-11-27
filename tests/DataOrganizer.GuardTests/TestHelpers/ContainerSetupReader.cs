@@ -36,7 +36,9 @@ internal static partial class ContainerSetupReader
 
 				string lambda = method.Code[open..(close + 1)];
 
-				string builder = setups[i].Groups["builder"].Value;
+				string builder = setups[i]
+					.Groups["builder"]
+					.Value;
 
 				yield return new ContainerSetup
 				{
@@ -129,7 +131,9 @@ internal static partial class ContainerSetupReader
 	/// </summary>
 	private static string? ReadInstanceType(string expression, string methodCode, string code)
 	{
-		string text = expression.Trim().TrimEnd('!');
+		string text = expression
+			.Trim()
+			.TrimEnd('!');
 
 		if (SubstituteRegex().Match(text) is { Success: true } substitute)
 		{
@@ -186,7 +190,9 @@ internal static partial class ContainerSetupReader
 				continue;
 			}
 
-			int open = registration.Groups["open"].Index;
+			int open = registration
+				.Groups["open"]
+				.Index;
 
 			int close = CodeText.FindClosing(lambda, open);
 
@@ -194,7 +200,9 @@ internal static partial class ContainerSetupReader
 
 			string chain = lambda[(close + 1)..CodeText.FindStatementEnd(lambda, close + 1)];
 
-			string kind = registration.Groups["kind"].Value;
+			string kind = registration
+				.Groups["kind"]
+				.Value;
 
 			string? generic = registration.Groups["generic"].Success ? TypeCatalog.Normalize(registration.Groups["generic"].Value) : null;
 

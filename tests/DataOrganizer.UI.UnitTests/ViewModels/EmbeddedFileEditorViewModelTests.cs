@@ -226,7 +226,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 		{
 			if (e.PropertyName == nameof(DocumentEditorViewModel.ViewState))
 			{
-				isOnUiThread = Dispatcher.UIThread.CheckAccess();
+				isOnUiThread = Dispatcher
+					.UIThread
+					.CheckAccess();
 			}
 		};
 
@@ -573,7 +575,10 @@ internal sealed class EmbeddedFileEditorViewModelTests
 
 		using EmbeddedFileEditorViewModel sut = mock.Create<EmbeddedFileEditorViewModel>();
 
-		TextDocument document = sut.Editor.Document.AsTextDocument();
+		TextDocument document = sut
+			.Editor
+			.Document
+			.AsTextDocument();
 
 		// Act
 		await sut.EditorLoaded();
@@ -733,7 +738,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 	public async Task EditorLoaded_Loads_Text_Into_Document()
 	{
 		// Arrange
-		byte[] contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10));
+		byte[] contents = TextDefaults
+			.Encoding
+			.GetBytes(RandomString.Create(10));
 
 		double fontSize = RandomValues.CreateDouble(6.0, 64.0);
 
@@ -1023,7 +1030,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TypingPause.Delay / 2.0);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved.Count > 0);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => saved.Count > 0);
 
 		// Assert
 		savedWhileTyping
@@ -1520,7 +1529,10 @@ internal sealed class EmbeddedFileEditorViewModelTests
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is no state.
-		int[]? bookmarks = sut.Editor.ViewState?.Bookmarks;
+		int[]? bookmarks = sut
+			.Editor
+			.ViewState?
+			.Bookmarks;
 
 		bookmarks
 			.Should()
@@ -1629,7 +1641,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 		await sut.EditorLoaded();
 
 		// Assert
-		DocumentViewState? view = sut.Editor.ViewState;
+		DocumentViewState? view = sut
+			.Editor
+			.ViewState;
 
 		int[]? kept = isMostlyFolded ? view?.UnfoldedBlocks : view?.FoldedBlocks;
 
@@ -1898,7 +1912,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 
 		time.Advance(TimeSpan.FromMilliseconds(1));
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved is not null);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => saved is not null);
 
 		// Assert
 		savedInPause
@@ -2152,7 +2168,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 	public async Task EditorLoaded_Wipes_The_Contents_It_Read()
 	{
 		// Arrange
-		byte[] contents = TextDefaults.Encoding.GetBytes(RandomString.Create(10));
+		byte[] contents = TextDefaults
+			.Encoding
+			.GetBytes(RandomString.Create(10));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -2254,16 +2272,23 @@ internal sealed class EmbeddedFileEditorViewModelTests
 
 		sut.Editor.Document.AsTextDocument().Text = "Привет";
 
-		byte[] expected = Encoding.UTF8.GetBytes("Привет");
+		byte[] expected = Encoding
+			.UTF8
+			.GetBytes("Привет");
 
-		string reread = CodePagesEncodingProvider.Instance.GetEncoding(1251)!.GetString(expected);
+		string reread = CodePagesEncodingProvider
+			.Instance
+			.GetEncoding(1251)!
+			.GetString(expected);
 
 		// Act
 		sut.Editor.Encoding = "windows-1251";
 
 		time.Advance(TypingPause.Delay);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => saved is not null && sut.Editor.Document.Text == reread);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => saved is not null && sut.Editor.Document.Text == reread);
 
 		// Assert
 		saved
@@ -2399,7 +2424,10 @@ internal sealed class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		TextDocument document = sut.Editor.Document.AsTextDocument();
+		TextDocument document = sut
+			.Editor
+			.Document
+			.AsTextDocument();
 
 		// Act
 		sut.Editor.Encoding = "cp866";
@@ -2483,7 +2511,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 		await sut.EditorLoaded();
 
 		// Act
-		sut.Editor.Encoding = Encoding.UTF8.WebName;
+		sut.Editor.Encoding = Encoding
+			.UTF8
+			.WebName;
 
 		// Assert
 		string? stored = new SystemTextJsonSerializer().Deserialize<FileEditorState>(reported!).Encoding;
@@ -2671,7 +2701,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 		await sut.EditorLoaded();
 
 		// Act
-		sut.Editor.Encoding = Encoding.Unicode.WebName;
+		sut.Editor.Encoding = Encoding
+			.Unicode
+			.WebName;
 
 		// Assert
 		notification
@@ -3627,7 +3659,10 @@ internal sealed class EmbeddedFileEditorViewModelTests
 
 		await sut.EditorLoaded();
 
-		string text = sut.Editor.Document.Text;
+		string text = sut
+			.Editor
+			.Document
+			.Text;
 
 		sut.Editor.Document.AsTextDocument().Text = $"{text}😀";
 
@@ -4417,7 +4452,9 @@ internal sealed class EmbeddedFileEditorViewModelTests
 		sut.Initialize(EmbeddedEditorSetupFactory.CreateSetup(fileId: fileId));
 
 		// Act
-		sut.ShowInListCommand.Execute(null);
+		sut
+			.ShowInListCommand
+			.Execute(null);
 
 		// Assert
 		sent!.Id

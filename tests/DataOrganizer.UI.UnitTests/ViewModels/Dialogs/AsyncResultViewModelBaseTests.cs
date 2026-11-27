@@ -61,7 +61,9 @@ internal sealed class AsyncResultViewModelBaseTests
 		dialogClosed.SetResult();
 
 		// The answer is looked at once the view model waits for the dialog to fade out.
-		await waiting.Task.WaitAsync(TimeSpan.FromSeconds(5.0));
+		await waiting
+			.Task
+			.WaitAsync(TimeSpan.FromSeconds(5.0));
 
 		bool isAnsweredWhileShown = answer.IsCompleted;
 

@@ -41,7 +41,9 @@ internal sealed class FlyoutButtonTests
 
 		menu.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(sut);
 
@@ -80,7 +82,9 @@ internal sealed class FlyoutButtonTests
 
 		menu.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(sut);
 
@@ -127,11 +131,15 @@ internal sealed class FlyoutButtonTests
 
 		menu.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Click(window.CenterOf(opener));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(sut);
 
@@ -175,7 +183,9 @@ internal sealed class FlyoutButtonTests
 
 		popup.Open();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(sut);
 
@@ -218,7 +228,9 @@ internal sealed class FlyoutButtonTests
 
 		menu.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(sut);
 
@@ -263,7 +275,9 @@ internal sealed class FlyoutButtonTests
 
 		menu.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(sut);
 

@@ -109,7 +109,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -181,7 +183,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -241,7 +245,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -298,7 +304,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -359,7 +367,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -427,7 +437,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -494,7 +506,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -514,7 +528,9 @@ internal sealed class ViewLauncherTests
 
 		console.Close();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		wasCompleted
@@ -570,7 +586,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -628,7 +646,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -704,7 +724,9 @@ internal sealed class ViewLauncherTests
 		// The menu is in the side drawer, which the user opens first.
 		window.ViewModel.IsLeftDrawerOpened = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		MenuItem exitItem = FindMenuItemThatClosesTheWindow(window, asksFirst: false);
 
@@ -825,7 +847,9 @@ internal sealed class ViewLauncherTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button closeButton = FindCloseButton(window);
 
@@ -958,7 +982,9 @@ internal sealed class ViewLauncherTests
 		// The menu is in the side drawer, which the user opens first.
 		window.ViewModel.IsLeftDrawerOpened = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		MenuItem restartItem = FindMenuItemThatClosesTheWindow(window, asksFirst: true);
 
@@ -1764,7 +1790,9 @@ internal sealed class ViewLauncherTests
 		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
 
 		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		copyHistoryList.SelectedItem = files[1];
 
@@ -1807,7 +1835,9 @@ internal sealed class ViewLauncherTests
 		{
 			selected.Parent = folder;
 
-			folder.Children.Add(selected);
+			folder
+				.Children
+				.Add(selected);
 		}
 		else
 		{
@@ -2088,7 +2118,9 @@ internal sealed class ViewLauncherTests
 			.AsImplementedInterfaces()
 			.SingleInstance());
 
-		using ILifetimeScope nextScope = windowMock.Container.BeginLifetimeScope();
+		using ILifetimeScope nextScope = windowMock
+			.Container
+			.BeginLifetimeScope();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -2124,13 +2156,17 @@ internal sealed class ViewLauncherTests
 
 		previous.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		previous
 			.FindTreeItem(chosen)!
 			.SetCurrentValue(TreeViewItem.IsSelectedProperty, true);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		previous.Close();
 
@@ -2139,7 +2175,9 @@ internal sealed class ViewLauncherTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isSelected = window.FindTreeItem(chosen) is { IsSelected: true };
 
@@ -2467,7 +2505,9 @@ internal sealed class ViewLauncherTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button closeButton = FindCloseButton(window);
 
@@ -3096,10 +3136,14 @@ internal sealed class ViewLauncherTests
 			.ViewModel
 			.ShowFavorites();
 
-		SelectedFavoritesViewModel favorites = window.ViewModel.SelectedFavorites!;
+		SelectedFavoritesViewModel favorites = window
+			.ViewModel
+			.SelectedFavorites!;
 
 		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		favorites.SelectedCategory = categories[1];
 
@@ -3243,7 +3287,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -3456,7 +3502,9 @@ internal sealed class ViewLauncherTests
 		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
-		Screen screen = owner.Screens!.Primary!;
+		Screen screen = owner
+			.Screens!
+			.Primary!;
 
 		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
 
@@ -3552,7 +3600,9 @@ internal sealed class ViewLauncherTests
 		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
-		Screen screen = owner.Screens!.Primary!;
+		Screen screen = owner
+			.Screens!
+			.Primary!;
 
 		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
 
@@ -3621,7 +3671,9 @@ internal sealed class ViewLauncherTests
 		await sut.ShowClipboardLogWindowAsync();
 
 		// Assert
-		Screen screen = owner.Screens!.Primary!;
+		Screen screen = owner
+			.Screens!
+			.Primary!;
 
 		PixelRect bounds = new(window.Position, PixelSize.FromSize(new Size(window.Width, window.Height), screen.Scaling));
 
@@ -4537,7 +4589,9 @@ internal sealed class ViewLauncherTests
 		// Act
 		sut.ShowNotepadWindow();
 
-		object? selected = window!.Tabs.SelectedItem;
+		object? selected = window!
+			.Tabs
+			.SelectedItem;
 
 		// Closed before the assertions: a closed notepad takes its dialog host out of the list every headless test shares.
 		window.Close();
@@ -4618,7 +4672,12 @@ internal sealed class ViewLauncherTests
 		// Act
 		sut.ShowNotepadWindow();
 
-		string text = window!.ViewModel.Tabs[0].Editor.Document.Text;
+		string text = window!
+			.ViewModel
+			.Tabs[0]
+			.Editor
+			.Document
+			.Text;
 
 		// Closed before the assertion: a closed notepad takes its dialog host out of the list every headless test shares.
 		window.Close();
@@ -4664,7 +4723,9 @@ internal sealed class ViewLauncherTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -5310,10 +5371,14 @@ internal sealed class ViewLauncherTests
 			.ViewModel
 			.ShowFavorites();
 
-		SelectedFavoritesViewModel favorites = window.ViewModel.SelectedFavorites!;
+		SelectedFavoritesViewModel favorites = window
+			.ViewModel
+			.SelectedFavorites!;
 
 		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		favorites.SelectedCategory = categories[1];
 
@@ -5435,7 +5500,9 @@ internal sealed class ViewLauncherTests
 		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
 
 		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		copyHistoryList.SelectedItem = files[1];
 
@@ -5819,7 +5886,9 @@ internal sealed class ViewLauncherTests
 		CopyHistoryViewModel copyHistoryList = windowMock.Create<CopyHistoryViewModel>();
 
 		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		copyHistoryList.SelectedItem = files[1];
 

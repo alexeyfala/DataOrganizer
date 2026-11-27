@@ -802,7 +802,9 @@ internal sealed class SyntaxFoldingTests
 
 		using SyntaxFolding sut = new(textArea, Language, Rules);
 
-		textArea.Document.Insert(textArea.Document.TextLength, "\n    c");
+		textArea
+			.Document
+			.Insert(textArea.Document.TextLength, "\n    c");
 
 		// Act
 		sut.Update();
@@ -831,7 +833,9 @@ internal sealed class SyntaxFoldingTests
 			.Single()
 			.IsFolded = true;
 
-		textArea.Document.Insert(0, "d\n");
+		textArea
+			.Document
+			.Insert(0, "d\n");
 
 		// Act
 		sut.Update();

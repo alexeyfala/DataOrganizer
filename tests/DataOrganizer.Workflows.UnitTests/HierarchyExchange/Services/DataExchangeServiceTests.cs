@@ -313,9 +313,13 @@ internal sealed class DataExchangeServiceTests
 		// Arrange
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		FileSaveParameters? parameters = null;
 
@@ -496,9 +500,13 @@ internal sealed class DataExchangeServiceTests
 
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(file);
+		folder
+			.Children
+			.Add(file);
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		HashSet<Guid> ids = [folder.Id, file.Id];
 

@@ -26,9 +26,13 @@ internal sealed class HotkeyExtensionsTests
 
 		FileDto damaged = HotkeyFactory.CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
 
-		root.Children.Add(damaged);
+		root
+			.Children
+			.Add(damaged);
 
-		root.Children.Add(HotkeyFactory.CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl));
+		root
+			.Children
+			.Add(HotkeyFactory.CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl));
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 

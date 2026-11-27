@@ -103,7 +103,9 @@ internal sealed class SelectedFavoritesViewTests
 
 		FavoriteCategory category = FavoriteFactory.CreateFavoriteCategory();
 
-		category.Children.Add(file);
+		category
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -151,7 +153,9 @@ internal sealed class SelectedFavoritesViewTests
 
 		window.Show();
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => FindItem(window, file) is not null);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => FindItem(window, file) is not null);
 
 		ListBoxItem item = FindItem(window, file)!;
 
@@ -169,7 +173,9 @@ internal sealed class SelectedFavoritesViewTests
 		// Act
 		window.Click(point);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -307,7 +313,9 @@ internal sealed class SelectedFavoritesViewTests
 		// Act
 		window.Width = 200.0;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		GridLength width = FindNavigationColumn(window).Width;
 

@@ -182,7 +182,9 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		window.MouseUp(Start + Far, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		drags
@@ -230,7 +232,9 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		window.MouseUp(Start + Far, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		drags
@@ -276,13 +280,20 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		target.AddHandler(DragDrop.DropEvent, (_, e) =>
 		{
-			itemCount = e.DataTransfer.Items.Count;
+			itemCount = e
+				.DataTransfer
+				.Items
+				.Count;
 
 			offered = e.DragEffects;
 
-			droppedRecord = e.DataTransfer.TryGetValue(DatasetRecordDragBehavior.RecordFormat);
+			droppedRecord = e
+				.DataTransfer
+				.TryGetValue(DatasetRecordDragBehavior.RecordFormat);
 
-			droppedText = e.DataTransfer.TryGetText();
+			droppedText = e
+				.DataTransfer
+				.TryGetText();
 		});
 
 		StackPanel panel = new()
@@ -503,7 +514,9 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		window.MouseMove(Start + Far + Far, RawInputModifiers.LeftMouseButton);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		drags
@@ -547,7 +560,9 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		window.MouseUp(Start + Far, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		drags
@@ -653,13 +668,17 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		popup.Open();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		List<DatasetRecordDragEndedMessage> drags = CaptureDrags();
 
 		TopLevel popupRoot = TopLevel.GetTopLevel(content)!;
 
-		Point press = content.TranslatePoint(Start, popupRoot)!.Value;
+		Point press = content
+			.TranslatePoint(Start, popupRoot)!
+			.Value;
 
 		// Act
 		Drag(popupRoot, press, press + Far);
@@ -707,7 +726,9 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		window.MouseUp(Start + Far, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		drags
@@ -751,7 +772,9 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		window.MouseUp(Start + Far, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		drags
@@ -790,9 +813,13 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		target.AddHandler(DragDrop.DropEvent, (_, e) =>
 		{
-			droppedRecord = e.DataTransfer.TryGetValue(DatasetRecordDragBehavior.RecordFormat);
+			droppedRecord = e
+				.DataTransfer
+				.TryGetValue(DatasetRecordDragBehavior.RecordFormat);
 
-			droppedText = e.DataTransfer.TryGetText();
+			droppedText = e
+				.DataTransfer
+				.TryGetText();
 		});
 
 		StackPanel panel = new()
@@ -867,9 +894,13 @@ internal sealed class DatasetRecordDragBehaviorTests
 		{
 			isDropped = true;
 
-			droppedRecord = e.DataTransfer.TryGetValue(DatasetRecordDragBehavior.RecordFormat);
+			droppedRecord = e
+				.DataTransfer
+				.TryGetValue(DatasetRecordDragBehavior.RecordFormat);
 
-			droppedText = e.DataTransfer.TryGetText();
+			droppedText = e
+				.DataTransfer
+				.TryGetText();
 		});
 
 		StackPanel panel = new()
@@ -946,7 +977,9 @@ internal sealed class DatasetRecordDragBehaviorTests
 
 		topLevel.MouseUp(to, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 	}
 	#endregion
 

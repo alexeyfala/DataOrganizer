@@ -96,7 +96,9 @@ public sealed class NotepadTexts : INotepadTexts
 	/// <inheritdoc />
 	public void Follow(INotepadTab tab)
 	{
-		tab.Editor.RefreshEncoding();
+		tab
+			.Editor
+			.RefreshEncoding();
 
 		StartFollowing(tab);
 	}
@@ -165,14 +167,18 @@ public sealed class NotepadTexts : INotepadTexts
 	{
 		IEncodedDocument editor = tab.Editor;
 
-		string text = editor.Document.Text;
+		string text = editor
+			.Document
+			.Text;
 
 		if (editor.Codec.Encode(text, out string? missingCharacter) is { } contents)
 		{
 			return contents;
 		}
 
-		byte[] utf8 = Encoding.UTF8.GetBytes(text);
+		byte[] utf8 = Encoding
+			.UTF8
+			.GetBytes(text);
 
 		if (editor.Codec.Encoding == Encoding.UTF8.WebName)
 		{
@@ -188,7 +194,9 @@ public sealed class NotepadTexts : INotepadTexts
 			SnackbarHostIdentifiers.Notepad);
 
 		// The text takes UTF-8 as it is read back from its bytes.
-		editor.Codec.Read(utf8, Encoding.UTF8.WebName);
+		editor
+			.Codec
+			.Read(utf8, Encoding.UTF8.WebName);
 
 		// A change of the editor writes the settings, so they name UTF-8 before the text is written in it.
 		editor.RefreshEncoding();

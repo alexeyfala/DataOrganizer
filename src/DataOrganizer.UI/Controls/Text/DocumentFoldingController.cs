@@ -85,7 +85,9 @@ internal sealed class DocumentFoldingController
 			.GetObservable(InputElement.IsKeyboardFocusWithinProperty)
 			.Subscribe(IsKeyboardFocusWithinProperty_Changed);
 
-		TextView textView = editor.TextArea.TextView;
+		TextView textView = editor
+			.TextArea
+			.TextView;
 
 		// The tip of a folded block takes the look of the application rather than the Fluent one the editor brings for itself.
 		if (Application
@@ -201,7 +203,9 @@ internal sealed class DocumentFoldingController
 	/// </summary>
 	private void TextView_PointerHover(object? sender, PointerEventArgs e)
 	{
-		TextView textView = _editor.TextArea.TextView;
+		TextView textView = _editor
+			.TextArea
+			.TextView;
 
 		// The text of an encrypted file stays in the text area.
 		if (_editor.IsSensitive || _folding?.FindHiddenText(e.GetPosition(textView)) is not { } text)
@@ -224,7 +228,9 @@ internal sealed class DocumentFoldingController
 	/// </summary>
 	private void TextView_PointerHoverStopped(object? sender, PointerEventArgs e)
 	{
-		TextView textView = _editor.TextArea.TextView;
+		TextView textView = _editor
+			.TextArea
+			.TextView;
 
 		// Closed, such a tip would leave the pointer to the view, whose hover would open it again, so it stays until the
 		// pointer leaves it or presses it, as in Visual Studio Code.
@@ -388,7 +394,9 @@ internal sealed class DocumentFoldingController
 	/// </summary>
 	private InputElement? FindFoldingTipHost(Point point)
 	{
-		TextView textView = _editor.TextArea.TextView;
+		TextView textView = _editor
+			.TextArea
+			.TextView;
 
 		// A popup shows in a window of its own, or in the overlay of the window where windows of their own are not at hand.
 		if ((ToolTip.GetTip(textView) as Visual)?

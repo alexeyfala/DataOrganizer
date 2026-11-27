@@ -84,9 +84,13 @@ internal sealed class AutoScrollOnDragBehavior : StyledElementBehavior<Visual>
 
 		Point position = e.GetPosition(scrollViewer);
 
-		double newX = scrollViewer.Offset.X;
+		double newX = scrollViewer
+			.Offset
+			.X;
 
-		double newY = scrollViewer.Offset.Y;
+		double newY = scrollViewer
+			.Offset
+			.Y;
 
 		if (position.X < EdgeDistance)
 		{

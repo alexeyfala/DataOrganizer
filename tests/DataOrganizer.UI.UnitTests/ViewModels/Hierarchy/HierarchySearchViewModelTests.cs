@@ -37,7 +37,9 @@ internal sealed class HierarchySearchViewModelTests
 		{
 			WorkSession session = new();
 
-			session.Hierarchy.Add(ItemDtoFactory.CreateNamedFileDto("needle"));
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateNamedFileDto("needle"));
 
 			builder
 				.RegisterInstance(session)
@@ -80,7 +82,9 @@ internal sealed class HierarchySearchViewModelTests
 		{
 			WorkSession session = new();
 
-			session.Hierarchy.Add(ItemDtoFactory.CreateNamedFileDto("needle"));
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateNamedFileDto("needle"));
 
 			builder
 				.RegisterInstance(session)
@@ -117,7 +121,9 @@ internal sealed class HierarchySearchViewModelTests
 		{
 			WorkSession session = new();
 
-			session.Hierarchy.Add(ItemDtoFactory.CreateNamedFileDto("needle"));
+			session
+				.Hierarchy
+				.Add(ItemDtoFactory.CreateNamedFileDto("needle"));
 
 			builder
 				.RegisterInstance(session)

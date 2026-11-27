@@ -61,7 +61,9 @@ internal sealed class DialogButtonsTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Button[] buttons = [.. sut.GetVisualDescendants().OfType<Button>()];

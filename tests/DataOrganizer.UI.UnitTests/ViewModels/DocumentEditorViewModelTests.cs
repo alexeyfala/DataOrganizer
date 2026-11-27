@@ -115,7 +115,9 @@ internal sealed class DocumentEditorViewModelTests
 		DocumentEditorViewModel sut = mock.Create<DocumentEditorViewModel>();
 
 		// Bytes of UTF-8, read in UTF-16 by choice.
-		sut.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
+		sut
+			.Codec
+			.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName);
 
 		// Act
 		sut.RefreshEncoding();
@@ -166,7 +168,9 @@ internal sealed class DocumentEditorViewModelTests
 		DocumentEditorViewModel sut = mock.Create<DocumentEditorViewModel>();
 
 		// Bytes of UTF-8, read in UTF-16 by choice.
-		string text = sut.Codec.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName)!;
+		string text = sut
+			.Codec
+			.Read(Encoding.UTF8.GetBytes("Text"), Encoding.Unicode.WebName)!;
 
 		// Act
 		sut.ReplaceText(text);

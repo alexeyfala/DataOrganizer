@@ -147,7 +147,9 @@ internal sealed class PinnedSecretTests
 
 		using PinnedSecret sut = new(value.Length);
 
-		value.AsSpan().CopyTo(sut.AsSpan());
+		value
+			.AsSpan()
+			.CopyTo(sut.AsSpan());
 
 		// Act
 		using PinnedBuffer buffer = sut.ToUtf8Buffer();

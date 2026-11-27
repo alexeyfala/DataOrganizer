@@ -60,7 +60,9 @@ internal sealed class TreeViewItemAutomationTests
 
 		if (hasChildren)
 		{
-			row.Items.Add(new TreeViewItem());
+			row
+				.Items
+				.Add(new TreeViewItem());
 		}
 
 		Show(row);
@@ -96,7 +98,9 @@ internal sealed class TreeViewItemAutomationTests
 	{
 		row.IsExpanded = isExpanded;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ToggleButton expander = GetExpander(row);
 

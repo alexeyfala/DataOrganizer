@@ -138,7 +138,9 @@ internal sealed class VsCodeConfigConsistencyTests
 			{
 				if (property.Name == name && property.Value.ValueKind == JsonValueKind.String)
 				{
-					yield return property.Value.GetString()!;
+					yield return property
+						.Value
+						.GetString()!;
 				}
 
 				foreach (string value in FindStrings(property.Value, name))
@@ -187,7 +189,9 @@ internal sealed class VsCodeConfigConsistencyTests
 			.Descendants()
 			.Single(e => e.Name.LocalName == propertyName);
 
-		return element.Value.Trim();
+		return element
+			.Value
+			.Trim();
 	}
 
 	/// <summary>

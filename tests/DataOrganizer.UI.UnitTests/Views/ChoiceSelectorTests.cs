@@ -649,7 +649,10 @@ internal sealed class ChoiceSelectorTests
 		Open(window, sut);
 
 		// Assert
-		double rows = sut.GetControl<ListBox>(ChoicesListName).GetRealizedContainers().Sum(static x => x.Bounds.Height);
+		double rows = sut
+			.GetControl<ListBox>(ChoicesListName)
+			.GetRealizedContainers()
+			.Sum(static x => x.Bounds.Height);
 
 		sut.GetControl<TextBox>(SearchInputName).IsEffectivelyVisible
 			.Should()
@@ -709,12 +712,16 @@ internal sealed class ChoiceSelectorTests
 
 		DockPanel host = sut.GetControl<DockPanel>(ChoicesHostName);
 
-		double height = host.Bounds.Height;
+		double height = host
+			.Bounds
+			.Height;
 
 		// Act
 		sut.GetControl<TextBox>(SearchInputName).Text = "bat";
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		host.Bounds.Height
@@ -973,7 +980,10 @@ internal sealed class ChoiceSelectorTests
 
 		ListBox list = sut.GetControl<ListBox>(ChoicesListName);
 
-		list.SelectedItem = list.Items.Cast<SelectorChoice>().Single(static x => x.Id == Encoding.UTF32.WebName);
+		list.SelectedItem = list
+			.Items
+			.Cast<SelectorChoice>()
+			.Single(static x => x.Id == Encoding.UTF32.WebName);
 
 		// Act
 		Press(window, PhysicalKey.Enter);
@@ -1230,7 +1240,9 @@ internal sealed class ChoiceSelectorTests
 	{
 		window.MouseMove(window.CenterOf(target));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 	}
 
 	/// <summary>
@@ -1252,7 +1264,9 @@ internal sealed class ChoiceSelectorTests
 
 		window.KeyReleaseQwerty(key, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 	}
 
 	/// <summary>

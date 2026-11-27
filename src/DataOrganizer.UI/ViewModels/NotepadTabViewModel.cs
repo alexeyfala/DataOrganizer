@@ -60,7 +60,9 @@ public sealed partial class NotepadTabViewModel : ObservableObject, INotepadTab
 	{
 		DocumentEditorViewModel editor = new(document);
 
-		editor.Codec.Read([], Encoding.UTF8.WebName);
+		editor
+			.Codec
+			.Read([], Encoding.UTF8.WebName);
 
 		return editor;
 	}

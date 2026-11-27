@@ -110,7 +110,9 @@ internal sealed class SensitiveTextBlockAutomationPeerTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		AutomationPeer sut = ControlAutomationPeer.CreatePeerForElement(block);
 
@@ -208,7 +210,9 @@ internal sealed class SensitiveTextBlockAutomationPeerTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.FontSize

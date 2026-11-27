@@ -75,7 +75,9 @@ internal sealed class SplitDocumentEditorTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.ActiveEditor.Name
@@ -102,7 +104,9 @@ internal sealed class SplitDocumentEditorTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.ActiveEditor.Name
@@ -195,7 +199,9 @@ internal sealed class SplitDocumentEditorTests
 
 		window.MouseUp(end, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		secondaryEditor.TextArea.IsFocused
@@ -232,7 +238,9 @@ internal sealed class SplitDocumentEditorTests
 			.TextArea
 			.Focus();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		FindOccurrenceOffsets(primaryEditor)
@@ -287,7 +295,9 @@ internal sealed class SplitDocumentEditorTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		flyout.IsOpen
@@ -323,7 +333,9 @@ internal sealed class SplitDocumentEditorTests
 		// Act
 		window.Click(point, MouseButton.Right);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		flyout.IsOpen
@@ -562,7 +574,9 @@ internal sealed class SplitDocumentEditorTests
 		// Act
 		sut.IsSplit = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SecondaryEditor!.Bounds.Height
@@ -595,7 +609,9 @@ internal sealed class SplitDocumentEditorTests
 
 		window.MouseUp(end, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		DocumentTextEditor editor = isUpward ? sut.PrimaryEditor : sut.SecondaryEditor!;
@@ -641,16 +657,23 @@ internal sealed class SplitDocumentEditorTests
 
 		HeadlessWindow.Show(sut);
 
-		double height = sut.PrimaryEditor.Bounds.Height;
+		double height = sut
+			.PrimaryEditor
+			.Bounds
+			.Height;
 
 		sut.IsSplit = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.IsSplit = false;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.PrimaryEditor.Bounds.Height
@@ -681,11 +704,15 @@ internal sealed class SplitDocumentEditorTests
 			.TextArea
 			.Focus();
 
-		secondaryEditor.FoldAllCommand.Execute(null);
+		secondaryEditor
+			.FoldAllCommand
+			.Execute(null);
 
 		secondaryEditor.ScrollViewer!.Offset = new(0.0, 1000.0);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		int[] foldedBlocks = secondaryEditor.GetBlockStarts(isFolded: true);
 
@@ -694,7 +721,9 @@ internal sealed class SplitDocumentEditorTests
 		// Act
 		sut.IsSplit = false;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
@@ -749,12 +778,16 @@ internal sealed class SplitDocumentEditorTests
 
 		secondaryEditor.ScrollViewer!.Offset = offset;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.IsSplit = false;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
@@ -797,12 +830,16 @@ internal sealed class SplitDocumentEditorTests
 
 		sut.SecondaryEditor!.ScrollViewer!.Offset = new(0.0, 700.0);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.IsSplit = false;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.PrimaryEditor.ScrollViewer!.Offset
@@ -921,12 +958,16 @@ internal sealed class SplitDocumentEditorTests
 
 		primaryEditor.ScrollViewer!.Offset = offset;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.IsSplit = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
@@ -962,16 +1003,22 @@ internal sealed class SplitDocumentEditorTests
 
 		DocumentTextEditor primaryEditor = sut.PrimaryEditor;
 
-		primaryEditor.FoldAllCommand.Execute(null);
+		primaryEditor
+			.FoldAllCommand
+			.Execute(null);
 
 		primaryEditor.ScrollViewer!.Offset = new(0.0, 1000.0);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.IsSplit = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		DocumentTextEditor secondaryEditor = sut.SecondaryEditor!;
@@ -1046,7 +1093,9 @@ internal sealed class SplitDocumentEditorTests
 		// Act
 		activeEditor.Select(0, 3);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		FindOccurrenceOffsets(activeEditor)
@@ -1084,12 +1133,16 @@ internal sealed class SplitDocumentEditorTests
 
 		sut.IsSplit = false;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.IsSplit = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SecondaryEditor!.Bounds.Height
@@ -1109,7 +1162,9 @@ internal sealed class SplitDocumentEditorTests
 		HeadlessWindow.Show(sut);
 
 		// Act
-		sut.PrimaryEditor.Focus();
+		sut
+			.PrimaryEditor
+			.Focus();
 
 		// Assert
 		sut.PrimaryEditor.TextArea.IsFocused
@@ -1131,7 +1186,9 @@ internal sealed class SplitDocumentEditorTests
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is no lower half.
-		string? name = sut.SecondaryEditor?.Name;
+		string? name = sut
+			.SecondaryEditor?
+			.Name;
 
 		name
 			.Should()
@@ -1233,7 +1290,10 @@ internal sealed class SplitDocumentEditorTests
 		HeadlessWindow.Show(sut);
 
 		// Assert
-		double upperHeight = sut.PrimaryEditor.Bounds.Height;
+		double upperHeight = sut
+			.PrimaryEditor
+			.Bounds
+			.Height;
 
 		(upperHeight / (upperHeight + sut.SecondaryEditor!.Bounds.Height))
 			.Should()
@@ -1265,10 +1325,15 @@ internal sealed class SplitDocumentEditorTests
 
 		window.MouseUp(end, MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		double upperHeight = sut.PrimaryEditor.Bounds.Height;
+		double upperHeight = sut
+			.PrimaryEditor
+			.Bounds
+			.Height;
 
 		sut.SplitShare
 			.Should()

@@ -41,11 +41,17 @@ internal sealed class FavoriteCategoriesTests
 
 		innerFavorite.Parent = inner;
 
-		outer.Children.AddRange([inner, outerFavorite]);
+		outer
+			.Children
+			.AddRange([inner, outerFavorite]);
 
-		inner.Children.Add(innerFavorite);
+		inner
+			.Children
+			.Add(innerFavorite);
 
-		empty.Children.Add(ItemDtoFactory.CreateFileDto());
+		empty
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		// Act
 		List<FavoriteCategory> result = FavoriteCategories.Gather([empty, outer, rootFavorite]);

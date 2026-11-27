@@ -50,7 +50,9 @@ internal sealed class NoteViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		MaterialIcon lockedIcon = locked
 			.GetVisualDescendants()
@@ -107,7 +109,9 @@ internal sealed class NoteViewTests
 			.NotePointerEnteredCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Popup popup = sut
 			.GetLogicalDescendants()
@@ -117,11 +121,15 @@ internal sealed class NoteViewTests
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Content = sut;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.IsNoteOpen

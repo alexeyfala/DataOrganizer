@@ -79,7 +79,9 @@ internal sealed class FlyoutOutlineTests
 	/// </summary>
 	private static Border[] GetOutlines(Control presenter)
 	{
-		object? brush = Application.Current!.FindResource(OutlineBrushKey);
+		object? brush = Application
+			.Current!
+			.FindResource(OutlineBrushKey);
 
 		return [.. presenter
 			.GetVisualDescendants()
@@ -107,11 +109,15 @@ internal sealed class FlyoutOutlineTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		flyout.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		return window
 			.GetVisualDescendants()

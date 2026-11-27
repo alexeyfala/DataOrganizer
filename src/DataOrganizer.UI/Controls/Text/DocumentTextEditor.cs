@@ -337,7 +337,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		Bookmarks = GetBookmarks(Document);
 
 		// Left of the line numbers, as in Visual Studio, the bookmarks keep clear of clicks at the start of a line.
-		TextArea.LeftMargins.Insert(0, new BookmarkMargin(this));
+		TextArea
+			.LeftMargins
+			.Insert(0, new BookmarkMargin(this));
 
 		TextArea.Caret.PositionChanged += Caret_PositionChanged;
 
@@ -348,7 +350,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		// The base sets the first document before this constructor runs, so it is followed from here.
 		if (Document is { } document)
 		{
-			TextDocumentWeakEventManager.Changing.AddHandler(document, Document_Changing);
+			TextDocumentWeakEventManager
+				.Changing
+				.AddHandler(document, Document_Changing);
 		}
 
 		TextChanged += DocumentTextEditor_TextChanged;
@@ -421,12 +425,16 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		// A document may outlive the view, so its changes are followed weakly.
 		if (e.OldDocument is { } oldDocument)
 		{
-			TextDocumentWeakEventManager.Changing.RemoveHandler(oldDocument, Document_Changing);
+			TextDocumentWeakEventManager
+				.Changing
+				.RemoveHandler(oldDocument, Document_Changing);
 		}
 
 		if (e.NewDocument is { } newDocument)
 		{
-			TextDocumentWeakEventManager.Changing.AddHandler(newDocument, Document_Changing);
+			TextDocumentWeakEventManager
+				.Changing
+				.AddHandler(newDocument, Document_Changing);
 		}
 
 		// The bookmarks belong to the lines of one document.
@@ -537,7 +545,9 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 		if (Document is { } document)
 		{
-			TextDocumentWeakEventManager.Changing.RemoveHandler(document, Document_Changing);
+			TextDocumentWeakEventManager
+				.Changing
+				.RemoveHandler(document, Document_Changing);
 		}
 
 		RemoveHighlighting();

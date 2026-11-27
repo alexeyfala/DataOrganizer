@@ -37,7 +37,9 @@ internal sealed class IconsBlockTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		MaterialIcon icon = sut
 			.GetVisualDescendants()
@@ -76,7 +78,9 @@ internal sealed class IconsBlockTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetVisualDescendants().OfType<NoteView>()
@@ -100,12 +104,16 @@ internal sealed class IconsBlockTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.HasNote = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetVisualDescendants().OfType<NoteView>()
@@ -138,7 +146,9 @@ internal sealed class IconsBlockTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		MaterialIcon keyboard = sut
 			.GetVisualDescendants()
@@ -148,7 +158,9 @@ internal sealed class IconsBlockTests
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ToolTip.GetTip(keyboard)

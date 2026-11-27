@@ -50,9 +50,13 @@ public sealed class FoldingText : IDisposable
 		LineCount = CountLines(text);
 
 		// Pooled, as a long text would take large arrays on every pass.
-		_lineEnds = ArrayPool<int>.Shared.Rent(LineCount + 1);
+		_lineEnds = ArrayPool<int>
+			.Shared
+			.Rent(LineCount + 1);
 
-		_lineStarts = ArrayPool<int>.Shared.Rent(LineCount + 1);
+		_lineStarts = ArrayPool<int>
+			.Shared
+			.Rent(LineCount + 1);
 
 		int start = 0;
 
@@ -81,9 +85,13 @@ public sealed class FoldingText : IDisposable
 	[ExcludeFromCodeCoverage(Justification = "Only gives arrays back to the pool, which cannot be observed")]
 	public void Dispose()
 	{
-		ArrayPool<int>.Shared.Return(_lineEnds);
+		ArrayPool<int>
+			.Shared
+			.Return(_lineEnds);
 
-		ArrayPool<int>.Shared.Return(_lineStarts);
+		ArrayPool<int>
+			.Shared
+			.Return(_lineStarts);
 	}
 
 	/// <summary>

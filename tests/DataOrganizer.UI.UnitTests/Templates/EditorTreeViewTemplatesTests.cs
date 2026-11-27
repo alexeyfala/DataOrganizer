@@ -56,7 +56,9 @@ internal sealed class EditorTreeViewTemplatesTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		IconsBlock icons = host
 			.GetVisualDescendants()
@@ -104,7 +106,9 @@ internal sealed class EditorTreeViewTemplatesTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		IconsBlock icons = host
 			.GetVisualDescendants()

@@ -97,9 +97,13 @@ internal static partial class TestTypeIndex
 
 		foreach (Match type in types)
 		{
-			string name = type.Groups["name"].Value;
+			string name = type
+				.Groups["name"]
+				.Value;
 
-			string modifiers = type.Groups["modifiers"].Value;
+			string modifiers = type
+				.Groups["modifiers"]
+				.Value;
 
 			List<string[]> constructors = declarations.Constructors.TryGetValue(name, out List<string[]>? known) ? known : [];
 
@@ -117,7 +121,9 @@ internal static partial class TestTypeIndex
 
 			if (!modifiers.Contains("static", StringComparison.Ordinal) && !modifiers.Contains("abstract", StringComparison.Ordinal))
 			{
-				declarations.ConcreteClasses.Add(name);
+				declarations
+					.ConcreteClasses
+					.Add(name);
 			}
 		}
 
@@ -143,7 +149,9 @@ internal static partial class TestTypeIndex
 	/// </summary>
 	private static string? ReadParameterType(string parameter)
 	{
-		string text = ParameterNoiseRegex().Replace(parameter.Split('=')[0], " ").Trim();
+		string text = ParameterNoiseRegex()
+			.Replace(parameter.Split('=')[0], " ")
+			.Trim();
 
 		int space = text.LastIndexOf(' ');
 

@@ -87,7 +87,9 @@ internal sealed class SelectablePathTextBlockTests
 		// Act
 		sut.Copy();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		string? result = await TopLevel
 			.GetTopLevel(sut)!
@@ -167,7 +169,9 @@ internal sealed class SelectablePathTextBlockTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.FontSize

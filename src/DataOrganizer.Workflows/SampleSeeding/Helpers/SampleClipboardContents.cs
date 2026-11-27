@@ -118,11 +118,17 @@ internal static class SampleClipboardContents
 	/// </summary>
 	public static (string Text, string? Html, string? Rtf)[] CreateTexts(Faker faker)
 	{
-		string html = faker.Lorem.Sentence();
+		string html = faker
+			.Lorem
+			.Sentence();
 
-		string rtf = faker.Lorem.Sentence();
+		string rtf = faker
+			.Lorem
+			.Sentence();
 
-		string htmlAndRtf = faker.Lorem.Sentence();
+		string htmlAndRtf = faker
+			.Lorem
+			.Sentence();
 
 		return
 		[

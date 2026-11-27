@@ -58,7 +58,9 @@ internal sealed class ScrollableSideSheetThemeTests
 		// Assert
 		Border sheet = GetPart(sut, SheetPartName);
 
-		double? left = sheet.TranslatePoint(default, sut)?.X;
+		double? left = sheet
+			.TranslatePoint(default, sut)?
+			.X;
 
 		left
 			.Should()
@@ -149,7 +151,9 @@ internal sealed class ScrollableSideSheetThemeTests
 		// Assert
 		Border sheet = GetPart(sut, SheetPartName);
 
-		double? right = sheet.TranslatePoint(new(sheet.Bounds.Width, 0.0), sut)?.X;
+		double? right = sheet
+			.TranslatePoint(new(sheet.Bounds.Width, 0.0), sut)?
+			.X;
 
 		right
 			.Should()

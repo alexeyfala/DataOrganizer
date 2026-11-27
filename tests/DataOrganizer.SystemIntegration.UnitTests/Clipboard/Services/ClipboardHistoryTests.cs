@@ -112,7 +112,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry copied = ClipboardEntryFactory.CreateTextEntry("copied", [2]);
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		sut.MarkRestored(restored, keepPosition: false);
 
@@ -141,7 +143,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		sut.MarkRestored(restored, keepPosition: false);
 
@@ -170,7 +174,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry copied = ClipboardEntryFactory.CreateTextEntry("copied", [2]);
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		sut.MarkRestored(restored, keepPosition: false);
 
@@ -204,7 +210,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry original = ClipboardEntryFactory.CreatePinnedTextEntry("orig", [1]);
 
-		sut.Entries.Add(original);
+		sut
+			.Entries
+			.Add(original);
 
 		sut.MarkRestored(original, keepPosition: false);
 
@@ -241,12 +249,16 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
 
-		sut.Entries.Add(original);
+		sut
+			.Entries
+			.Add(original);
 
 		sut.MarkRestored(original, keepPosition: false);
 
 		// The restored entry is gone by the time the next capture arrives.
-		sut.Entries.Clear();
+		sut
+			.Entries
+			.Clear();
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -283,7 +295,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
 
-		sut.Entries.Add(original);
+		sut
+			.Entries
+			.Add(original);
 
 		sut.MarkRestored(original, keepPosition: false);
 
@@ -329,7 +343,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
 
-		sut.Entries.Add(original);
+		sut
+			.Entries
+			.Add(original);
 
 		sut.MarkRestored(original, keepPosition: false);
 
@@ -359,7 +375,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry original = ClipboardEntryFactory.CreateTextEntry("orig", [1]);
 
-		sut.Entries.Add(original);
+		sut
+			.Entries
+			.Add(original);
 
 		sut.MarkRestored(original, keepPosition: false);
 
@@ -397,7 +415,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry restored = ClipboardEntryFactory.CreateTextEntry("restored", [1]);
 
-		sut.Entries.Add(restored);
+		sut
+			.Entries
+			.Add(restored);
 
 		sut.MarkRestored(restored, keepPosition: false);
 
@@ -428,7 +448,9 @@ internal sealed class ClipboardHistoryTests
 
 		for (int i = 0; i < 100; i++)
 		{
-			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
+			sut
+				.Entries
+				.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
 		}
 
 		// Act
@@ -523,7 +545,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
 		sut.HandleNewPayload([1], () => entry, isSensitive: false, isRestored: false);
 
@@ -586,11 +610,17 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [1]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
-		sut.Entries.Add(top);
+		sut
+			.Entries
+			.Add(top);
 
-		sut.Entries.Add(target);
+		sut
+			.Entries
+			.Add(target);
 
 		// Act (the factory must not run — the entry already exists).
 		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
@@ -618,11 +648,17 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry unpinned = ClipboardEntryFactory.CreateTextEntry("unpinned", [8]);
 
-		sut.Entries.Add(first);
+		sut
+			.Entries
+			.Add(first);
 
-		sut.Entries.Add(target);
+		sut
+			.Entries
+			.Add(target);
 
-		sut.Entries.Add(unpinned);
+		sut
+			.Entries
+			.Add(unpinned);
 
 		// Act (the factory must not run — the entry already exists).
 		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false, isRestored: false);
@@ -648,9 +684,13 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry target = ClipboardEntryFactory.CreateTextEntry("target", [1]);
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("top", [9]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("top", [9]));
 
-		sut.Entries.Add(target);
+		sut
+			.Entries
+			.Add(target);
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -708,11 +748,15 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry pinned = ClipboardEntryFactory.CreatePinnedTextEntry("pinned", [200]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
 		for (int i = 0; i < 100; i++)
 		{
-			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
+			sut
+				.Entries
+				.Add(ClipboardEntryFactory.CreateTextEntry($"e{i}", [(byte)i]));
 		}
 
 		// Act (cap applies to the 100 unpinned only, so the pinned entry survives).
@@ -781,7 +825,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("other", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("other", [1]));
 
 		// Act
 		sut.MarkRestored(restored, keepPosition: false);
@@ -809,9 +855,13 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("C", [2]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("C", [2]));
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("D", [9]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("D", [9]));
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -843,7 +893,9 @@ internal sealed class ClipboardHistoryTests
 
 		for (int i = 0; i < 100; i++)
 		{
-			sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry($"cur{i}", [(byte)i]));
+			sut
+				.Entries
+				.Add(ClipboardEntryFactory.CreateTextEntry($"cur{i}", [(byte)i]));
 		}
 
 		// Act
@@ -872,7 +924,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		sut.Entries.Add(current);
+		sut
+			.Entries
+			.Add(current);
 
 		// Act
 		sut.Merge([ClipboardEntryFactory.CreateTextEntry("a", [1])]);
@@ -900,11 +954,17 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry current = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
-		sut.Entries.Add(unpinned);
+		sut
+			.Entries
+			.Add(unpinned);
 
-		sut.Entries.Add(current);
+		sut
+			.Entries
+			.Add(current);
 
 		// Act (the saved copy of "a" is pinned).
 		sut.Merge([ClipboardEntryFactory.CreatePinnedTextEntry("a", [1])]);
@@ -930,7 +990,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("newText", [9]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("newText", [9]));
 
 		// Act
 		sut.Merge(
@@ -991,7 +1053,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardHistory sut = mock.Create<ClipboardHistory>();
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
 		// Act
 		sut.TogglePin(outside);
@@ -1015,11 +1079,17 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry c = ClipboardEntryFactory.CreateTextEntry("c", [3]);
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("a", [1]));
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("b", [2]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("b", [2]));
 
-		sut.Entries.Add(c);
+		sut
+			.Entries
+			.Add(c);
 
 		// Act
 		sut.TogglePin(c);
@@ -1049,11 +1119,17 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry b = ClipboardEntryFactory.CreateTextEntry("b", [3]);
 
-		sut.Entries.Add(pinned);
+		sut
+			.Entries
+			.Add(pinned);
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("a", [2]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("a", [2]));
 
-		sut.Entries.Add(b);
+		sut
+			.Entries
+			.Add(b);
 
 		// Act (b becomes the second pinned entry).
 		sut.TogglePin(b);
@@ -1083,7 +1159,9 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
-		sut.Entries.Add(entry);
+		sut
+			.Entries
+			.Add(entry);
 
 		List<ClipboardLogChangeKind> received = messenger.CaptureChanges();
 
@@ -1111,11 +1189,17 @@ internal sealed class ClipboardHistoryTests
 
 		ClipboardTextEntry p1 = ClipboardEntryFactory.CreatePinnedTextEntry("p1", [2]);
 
-		sut.Entries.Add(p0);
+		sut
+			.Entries
+			.Add(p0);
 
-		sut.Entries.Add(p1);
+		sut
+			.Entries
+			.Add(p1);
 
-		sut.Entries.Add(ClipboardEntryFactory.CreateTextEntry("u", [3]));
+		sut
+			.Entries
+			.Add(ClipboardEntryFactory.CreateTextEntry("u", [3]));
 
 		// Act
 		sut.TogglePin(p0);

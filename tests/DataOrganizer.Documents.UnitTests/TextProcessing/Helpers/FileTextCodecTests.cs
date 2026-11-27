@@ -28,7 +28,9 @@ internal sealed class FileTextCodecTests
 	/// <summary>
 	/// Cyrillic code page of Windows, the fallback of the tests whatever the region of the machine.
 	/// </summary>
-	private static readonly Encoding Cyrillic = CodePagesEncodingProvider.Instance.GetEncoding(1251)!;
+	private static readonly Encoding Cyrillic = CodePagesEncodingProvider
+		.Instance
+		.GetEncoding(1251)!;
 	#endregion
 
 	#region Methods
@@ -379,7 +381,9 @@ internal sealed class FileTextCodecTests
 	public void Fallback_Is_Not_UTF8()
 	{
 		// Act
-		int codePage = FileTextCodec.Fallback.CodePage;
+		int codePage = FileTextCodec
+			.Fallback
+			.CodePage;
 
 		// Assert
 		codePage
@@ -647,7 +651,9 @@ internal sealed class FileTextCodecTests
 		byte[]? contents = FileTextCodec.TryEncode(CyrillicText, encoding, out _);
 
 		// Assert
-		byte[] expected = Encoding.UTF8.GetBytes(CyrillicText);
+		byte[] expected = Encoding
+			.UTF8
+			.GetBytes(CyrillicText);
 
 		contents
 			.Should()
@@ -698,7 +704,10 @@ internal sealed class FileTextCodecTests
 	public void TryRead_Reads_The_Text_In_The_Chosen_Encoding()
 	{
 		// Arrange
-		byte[] contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(CyrillicText);
+		byte[] contents = CodePagesEncodingProvider
+			.Instance
+			.GetEncoding(866)!
+			.GetBytes(CyrillicText);
 
 		// Act
 		FileText? read = FileTextCodec.TryRead(contents, "cp866");

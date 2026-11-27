@@ -34,9 +34,13 @@ internal sealed class SelectionOccurrenceRendererTests
 
 		editor.Select(0, 3);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = editor.TextArea.TextView;
+		TextView textView = editor
+			.TextArea
+			.TextView;
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
@@ -101,7 +105,9 @@ internal sealed class SelectionOccurrenceRendererTests
 
 		editor.Select(4, 3);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(source.TextArea));
 
@@ -132,9 +138,13 @@ internal sealed class SelectionOccurrenceRendererTests
 
 		editor.Select(0, 3);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = editor.TextArea.TextView;
+		TextView textView = editor
+			.TextArea
+			.TextView;
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
@@ -175,7 +185,9 @@ internal sealed class SelectionOccurrenceRendererTests
 
 		source.Select(0, 3);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(source.TextArea));
 
@@ -213,7 +225,9 @@ internal sealed class SelectionOccurrenceRendererTests
 
 		editor.Select(start, length);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
@@ -251,7 +265,9 @@ internal sealed class SelectionOccurrenceRendererTests
 
 		editor.Select(start, length);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
@@ -286,7 +302,9 @@ internal sealed class SelectionOccurrenceRendererTests
 
 		editor.Select(start, length);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 
@@ -318,7 +336,9 @@ internal sealed class SelectionOccurrenceRendererTests
 			new TextViewPosition(1, 1),
 			new TextViewPosition(1, 4));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		SelectionOccurrenceRenderer sut = new(editor.TextArea, Observable.Return(editor.TextArea));
 

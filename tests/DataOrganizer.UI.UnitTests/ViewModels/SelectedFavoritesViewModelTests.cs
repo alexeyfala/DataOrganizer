@@ -62,7 +62,9 @@ internal sealed class SelectedFavoritesViewModelTests
 			selectedPairs: []);
 
 		// The search hides the chosen category after its pause, and the list lets the choice go.
-		sut.CategorySearch = Guid.NewGuid().ToString();
+		sut.CategorySearch = Guid
+			.NewGuid()
+			.ToString();
 
 		time.Advance(SearchPause);
 
@@ -98,7 +100,9 @@ internal sealed class SelectedFavoritesViewModelTests
 
 		FavoriteCategory category = FavoriteFactory.CreateFavoriteCategory();
 
-		category.Children.AddRange(ItemDtoFactory.CreateFileDtos(3));
+		category
+			.Children
+			.AddRange(ItemDtoFactory.CreateFileDtos(3));
 
 		FileDto chosen = category.Children[0];
 
@@ -112,7 +116,9 @@ internal sealed class SelectedFavoritesViewModelTests
 		sut.SelectedFavorite = chosen;
 
 		// The search hides the chosen favorite after its pause, and the list lets the choice go.
-		sut.FavoriteSearch = Guid.NewGuid().ToString();
+		sut.FavoriteSearch = Guid
+			.NewGuid()
+			.ToString();
 
 		time.Advance(SearchPause);
 
@@ -393,7 +399,9 @@ internal sealed class SelectedFavoritesViewModelTests
 		sut.NavigationColumnWidth = viewWidth * 2;
 
 		// Act
-		sut.SizeChangedCommand.Execute(viewWidth);
+		sut
+			.SizeChangedCommand
+			.Execute(viewWidth);
 
 		// Assert
 		sut.NavigationColumnWidth

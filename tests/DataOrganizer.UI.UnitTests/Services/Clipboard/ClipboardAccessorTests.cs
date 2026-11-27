@@ -384,7 +384,9 @@ internal sealed class ClipboardAccessorTests
 			IStorageFile file = Substitute.For<IStorageFile>();
 
 			// On Linux the path also goes into the format of the file managers.
-			file.Path.Returns(new Uri(FilePath));
+			file
+				.Path
+				.Returns(new Uri(FilePath));
 
 			storage
 				.TryGetFileFromPathAsync(FilePath)
@@ -431,7 +433,9 @@ internal sealed class ClipboardAccessorTests
 			IStorageAccessor storage = Substitute.For<IStorageAccessor>();
 
 			// On Linux the path also goes into the format of the file managers.
-			file.Path.Returns(new Uri(FilePath));
+			file
+				.Path
+				.Returns(new Uri(FilePath));
 
 			storage
 				.TryGetFileFromPathAsync(failingPath)
@@ -521,7 +525,9 @@ internal sealed class ClipboardAccessorTests
 			IStorageFile file = Substitute.For<IStorageFile>();
 
 			// On Linux the path also goes into the format of the file managers.
-			file.Path.Returns(new Uri(FilePath));
+			file
+				.Path
+				.Returns(new Uri(FilePath));
 
 			storage
 				.TryGetFileFromPathAsync(FilePath)
@@ -568,9 +574,13 @@ internal sealed class ClipboardAccessorTests
 			IStorageAccessor storage = Substitute.For<IStorageAccessor>();
 
 			// On Linux the paths also go into the format of the file managers.
-			file.Path.Returns(new Uri(FilePath));
+			file
+				.Path
+				.Returns(new Uri(FilePath));
 
-			folder.Path.Returns(new Uri(SubfolderPath));
+			folder
+				.Path
+				.Returns(new Uri(SubfolderPath));
 
 			storage
 				.TryGetFileFromPathAsync(FilePath)
@@ -885,9 +895,13 @@ internal sealed class ClipboardAccessorTests
 
 			IStorageFolder folder = Substitute.For<IStorageFolder>();
 
-			file.Path.Returns(new Uri(FilePath));
+			file
+				.Path
+				.Returns(new Uri(FilePath));
 
-			folder.Path.Returns(new Uri(SubfolderPath));
+			folder
+				.Path
+				.Returns(new Uri(SubfolderPath));
 
 			clipboard
 				.TryGetFilesAsync()
@@ -922,9 +936,13 @@ internal sealed class ClipboardAccessorTests
 
 			IStorageFile relative = Substitute.For<IStorageFile>();
 
-			valid.Path.Returns(new Uri(FilePath));
+			valid
+				.Path
+				.Returns(new Uri(FilePath));
 
-			relative.Path.Returns(new Uri("b.txt", UriKind.Relative));
+			relative
+				.Path
+				.Returns(new Uri("b.txt", UriKind.Relative));
 
 			clipboard
 				.TryGetFilesAsync()
@@ -964,9 +982,13 @@ internal sealed class ClipboardAccessorTests
 
 			IStorageFile lower = Substitute.For<IStorageFile>();
 
-			upper.Path.Returns(new Uri(TestPath.Combine(FolderName, "B.txt")));
+			upper
+				.Path
+				.Returns(new Uri(TestPath.Combine(FolderName, "B.txt")));
 
-			lower.Path.Returns(new Uri(TestPath.Combine(FolderName, "a.txt")));
+			lower
+				.Path
+				.Returns(new Uri(TestPath.Combine(FolderName, "a.txt")));
 
 			clipboard
 				.TryGetFilesAsync()

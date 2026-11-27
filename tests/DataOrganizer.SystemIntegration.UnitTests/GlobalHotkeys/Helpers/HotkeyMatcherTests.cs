@@ -40,7 +40,9 @@ internal sealed class HotkeyMatcherTests
 				}
 			}.ToHotkeyDtos());
 
-		folder.Children.Add(file);
+		folder
+			.Children
+			.Add(file);
 
 		KeyStroke[] typed =
 		[

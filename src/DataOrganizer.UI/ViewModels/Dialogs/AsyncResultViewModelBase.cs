@@ -89,7 +89,9 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 		_exceptionHandler.Watch(SetDefaultResultOnCloseAsync(dialogClosed, shown, defaultResult));
 
-		return _source.Task.WaitAsync(token);
+		return _source
+			.Task
+			.WaitAsync(token);
 	}
 	#endregion
 

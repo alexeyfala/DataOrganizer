@@ -57,7 +57,9 @@ internal sealed class EditingFilesViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button closeButton = window
 			.GetVisualDescendants()
@@ -126,7 +128,9 @@ internal sealed class EditingFilesViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		DocumentTabControl tabs = window
 			.GetVisualDescendants()
@@ -199,7 +203,9 @@ internal sealed class EditingFilesViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Close();
 
@@ -259,7 +265,9 @@ internal sealed class EditingFilesViewTests
 			.RestoreTabsCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		window.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
@@ -303,7 +311,9 @@ internal sealed class EditingFilesViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel.SelectedIndex = 1;
@@ -346,7 +356,9 @@ internal sealed class EditingFilesViewTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		TextBlock header = window

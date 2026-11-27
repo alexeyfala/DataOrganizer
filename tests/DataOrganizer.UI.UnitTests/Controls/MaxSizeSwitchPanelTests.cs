@@ -31,7 +31,9 @@ internal sealed class MaxSizeSwitchPanelTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Size expectedSize = new(200.0, 150.0);
 
@@ -43,7 +45,9 @@ internal sealed class MaxSizeSwitchPanelTests
 		// Act
 		sut.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.DesiredSize
@@ -74,7 +78,9 @@ internal sealed class MaxSizeSwitchPanelTests
 		// Act
 		sut.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Children[0].IsEnabled

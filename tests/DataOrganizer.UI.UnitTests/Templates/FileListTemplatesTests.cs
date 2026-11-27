@@ -52,7 +52,9 @@ internal sealed class FileListTemplatesTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		IconsBlock icons = host
 			.GetVisualDescendants()
@@ -98,7 +100,9 @@ internal sealed class FileListTemplatesTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		IconsBlock icons = host
 			.GetVisualDescendants()

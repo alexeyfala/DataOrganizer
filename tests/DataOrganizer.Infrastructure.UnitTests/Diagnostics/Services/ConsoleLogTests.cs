@@ -94,7 +94,9 @@ internal sealed class ConsoleLogTests
 
 		ConsoleLog sut = mock.Create<ConsoleLog>();
 
-		using IDisposable subscription = sut.Written.Subscribe(_ => taken.AddRange(sut.TakeAll()));
+		using IDisposable subscription = sut
+			.Written
+			.Subscribe(_ => taken.AddRange(sut.TakeAll()));
 
 		// Act
 		sut.Write("first");

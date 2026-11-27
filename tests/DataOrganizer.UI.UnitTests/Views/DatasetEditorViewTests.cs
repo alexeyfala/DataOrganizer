@@ -894,7 +894,9 @@ internal sealed class DatasetEditorViewTests
 
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// The records left no longer reach the place, so the layout of the list scrolls it up as it is shown again.
 		while (viewModel.Records.Count > keptCount)
@@ -998,11 +1000,15 @@ internal sealed class DatasetEditorViewTests
 		// Hidden before the pause after the scroll ends, so the place shown differs from the stored one.
 		ScrollToRecord(recordsHost, recordsScroller, StoredRecordIndex + 1);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		window.Content = sut;
@@ -1834,7 +1840,9 @@ internal sealed class DatasetEditorViewTests
 
 		ScrollToRecord(recordsHost, recordsScroller, ScrolledRecordIndex);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		window.Content = null;
@@ -2028,7 +2036,9 @@ internal sealed class DatasetEditorViewTests
 		// A switch of the tabs takes the list off the window and brings it back.
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Content = sut;
 
@@ -2318,7 +2328,9 @@ internal sealed class DatasetEditorViewTests
 
 		// One run of the jobs lays the move out, far within the pause on any machine, so only the place where the scroll
 		// ends counts.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		recordsScroller.Offset = place;
 

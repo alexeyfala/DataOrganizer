@@ -88,7 +88,9 @@ internal sealed class ImportedEntityRulesTests
 			OwnerId = file.Id
 		};
 
-		file.Hotkeys.Add(hotkey);
+		file
+			.Hotkeys
+			.Add(hotkey);
 
 		Guid[] oldIds = [parent.Id, child.Id, file.Id, hotkey.Id];
 

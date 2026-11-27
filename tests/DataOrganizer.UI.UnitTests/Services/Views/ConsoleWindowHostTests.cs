@@ -255,7 +255,9 @@ internal sealed class ConsoleWindowHostTests
 				.CreateWindow<ConsoleWindow>(Arg.Any<object[]>())
 				.Returns(consoleWindow);
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder.RegisterInstance(viewFactory);
 

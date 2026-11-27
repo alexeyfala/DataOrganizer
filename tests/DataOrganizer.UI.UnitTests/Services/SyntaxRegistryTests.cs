@@ -661,7 +661,9 @@ internal sealed class SyntaxRegistryTests
 		SyntaxRegistry sut = SyntaxRegistry.Instance;
 
 		// Act
-		SelectorChoice language = sut.Languages.Single(static x => x.Id == "powershell");
+		SelectorChoice language = sut
+			.Languages
+			.Single(static x => x.Id == "powershell");
 
 		// Assert
 		language.Name

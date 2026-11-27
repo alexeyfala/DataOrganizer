@@ -306,7 +306,9 @@ internal sealed class PointerHoverCommandBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		PointerHoverCommandBehavior behavior = new()
 		{

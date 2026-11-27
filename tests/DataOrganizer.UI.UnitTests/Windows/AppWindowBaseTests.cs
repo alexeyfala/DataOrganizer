@@ -27,7 +27,9 @@ internal sealed class AppWindowBaseTests
 		};
 
 		// The headless platform resizes on the dispatcher.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetPlatformClientSize(window)
@@ -50,7 +52,9 @@ internal sealed class AppWindowBaseTests
 		// Act
 		window.Width = 640;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetPlatformClientSize(window)

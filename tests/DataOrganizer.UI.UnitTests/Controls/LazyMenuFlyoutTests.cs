@@ -39,7 +39,9 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		FlyoutPresenter presenter = ((Control)sut.Content!).FindLogicalAncestorOfType<FlyoutPresenter>()!;
 
@@ -85,22 +87,30 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		submenu.ShowAt(opener);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool[] afterFirst = [submenu.IsOpen, sut.IsOpen];
 
 		// Act
 		window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		afterFirst
@@ -131,7 +141,9 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.Hide();
@@ -172,12 +184,16 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.Hide();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		window.FocusManager.GetFocusedElement()
@@ -206,7 +222,9 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.Hide();
@@ -241,7 +259,9 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.Hide();
 
@@ -250,7 +270,9 @@ internal sealed class LazyMenuFlyoutTests
 		// Act
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		((TextBlock)sut.Content!).Text
@@ -280,7 +302,9 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		target.DataContext = "second";
@@ -339,7 +363,9 @@ internal sealed class LazyMenuFlyoutTests
 
 		sut.ShowAt(target);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Point point = window.CenterOf(under);
 

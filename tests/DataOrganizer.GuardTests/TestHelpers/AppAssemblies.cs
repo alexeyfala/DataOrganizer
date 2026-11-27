@@ -17,7 +17,9 @@ internal static class AppAssemblies
 	public static Assembly[] Enumerate()
 	{
 		// The projects of the application share the first segment of its namespace.
-		string prefix = typeof(App).Namespace!.Split('.')[0];
+		string prefix = typeof(App)
+			.Namespace!
+			.Split('.')[0];
 
 		Dictionary<string, Assembly> found = [];
 

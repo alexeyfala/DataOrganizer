@@ -70,7 +70,9 @@ internal sealed class ExplorerItemSignalsBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Control? rowBefore = list.ContainerFromItem(items[^1]);
 
@@ -194,7 +196,9 @@ internal sealed class ExplorerItemSignalsBehaviorTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Close();
 
@@ -240,7 +244,9 @@ internal sealed class ExplorerItemSignalsBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		showSignal.OnNext([Item]);

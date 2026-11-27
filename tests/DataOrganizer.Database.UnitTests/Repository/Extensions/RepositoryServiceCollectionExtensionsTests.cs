@@ -78,7 +78,9 @@ internal sealed class RepositoryServiceCollectionExtensionsTests
 		DbContextOptions options = provider.GetRequiredService<DbContextOptions<SqliteDbContext>>();
 
 		// Assert
-		string? connectionString = RelationalOptionsExtension.Extract(options).ConnectionString;
+		string? connectionString = RelationalOptionsExtension
+			.Extract(options)
+			.ConnectionString;
 
 		string dataSource = new SqliteConnectionStringBuilder(connectionString).DataSource;
 

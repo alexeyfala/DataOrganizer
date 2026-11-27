@@ -61,7 +61,9 @@ internal sealed class SettingsAppearanceViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		RadioButton[] buttons = [.. sut.GetVisualDescendants().OfType<RadioButton>().Take(3)];
 
@@ -70,7 +72,9 @@ internal sealed class SettingsAppearanceViewTests
 		// Act
 		buttons[1].IsChecked = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		shown

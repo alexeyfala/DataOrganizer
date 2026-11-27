@@ -671,7 +671,9 @@ internal sealed class ContentCopierTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: encryptionStatus);
 
-		byte[] decrypted = Encoding.UTF8.GetBytes(RandomString.Create(20));
+		byte[] decrypted = Encoding
+			.UTF8
+			.GetBytes(RandomString.Create(20));
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

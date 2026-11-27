@@ -374,7 +374,10 @@ public static class FileTextCodec
 		}
 
 		// The application changes only the language of its interface, so the culture keeps the region of the system.
-		int regionCodePage = CultureInfo.CurrentCulture.TextInfo.ANSICodePage;
+		int regionCodePage = CultureInfo
+			.CurrentCulture
+			.TextInfo
+			.ANSICodePage;
 
 		// Stryker disable once all : runs on macOS and Linux only, while the mutation run is on Windows
 		return (regionCodePage > 0 ? provider.GetEncoding(regionCodePage) : null)

@@ -320,7 +320,9 @@ internal sealed partial class AutomationNameMarkupTests
 			.Descendants()
 			.Where(setter => setter.Name.LocalName == "Setter" && LocalName(setter.Attribute("Property")?.Value) == name))
 		{
-			yield return setter.Attribute("Value")?.Value;
+			yield return setter
+				.Attribute("Value")?
+				.Value;
 		}
 	}
 
@@ -402,7 +404,9 @@ internal sealed partial class AutomationNameMarkupTests
 	/// </summary>
 	private static bool? ShowsText(XElement element)
 	{
-		string kind = element.Name.LocalName;
+		string kind = element
+			.Name
+			.LocalName;
 
 		// A flyout button builds its content from the header, and a headered item shows its header.
 		string contentName = kind is "FlyoutButton" or "MenuItem" or "TabItem" or "TreeViewItem"

@@ -206,13 +206,17 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 				return;
 			}
 
-			Rect rect = target.TextLayout.HitTestTextPosition(matchStart);
+			Rect rect = target
+				.TextLayout
+				.HitTestTextPosition(matchStart);
 
 			double maxOffset = Math.Max(0.0, scroll.Extent.Height - scroll.Viewport.Height);
 
 			double y = Math.Clamp(rect.Y - MatchTopMargin, 0.0, maxOffset);
 
-			scroll.Offset = scroll.Offset.WithY(y);
+			scroll.Offset = scroll
+				.Offset
+				.WithY(y);
 		}, DispatcherPriority.Loaded);
 	}
 	#endregion

@@ -48,7 +48,9 @@ internal sealed class TextEditorBaseTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// In the middle of the gap, level with the second line.
 		Point point = textView.TranslatePoint(
@@ -60,7 +62,9 @@ internal sealed class TextEditorBaseTests
 		// Act
 		window.Click(point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.TextArea.Caret.Offset
@@ -86,7 +90,9 @@ internal sealed class TextEditorBaseTests
 		}
 
 		// Act
-		bool canExecute = sut.CopyCommand.CanExecute(null);
+		bool canExecute = sut
+			.CopyCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -109,7 +115,10 @@ internal sealed class TextEditorBaseTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(8);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(8);
 
 		// Act
 		for (int i = 0; i < 2; i++)
@@ -117,7 +126,9 @@ internal sealed class TextEditorBaseTests
 			window.Click(point, MouseButton.Right);
 		}
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SelectionLength
@@ -139,7 +150,10 @@ internal sealed class TextEditorBaseTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(3);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(3);
 
 		// Act
 		for (int i = 0; i < 2; i++)
@@ -147,7 +161,9 @@ internal sealed class TextEditorBaseTests
 			window.Click(point);
 		}
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SelectedText
@@ -175,7 +191,10 @@ internal sealed class TextEditorBaseTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(offset);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(offset);
 
 		// Act
 		for (int i = 0; i < 2; i++)
@@ -183,7 +202,9 @@ internal sealed class TextEditorBaseTests
 			window.Click(point);
 		}
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SelectedText
@@ -206,7 +227,10 @@ internal sealed class TextEditorBaseTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(8);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(8);
 
 		// Act
 		for (int i = 0; i < 2; i++)
@@ -216,7 +240,9 @@ internal sealed class TextEditorBaseTests
 			window.MouseUp(point, MouseButton.Left, RawInputModifiers.Shift);
 		}
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SelectionStart
@@ -240,10 +266,14 @@ internal sealed class TextEditorBaseTests
 		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
-		sut.FindCommand.Execute(null);
+		sut
+			.FindCommand
+			.Execute(null);
 
 		// The panel builds its buttons in the layout pass.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SearchPanel
@@ -277,7 +307,9 @@ internal sealed class TextEditorBaseTests
 		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
-		sut.FindCommand.Execute(null);
+		sut
+			.FindCommand
+			.Execute(null);
 
 		// Assert
 		sut.SearchPanel.IsOpened
@@ -348,7 +380,9 @@ internal sealed class TextEditorBaseTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// In the text of the second line.
 		Point point = textView.TranslatePoint(
@@ -412,10 +446,14 @@ internal sealed class TextEditorBaseTests
 
 		formerSource.Select(8, 3);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		textView.BackgroundRenderers
 			.OfType<SelectionOccurrenceRenderer>()
@@ -455,7 +493,9 @@ internal sealed class TextEditorBaseTests
 
 		HeadlessWindow.ShowInFluentTheme(sut);
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		textView
 			.BackgroundRenderers
@@ -527,7 +567,9 @@ internal sealed class TextEditorBaseTests
 
 		ScrollViewer scrollViewer = sut.GetScrollViewer();
 
-		double? right = scrollViewer.TranslatePoint(new(scrollViewer.Bounds.Width, 0.0), sut)?.X;
+		double? right = scrollViewer
+			.TranslatePoint(new(scrollViewer.Bounds.Width, 0.0), sut)?
+			.X;
 
 		right
 			.Should()
@@ -549,9 +591,13 @@ internal sealed class TextEditorBaseTests
 		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
-		sut.ScrollToEndCommand.Execute(null);
+		sut
+			.ScrollToEndCommand
+			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.TextArea.Caret.Line
@@ -579,14 +625,22 @@ internal sealed class TextEditorBaseTests
 
 		HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.ScrollToEndCommand.Execute(null);
+		sut
+			.ScrollToEndCommand
+			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
-		sut.ScrollToTopCommand.Execute(null);
+		sut
+			.ScrollToTopCommand
+			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.TextArea.Caret.Line
@@ -612,7 +666,9 @@ internal sealed class TextEditorBaseTests
 
 		// Assert
 		// A local keeps the assertion from being skipped by the null-conditional operator when there is none.
-		string? name = sut.ScrollViewer?.Name;
+		string? name = sut
+			.ScrollViewer?
+			.Name;
 
 		name
 			.Should()
@@ -647,7 +703,9 @@ internal sealed class TextEditorBaseTests
 		};
 
 		// Act
-		bool canExecute = sut.SelectAllCommand.CanExecute(null);
+		bool canExecute = sut
+			.SelectAllCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -670,7 +728,9 @@ internal sealed class TextEditorBaseTests
 		};
 
 		// Act
-		sut.SelectAllCommand.Execute(null);
+		sut
+			.SelectAllCommand
+			.Execute(null);
 
 		// Assert
 		sut.SelectionStart
@@ -699,10 +759,14 @@ internal sealed class TextEditorBaseTests
 		// Act
 		sut.Select(0, 3);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		textView.BackgroundRenderers
 			.OfType<SelectionOccurrenceRenderer>()
@@ -733,7 +797,9 @@ internal sealed class TextEditorBaseTests
 		};
 
 		// Act
-		sut.SpinCommand.Execute(new(Spinner.SpinEvent, direction));
+		sut
+			.SpinCommand
+			.Execute(new(Spinner.SpinEvent, direction));
 
 		// Assert
 		sut.FontSize
@@ -748,11 +814,15 @@ internal sealed class TextEditorBaseTests
 	/// </summary>
 	private static void PaintFrame()
 	{
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 	}
 	#endregion
 }

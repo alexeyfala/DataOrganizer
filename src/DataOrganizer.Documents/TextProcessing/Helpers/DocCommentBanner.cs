@@ -80,7 +80,9 @@ internal static class DocCommentBanner
 		}
 
 		// Pooled, as a pass makes a banner for each comment.
-		char[] xml = ArrayPool<char>.Shared.Rent(summary.Length + 1);
+		char[] xml = ArrayPool<char>
+			.Shared
+			.Rent(summary.Length + 1);
 
 		try
 		{
@@ -91,7 +93,9 @@ internal static class DocCommentBanner
 		// Stryker disable once Block,Statement : an array kept from the pool cannot be observed
 		finally
 		{
-			ArrayPool<char>.Shared.Return(xml);
+			ArrayPool<char>
+				.Shared
+				.Return(xml);
 		}
 	}
 	#endregion

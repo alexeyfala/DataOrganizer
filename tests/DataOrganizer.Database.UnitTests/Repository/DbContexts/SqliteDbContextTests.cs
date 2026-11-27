@@ -172,7 +172,9 @@ internal sealed class SqliteDbContextTests
 		using SqliteDbContext sut = new(options);
 
 		// Act
-		bool hasChanges = sut.Database.HasPendingModelChanges();
+		bool hasChanges = sut
+			.Database
+			.HasPendingModelChanges();
 
 		// Assert
 		hasChanges

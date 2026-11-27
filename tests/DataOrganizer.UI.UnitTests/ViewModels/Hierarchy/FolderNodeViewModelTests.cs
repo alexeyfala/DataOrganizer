@@ -37,7 +37,9 @@ internal sealed class FolderNodeViewModelTests
 
 		FolderDto inner = ItemDtoFactory.CreateFolderDto();
 
-		folder.Children.Add(inner);
+		folder
+			.Children
+			.Add(inner);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -53,10 +55,14 @@ internal sealed class FolderNodeViewModelTests
 
 		FolderNodeViewModel sut = mock.Create<FolderNodeViewModel>();
 
-		ExplorerNodeViewModelBase row = sut.Children.Single();
+		ExplorerNodeViewModelBase row = sut
+			.Children
+			.Single();
 
 		// Act
-		folder.Children.Remove(inner);
+		folder
+			.Children
+			.Remove(inner);
 
 		// Assert
 		row.IsDisposed
@@ -80,9 +86,13 @@ internal sealed class FolderNodeViewModelTests
 
 		FileDto kept = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(left);
+		folder
+			.Children
+			.Add(left);
 
-		folder.Children.Add(kept);
+		folder
+			.Children
+			.Add(kept);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -99,9 +109,13 @@ internal sealed class FolderNodeViewModelTests
 		FolderNodeViewModel sut = mock.Create<FolderNodeViewModel>();
 
 		// Act
-		folder.Children.Remove(left);
+		folder
+			.Children
+			.Remove(left);
 
-		folder.Children.Insert(0, added);
+		folder
+			.Children
+			.Insert(0, added);
 
 		// Assert
 		sut.Children.Select(static x => x.Model)
@@ -118,9 +132,13 @@ internal sealed class FolderNodeViewModelTests
 		// Arrange
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFolderDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFolderDto());
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -163,7 +181,9 @@ internal sealed class FolderNodeViewModelTests
 
 		FileDto kept = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(kept);
+		folder
+			.Children
+			.Add(kept);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -182,7 +202,9 @@ internal sealed class FolderNodeViewModelTests
 		FolderNodeViewModel sut = mock.Create<FolderNodeViewModel>();
 
 		// Act
-		folder.Children.Insert(0, added);
+		folder
+			.Children
+			.Insert(0, added);
 
 		// Assert
 		sut.ShownChildren.Select(static x => x.Model)
@@ -203,9 +225,13 @@ internal sealed class FolderNodeViewModelTests
 
 		FileDto second = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(first);
+		folder
+			.Children
+			.Add(first);
 
-		folder.Children.Add(second);
+		folder
+			.Children
+			.Add(second);
 
 		BehaviorSubject<HierarchyFilter> filter = new(HierarchyFilter.None);
 
@@ -256,9 +282,13 @@ internal sealed class FolderNodeViewModelTests
 
 		FileDto shown = ItemDtoFactory.CreateFileDto();
 
-		folder.Children.Add(ItemDtoFactory.CreateFileDto());
+		folder
+			.Children
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		folder.Children.Add(shown);
+		folder
+			.Children
+			.Add(shown);
 
 		BehaviorSubject<HierarchyFilter> filter = new(HierarchyFilter.None);
 

@@ -74,7 +74,9 @@ internal sealed class BookmarkMarginTests
 
 		if (isBookmarked)
 		{
-			editor.Bookmarks.Toggle(5);
+			editor
+				.Bookmarks
+				.Toggle(5);
 		}
 
 		Point point = GetLinePoint(sut, line: 5, window);
@@ -107,7 +109,9 @@ internal sealed class BookmarkMarginTests
 
 		BookmarkMargin sut = GetMargin(editor);
 
-		TextView textView = editor.TextArea.TextView;
+		TextView textView = editor
+			.TextArea
+			.TextView;
 
 		// In the text of the second line.
 		Point point = textView.TranslatePoint(
@@ -147,12 +151,16 @@ internal sealed class BookmarkMarginTests
 
 		BookmarkMargin sut = GetMargin(editor);
 
-		double width = sut.DesiredSize.Width;
+		double width = sut
+			.DesiredSize
+			.Width;
 
 		// Act
 		editor.FontSize = 28.0;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.DesiredSize.Width
@@ -203,7 +211,9 @@ internal sealed class BookmarkMarginTests
 
 		BookmarkMargin sut = GetMargin(editor);
 
-		editor.Bookmarks.Toggle(5);
+		editor
+			.Bookmarks
+			.Toggle(5);
 
 		// Act
 		window.MouseMove(GetLinePoint(sut, line: 5, window));
@@ -288,7 +298,9 @@ internal sealed class BookmarkMarginTests
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		WeakReferenceMessenger.Default
@@ -313,9 +325,13 @@ internal sealed class BookmarkMarginTests
 
 		BookmarkMargin sut = GetMargin(editor);
 
-		editor.Bookmarks.Toggle(2);
+		editor
+			.Bookmarks
+			.Toggle(2);
 
-		editor.Bookmarks.Toggle(4);
+		editor
+			.Bookmarks
+			.Toggle(4);
 
 		// Act
 		(Rect Bounds, double Opacity, IBrush? Brush)[] icons = GetIcons(sut.Draw());

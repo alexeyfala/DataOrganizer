@@ -94,7 +94,9 @@ internal sealed class DatasetFieldViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		string? maskOfShortText = sut.DisplayText;
 
@@ -130,7 +132,9 @@ internal sealed class DatasetFieldViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string name = ControlAutomationPeer
@@ -166,7 +170,9 @@ internal sealed class DatasetFieldViewTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.DisplayText
@@ -196,7 +202,9 @@ internal sealed class DatasetFieldViewTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.DisplayText
@@ -223,7 +231,9 @@ internal sealed class DatasetFieldViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ToggleButton toggle = sut
 			.GetVisualDescendants()
@@ -233,7 +243,9 @@ internal sealed class DatasetFieldViewTests
 		// Act
 		window.Content = null;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		toggle.IsChecked
@@ -266,7 +278,9 @@ internal sealed class DatasetFieldViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string?[] names =
@@ -323,7 +337,9 @@ internal sealed class DatasetFieldViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string firstName = ControlAutomationPeer
@@ -366,7 +382,9 @@ internal sealed class DatasetFieldViewTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetVisualDescendants().OfType<NoteView>()
@@ -395,12 +413,16 @@ internal sealed class DatasetFieldViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut.Note = note;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.GetVisualDescendants().OfType<NoteView>()

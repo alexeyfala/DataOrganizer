@@ -67,7 +67,9 @@ internal sealed class ClipboardLogTemplatesTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		host
 			.GetVisualDescendants()
@@ -75,7 +77,9 @@ internal sealed class ClipboardLogTemplatesTests
 			.Single(static x => x.Name == RevealEyeName)
 			.IsChecked = isRevealed;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string?[] names =
@@ -127,7 +131,9 @@ internal sealed class ClipboardLogTemplatesTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert (the root of the template is the button of the entry).
 		Button button = host
@@ -163,7 +169,9 @@ internal sealed class ClipboardLogTemplatesTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert (a line per kind: folders, files, and the total).
 		Border badge = host
@@ -205,7 +213,9 @@ internal sealed class ClipboardLogTemplatesTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		string?[] shownTexts = [.. host
@@ -242,7 +252,9 @@ internal sealed class ClipboardLogTemplatesTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Border badge = host
@@ -278,7 +290,9 @@ internal sealed class ClipboardLogTemplatesTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert (the counts and both files).
 		string[] lines = host

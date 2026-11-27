@@ -200,7 +200,9 @@ internal sealed class LinuxExplorerManagerTests
 		// Arrange
 		const string title = "Документы — Files";
 
-		byte[] bytes = Encoding.UTF8.GetBytes(title);
+		byte[] bytes = Encoding
+			.UTF8
+			.GetBytes(title);
 
 		// Act
 		string? result = ReadNative(bytes, x => LinuxExplorerManager.ReadUtf8(x, 8, bytes.Length));

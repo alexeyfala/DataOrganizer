@@ -979,7 +979,9 @@ internal sealed class ClipboardLogPersistenceCoordinatorTests
 			.Should()
 			.BeFalse();
 
-		store.IsUnlocked.Returns(true);
+		store
+			.IsUnlocked
+			.Returns(true);
 
 		unlockable.RequiresUnlock
 			.Should()

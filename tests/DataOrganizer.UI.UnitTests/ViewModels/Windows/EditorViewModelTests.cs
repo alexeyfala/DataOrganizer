@@ -507,14 +507,18 @@ internal sealed class EditorViewModelTests
 
 		CopyHistoryViewModel copyHistoryList = sut.CopyHistoryList!;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		await sut
 			.ClearRightSideSheetCommand
 			.ExecuteAsync(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		copyHistory.ItemIds.Count
@@ -618,7 +622,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.EditingFiles.OpenInEditor(file);
+		sut
+			.EditingFiles
+			.OpenInEditor(file);
 
 		// Act
 		sut
@@ -757,7 +763,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(file);
+		sut
+			.Hierarchy
+			.Add(file);
 
 		sut
 			.ShowCopyHistoryCommand
@@ -765,14 +773,18 @@ internal sealed class EditorViewModelTests
 
 		CopyHistoryViewModel copyHistory = sut.CopyHistoryList!;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		await sut
 			.CopyContentByContextMenuCommand
 			.ExecuteAsync(file);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		copyHistory.Items
@@ -1757,12 +1769,18 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(ItemDtoFactory.CreateFileDto());
+		sut
+			.Hierarchy
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		bool canRunUnselected = sut.DeleteCommand.CanExecute(null);
+		bool canRunUnselected = sut
+			.DeleteCommand
+			.CanExecute(null);
 
 		// Act
-		sut.SelectedNode = sut.Nodes.Single();
+		sut.SelectedNode = sut
+			.Nodes
+			.Single();
 
 		// Assert
 		canRunUnselected
@@ -1788,7 +1806,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.AddRange([ItemDtoFactory.CreateFolderDto(), ItemDtoFactory.CreateFileDto()]);
+		sut
+			.Hierarchy
+			.AddRange([ItemDtoFactory.CreateFolderDto(), ItemDtoFactory.CreateFileDto()]);
 
 		ExplorerNodeViewModelBase[] rows = [.. sut.Nodes];
 
@@ -2945,7 +2965,9 @@ internal sealed class EditorViewModelTests
 			{
 				child.Parent = folder;
 
-				folder.Children.Add(child);
+				folder
+					.Children
+					.Add(child);
 			}
 		}
 
@@ -2967,7 +2989,9 @@ internal sealed class EditorViewModelTests
 			.Hierarchy
 			.AddRange(folders);
 
-		sut.SelectedNode = sut.Nodes.Single(x => x.Model == selectedFolder);
+		sut.SelectedNode = sut
+			.Nodes
+			.Single(x => x.Model == selectedFolder);
 
 		// Act
 		await sut.ExpandCollapseAllFoldersAsync(isExpandAll);
@@ -3210,7 +3234,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(plain);
+		sut
+			.Hierarchy
+			.Add(plain);
 
 		// Act
 		await sut.HideAllFileContents();
@@ -3601,7 +3627,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(ItemDtoFactory.CreateFolderDto());
+		sut
+			.Hierarchy
+			.Add(ItemDtoFactory.CreateFolderDto());
 
 		// Act
 		await sut.Import();
@@ -3701,7 +3729,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(opened);
+		sut
+			.Hierarchy
+			.Add(opened);
 
 		// Act
 		await sut.Import();
@@ -3850,13 +3880,17 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(replaced);
+		sut
+			.Hierarchy
+			.Add(replaced);
 
 		// Act
 		await sut.Import();
 
 		// Assert
-		ExplorerNodeViewModelBase row = sut.Nodes.Single();
+		ExplorerNodeViewModelBase row = sut
+			.Nodes
+			.Single();
 
 		row.Model
 			.Should()
@@ -3909,7 +3943,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(opened);
+		sut
+			.Hierarchy
+			.Add(opened);
 
 		// Act
 		await sut.Import();
@@ -3963,7 +3999,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
 		// Act
 		await sut.Import();
@@ -4006,7 +4044,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
 		// Act
 		await sut.Import();
@@ -4454,12 +4494,18 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
-		ExplorerNodeViewModelBase row = sut.Nodes.Single();
+		ExplorerNodeViewModelBase row = sut
+			.Nodes
+			.Single();
 
 		// Act
-		sut.Hierarchy.Remove(folder);
+		sut
+			.Hierarchy
+			.Remove(folder);
 
 		// Assert
 		row.IsDisposed
@@ -4490,7 +4536,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
 		sut.IsReadOnly = true;
 
@@ -4529,11 +4577,15 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(parent);
+		sut
+			.Hierarchy
+			.Add(parent);
 
 		child.Parent = parent;
 
-		parent.Children.Add(child);
+		parent
+			.Children
+			.Add(child);
 
 		// Act
 		sut.Nodes.FindNode(child)!.IsExpanded = true;
@@ -4572,7 +4624,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
 		// Act
 		sut.Nodes.Single().IsExpanded = isExpanded;
@@ -4597,7 +4651,9 @@ internal sealed class EditorViewModelTests
 
 		child.Parent = parent;
 
-		parent.Children.Add(child);
+		parent
+			.Children
+			.Add(child);
 
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
@@ -4613,7 +4669,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(parent);
+		sut
+			.Hierarchy
+			.Add(parent);
 
 		// Act
 		sut.Nodes.FindNode(child)!.IsExpanded = true;
@@ -4648,11 +4706,17 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
-		ExplorerNodeViewModelBase row = sut.Nodes.Single();
+		ExplorerNodeViewModelBase row = sut
+			.Nodes
+			.Single();
 
-		sut.Hierarchy.Remove(folder);
+		sut
+			.Hierarchy
+			.Remove(folder);
 
 		// Act
 		row.IsExpanded = true;
@@ -4687,7 +4751,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
 		sut.Receive(new ShowProgressBarMessage(true));
 
@@ -4873,7 +4939,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.EditingFiles.OpenInEditor(file);
+		sut
+			.EditingFiles
+			.OpenInEditor(file);
 
 		// Act
 		sut.Receive(new CloseEditingFileMessage(file));
@@ -4951,7 +5019,9 @@ internal sealed class EditorViewModelTests
 				.When(static x => x.Watch(Arg.Any<Task>()))
 				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 
@@ -5023,7 +5093,9 @@ internal sealed class EditorViewModelTests
 
 			builder.RegisterInstance(contentVisibility);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 
@@ -5117,7 +5189,9 @@ internal sealed class EditorViewModelTests
 
 			builder.RegisterInstance(contentVisibility);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 
@@ -5178,7 +5252,9 @@ internal sealed class EditorViewModelTests
 				.When(static x => x.Watch(Arg.Any<Task>()))
 				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 
@@ -5235,7 +5311,9 @@ internal sealed class EditorViewModelTests
 
 			builder.RegisterInstance(autoLock);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 
@@ -5297,11 +5375,15 @@ internal sealed class EditorViewModelTests
 
 		inner.Parent = outer;
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		file.Parent = inner;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
 		WorkSession session = new();
 
@@ -5311,7 +5393,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(outer);
+		sut
+			.Hierarchy
+			.Add(outer);
 
 		// Act
 		sut.Receive(new ShowInEditorMessage(file.Id));
@@ -5377,9 +5461,13 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(dto);
+		sut
+			.Hierarchy
+			.Add(dto);
 
-		sut.SelectedNode = sut.Nodes.Single();
+		sut.SelectedNode = sut
+			.Nodes
+			.Single();
 
 		// Act
 		sut.ResetSelectedObject();
@@ -5432,9 +5520,13 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, as in the application.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.Add(selected);
+		sut
+			.Hierarchy
+			.Add(selected);
 
-		sut.SelectedNode = sut.Nodes.Single();
+		sut.SelectedNode = sut
+			.Nodes
+			.Single();
 
 		// Only what the reset saves counts.
 		saved.Clear();
@@ -5462,12 +5554,18 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(ItemDtoFactory.CreateFileDto());
+		sut
+			.Hierarchy
+			.Add(ItemDtoFactory.CreateFileDto());
 
-		bool canRunUnselected = sut.ResetSelectedObjectCommand.CanExecute(null);
+		bool canRunUnselected = sut
+			.ResetSelectedObjectCommand
+			.CanExecute(null);
 
 		// Act
-		sut.SelectedNode = sut.Nodes.Single();
+		sut.SelectedNode = sut
+			.Nodes
+			.Single();
 
 		// Assert
 		canRunUnselected
@@ -5579,7 +5677,9 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, so that a change of the selection would be saved.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.AddRange([ItemDtoFactory.CreateFileDto(), selected]);
+		sut
+			.Hierarchy
+			.AddRange([ItemDtoFactory.CreateFileDto(), selected]);
 
 		// Act
 		sut.RestoreSelection();
@@ -5613,7 +5713,9 @@ internal sealed class EditorViewModelTests
 
 		file.Parent = folder;
 
-		folder.Children.Add(file);
+		folder
+			.Children
+			.Add(file);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -5627,17 +5729,25 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(folder);
+		sut
+			.Hierarchy
+			.Add(folder);
 
-		ExplorerNodeViewModelBase folderRow = sut.Nodes.Single();
+		ExplorerNodeViewModelBase folderRow = sut
+			.Nodes
+			.Single();
 
-		ExplorerNodeViewModelBase fileRow = folderRow.Children.Single();
+		ExplorerNodeViewModelBase fileRow = folderRow
+			.Children
+			.Single();
 
 		sut.SelectedNode = fileRow;
 
 		List<IReadOnlyList<ExplorerNodeViewModelBase>> scrolls = [];
 
-		using IDisposable subscription = sut.ScrollSignal.Subscribe(scrolls.Add);
+		using IDisposable subscription = sut
+			.ScrollSignal
+			.Subscribe(scrolls.Add);
 
 		sut.Search.Text = "needle";
 
@@ -5676,9 +5786,13 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(ItemDtoFactory.CreateNamedFileDto("other"));
+		sut
+			.Hierarchy
+			.Add(ItemDtoFactory.CreateNamedFileDto("other"));
 
-		sut.SelectedNode = sut.Nodes.Single();
+		sut.SelectedNode = sut
+			.Nodes
+			.Single();
 
 		sut.Search.Text = "needle";
 
@@ -5749,9 +5863,13 @@ internal sealed class EditorViewModelTests
 
 		inner.Parent = outer;
 
-		inner.Children.Add(file);
+		inner
+			.Children
+			.Add(file);
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -5765,11 +5883,17 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(outer);
+		sut
+			.Hierarchy
+			.Add(outer);
 
-		ExplorerNodeViewModelBase outerRow = sut.Nodes.Single();
+		ExplorerNodeViewModelBase outerRow = sut
+			.Nodes
+			.Single();
 
-		ExplorerNodeViewModelBase innerRow = outerRow.Children.Single();
+		ExplorerNodeViewModelBase innerRow = outerRow
+			.Children
+			.Single();
 
 		sut.Search.Text = "needle";
 
@@ -5868,7 +5992,9 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, as in the application.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.AddRange([left, chosen]);
+		sut
+			.Hierarchy
+			.AddRange([left, chosen]);
 
 		ExplorerNodeViewModelBase leftRow = sut.Nodes[0];
 
@@ -5918,11 +6044,15 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, as in the application.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.Add(chosen);
+		sut
+			.Hierarchy
+			.Add(chosen);
 
 		sut.IsReadOnly = true;
 
-		ExplorerNodeViewModelBase row = sut.Nodes.Single();
+		ExplorerNodeViewModelBase row = sut
+			.Nodes
+			.Single();
 
 		// Act
 		row.IsSelected = true;
@@ -5966,11 +6096,17 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, as in the application.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.Add(removed);
+		sut
+			.Hierarchy
+			.Add(removed);
 
-		sut.SelectedNode = sut.Nodes.Single();
+		sut.SelectedNode = sut
+			.Nodes
+			.Single();
 
-		sut.Hierarchy.Remove(removed);
+		sut
+			.Hierarchy
+			.Remove(removed);
 
 		// Act
 		// The tree drops the selection of an object it no longer holds.
@@ -6024,7 +6160,9 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, as in the application.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.AddRange([left, chosen]);
+		sut
+			.Hierarchy
+			.AddRange([left, chosen]);
 
 		ExplorerNodeViewModelBase leftRow = sut.Nodes[0];
 
@@ -6075,11 +6213,15 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, as in the application.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.Add(chosen);
+		sut
+			.Hierarchy
+			.Add(chosen);
 
 		sut.Receive(new ShowProgressBarMessage(true));
 
-		ExplorerNodeViewModelBase row = sut.Nodes.Single();
+		ExplorerNodeViewModelBase row = sut
+			.Nodes
+			.Single();
 
 		// Act
 		row.IsSelected = true;
@@ -6134,7 +6276,9 @@ internal sealed class EditorViewModelTests
 		// The window of the editor is shown, as in the application.
 		sut.IsWindowShown = true;
 
-		sut.Hierarchy.AddRange([left, chosen]);
+		sut
+			.Hierarchy
+			.AddRange([left, chosen]);
 
 		sut.SelectedNode = sut.Nodes[0];
 
@@ -6166,9 +6310,13 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(dto);
+		sut
+			.Hierarchy
+			.Add(dto);
 
-		ExplorerNodeViewModelBase row = sut.Nodes.Single();
+		ExplorerNodeViewModelBase row = sut
+			.Nodes
+			.Single();
 
 		// Act
 		sut
@@ -6500,9 +6648,13 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(file);
+		sut
+			.Hierarchy
+			.Add(file);
 
-		sut.EditingFiles.OpenInEditor(file);
+		sut
+			.EditingFiles
+			.OpenInEditor(file);
 
 		// Act
 		sut.ShowFavorites();
@@ -6579,7 +6731,9 @@ internal sealed class EditorViewModelTests
 
 		EditingFilesViewModel editingFiles = sut.EditingFiles;
 
-		sut.Hierarchy.AddRange(files);
+		sut
+			.Hierarchy
+			.AddRange(files);
 
 		files.ForEach(editingFiles.OpenInEditor);
 
@@ -6884,7 +7038,9 @@ internal sealed class EditorViewModelTests
 		// Arrange
 		FileDto dto = ItemDtoFactory.CreateFileDto();
 
-		dto.Hotkeys.AddRange(HotkeyFactory.CreateHotkeyDtos(2));
+		dto
+			.Hotkeys
+			.AddRange(HotkeyFactory.CreateHotkeyDtos(2));
 
 		KeyStroke[] current = [.. dto.Hotkeys.ToKeyStrokes()];
 
@@ -6958,9 +7114,13 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(ItemDtoFactory.CreateNamedFileDto("other"));
+		sut
+			.Hierarchy
+			.Add(ItemDtoFactory.CreateNamedFileDto("other"));
 
-		sut.Hierarchy.Add(shown);
+		sut
+			.Hierarchy
+			.Add(shown);
 
 		sut.Search.Text = "needle";
 
@@ -6998,7 +7158,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(file);
+		sut
+			.Hierarchy
+			.Add(file);
 
 		sut.Search.Text = "needle";
 
@@ -7032,7 +7194,9 @@ internal sealed class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.Hierarchy.Add(shown);
+		sut
+			.Hierarchy
+			.Add(shown);
 
 		EditorWindow window = new(sut);
 

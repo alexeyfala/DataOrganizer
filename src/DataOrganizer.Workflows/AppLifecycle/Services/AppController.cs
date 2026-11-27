@@ -246,7 +246,9 @@ public sealed class AppController :
 
 			_sessionTreeState.Remember(loaded);
 
-			_sessionHierarchy.Hierarchy.AddRange(loaded.Items);
+			_sessionHierarchy
+				.Hierarchy
+				.AddRange(loaded.Items);
 
 			_copyHistory.Load(_sessionHierarchy.Hierarchy);
 

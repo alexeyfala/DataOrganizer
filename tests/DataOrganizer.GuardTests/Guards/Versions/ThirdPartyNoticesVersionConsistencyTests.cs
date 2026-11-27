@@ -84,7 +84,10 @@ internal sealed partial class ThirdPartyNoticesVersionConsistencyTests
 			foreach (XElement reference in project.Descendants("ProjectReference"))
 			{
 				// A project file writes the path with the Windows separator on every system.
-				string relativePath = reference.Attribute("Include")!.Value.Replace('\\', Path.DirectorySeparatorChar);
+				string relativePath = reference
+					.Attribute("Include")!
+					.Value
+					.Replace('\\', Path.DirectorySeparatorChar);
 
 				pending.Enqueue(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path)!, relativePath)));
 			}

@@ -48,7 +48,9 @@ internal sealed class EntityMappingRegisterTests
 
 		folder.Parent = EntityFactory.CreateFolder();
 
-		folder.Children.Add(EntityFactory.CreateFile());
+		folder
+			.Children
+			.Add(EntityFactory.CreateFile());
 
 		TypeAdapterConfig config = new();
 
@@ -167,7 +169,9 @@ internal sealed class EntityMappingRegisterTests
 			OwnerId = file.Id
 		};
 
-		file.Hotkeys.Add(hotkey);
+		file
+			.Hotkeys
+			.Add(hotkey);
 
 		TypeAdapterConfig config = new();
 

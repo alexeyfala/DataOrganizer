@@ -63,7 +63,9 @@ public sealed class ShownDialog : IShownDialog
 			},
 			HideTimeout);
 
-		await hidden.Task.ConfigureAwait(true);
+		await hidden
+			.Task
+			.ConfigureAwait(true);
 	}
 	#endregion
 }

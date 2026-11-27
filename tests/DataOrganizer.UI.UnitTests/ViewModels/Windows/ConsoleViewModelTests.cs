@@ -54,7 +54,9 @@ internal sealed class ConsoleViewModelTests
 		consoleLog.Write("record");
 
 		// Act
-		sut.ClearCommand.Execute(null);
+		sut
+			.ClearCommand
+			.Execute(null);
 
 		// Assert
 		logText.Document.TextLength
@@ -310,7 +312,9 @@ internal sealed class ConsoleViewModelTests
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
 		// Act
-		sut.OpenAppDataDirectoryCommand.Execute(null);
+		sut
+			.OpenAppDataDirectoryCommand
+			.Execute(null);
 
 		// Assert
 		directoryAccessor
@@ -339,7 +343,9 @@ internal sealed class ConsoleViewModelTests
 		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
 		// Act
-		sut.OpenAppDirectoryCommand.Execute(null);
+		sut
+			.OpenAppDirectoryCommand
+			.Execute(null);
 
 		// Assert
 		directoryAccessor

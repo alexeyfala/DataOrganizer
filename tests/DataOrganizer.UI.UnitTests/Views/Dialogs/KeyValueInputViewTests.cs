@@ -115,7 +115,9 @@ internal sealed class KeyValueInputViewTests
 			input.RevealPassword = isRevealed;
 		}
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		string?[] values =

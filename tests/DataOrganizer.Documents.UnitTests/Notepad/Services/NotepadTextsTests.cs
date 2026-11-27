@@ -1057,7 +1057,9 @@ internal sealed class NotepadTextsTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			Encoding koi8 = CodePagesEncodingProvider.Instance.GetEncoding("koi8-r")!;
+			Encoding koi8 = CodePagesEncodingProvider
+				.Instance
+				.GetEncoding("koi8-r")!;
 
 			DocumentCodec codec = new();
 

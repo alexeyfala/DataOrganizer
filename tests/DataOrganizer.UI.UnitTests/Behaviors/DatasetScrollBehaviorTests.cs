@@ -111,7 +111,9 @@ internal sealed class DatasetScrollBehaviorTests
 		// Past its first screen the list is on its way back to the stored record.
 		time.RunJobsUntil(() => scrollViewer.Offset.Y > scrollViewer.Viewport.Height);
 
-		Point point = scrollViewer.TranslatePoint(new Rect(scrollViewer.Viewport).Center, window)!.Value;
+		Point point = scrollViewer
+			.TranslatePoint(new Rect(scrollViewer.Viewport).Center, window)!
+			.Value;
 
 		// Act
 		window.Click(point);
@@ -877,7 +879,9 @@ internal sealed class DatasetScrollBehaviorTests
 		// A pass of the layout of the window that the hidden list takes no part in.
 		window.Width += 10.0;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		recordsHost.IsVisible = true;

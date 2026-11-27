@@ -24,7 +24,9 @@ public sealed class LogCallbackSink : ILogEventSink
 	/// <inheritdoc />
 	public void Emit(LogEvent logEvent)
 	{
-		string timestamp = logEvent.Timestamp.ToString(LogDefaults.TimestampFormat, CultureInfo.InvariantCulture);
+		string timestamp = logEvent
+			.Timestamp
+			.ToString(LogDefaults.TimestampFormat, CultureInfo.InvariantCulture);
 
 		string text = logEvent.RenderMessage(CultureInfo.InvariantCulture);
 

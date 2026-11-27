@@ -33,7 +33,9 @@ internal sealed class FilteredHierarchyTests
 		List<HierarchyFilter> filters = [];
 
 		// Act
-		using IDisposable subscription = sut.Changes.Subscribe(filters.Add);
+		using IDisposable subscription = sut
+			.Changes
+			.Subscribe(filters.Add);
 
 		// Assert
 		filters
@@ -60,9 +62,13 @@ internal sealed class FilteredHierarchyTests
 
 		FileDto inside = ItemDtoFactory.CreateNamedFileDto("needle inside");
 
-		closed.Children.Add(ItemDtoFactory.CreateNamedFileDto("other"));
+		closed
+			.Children
+			.Add(ItemDtoFactory.CreateNamedFileDto("other"));
 
-		opened.Children.Add(inside);
+		opened
+			.Children
+			.Add(inside);
 
 		using Subject<string?> queries = new();
 
@@ -70,7 +76,9 @@ internal sealed class FilteredHierarchyTests
 
 		List<HierarchyFilter> filters = [];
 
-		using IDisposable subscription = sut.Changes.Subscribe(filters.Add);
+		using IDisposable subscription = sut
+			.Changes
+			.Subscribe(filters.Add);
 
 		// Act
 		queries.OnNext("needle");
@@ -109,7 +117,9 @@ internal sealed class FilteredHierarchyTests
 
 		List<HierarchyFilter> filters = [];
 
-		using IDisposable subscription = sut.Changes.Subscribe(filters.Add);
+		using IDisposable subscription = sut
+			.Changes
+			.Subscribe(filters.Add);
 
 		queries.OnNext("needle");
 
@@ -146,15 +156,25 @@ internal sealed class FilteredHierarchyTests
 
 		FolderDto other = ItemDtoFactory.CreateNamedFolderDto("other");
 
-		inner.Children.Add(deepMatch);
+		inner
+			.Children
+			.Add(deepMatch);
 
-		inner.Children.Add(ItemDtoFactory.CreateNamedFileDto("other.txt"));
+		inner
+			.Children
+			.Add(ItemDtoFactory.CreateNamedFileDto("other.txt"));
 
-		docs.Children.Add(inner);
+		docs
+			.Children
+			.Add(inner);
 
-		docs.Children.Add(ItemDtoFactory.CreateNamedFileDto("readme"));
+		docs
+			.Children
+			.Add(ItemDtoFactory.CreateNamedFileDto("readme"));
 
-		other.Children.Add(ItemDtoFactory.CreateNamedFileDto("x"));
+		other
+			.Children
+			.Add(ItemDtoFactory.CreateNamedFileDto("x"));
 
 		using Subject<string?> queries = new();
 
@@ -162,7 +182,9 @@ internal sealed class FilteredHierarchyTests
 
 		List<HierarchyFilter> filters = [];
 
-		using IDisposable subscription = sut.Changes.Subscribe(filters.Add);
+		using IDisposable subscription = sut
+			.Changes
+			.Subscribe(filters.Add);
 
 		// Act
 		queries.OnNext("needle");
@@ -204,7 +226,9 @@ internal sealed class FilteredHierarchyTests
 
 		List<HierarchyFilter> filters = [];
 
-		using IDisposable subscription = sut.Changes.Subscribe(filters.Add);
+		using IDisposable subscription = sut
+			.Changes
+			.Subscribe(filters.Add);
 
 		// Act
 		queries.OnNext(string.Empty);
@@ -230,7 +254,9 @@ internal sealed class FilteredHierarchyTests
 
 		List<HierarchyFilter> filters = [];
 
-		using IDisposable subscription = sut.Changes.Subscribe(filters.Add);
+		using IDisposable subscription = sut
+			.Changes
+			.Subscribe(filters.Add);
 
 		queries.OnNext("needle");
 
@@ -267,7 +293,9 @@ internal sealed class FilteredHierarchyTests
 
 			List<HierarchyFilter> filters = [];
 
-			using IDisposable subscription = sut.Changes.Subscribe(filters.Add);
+			using IDisposable subscription = sut
+				.Changes
+				.Subscribe(filters.Add);
 
 			// Act
 			queries.OnNext("needle");

@@ -1258,7 +1258,9 @@ internal sealed class NotepadViewModelTests
 		tab.Editor.Document.AsTextDocument().Text = "Text";
 
 		// Act
-		tab.Editor.Encoding = Encoding.Unicode.WebName;
+		tab.Editor.Encoding = Encoding
+			.Unicode
+			.WebName;
 
 		// Assert
 		tab.Editor.Document.Text
@@ -1301,7 +1303,9 @@ internal sealed class NotepadViewModelTests
 		tab.Editor.Document.AsTextDocument().Text = "Tex";
 
 		// Act
-		tab.Editor.Encoding = Encoding.Unicode.WebName;
+		tab.Editor.Encoding = Encoding
+			.Unicode
+			.WebName;
 
 		// Assert
 		notification
@@ -1353,7 +1357,9 @@ internal sealed class NotepadViewModelTests
 		sut.LoadTabs();
 
 		// Act
-		sut.Tabs[0].Editor.Encoding = Encoding.Unicode.WebName;
+		sut.Tabs[0].Editor.Encoding = Encoding
+			.Unicode
+			.WebName;
 
 		// Assert
 		written.Select(x => x.Tabs[0].EditorState?.Encoding)
@@ -1415,7 +1421,9 @@ internal sealed class NotepadViewModelTests
 		sut.LoadTabs();
 
 		// Act
-		sut.Tabs[0].Editor.Encoding = Encoding.Unicode.WebName;
+		sut.Tabs[0].Editor.Encoding = Encoding
+			.Unicode
+			.WebName;
 
 		// Assert
 		written[^1].Tabs[0].EditorState!.Value.Encoding
@@ -1430,7 +1438,9 @@ internal sealed class NotepadViewModelTests
 	public void Encoding_Writes_The_Text_In_The_Same_Bytes()
 	{
 		// Arrange
-		byte[] expected = Encoding.UTF8.GetBytes("Text");
+		byte[] expected = Encoding
+			.UTF8
+			.GetBytes("Text");
 
 		FakeTimeProvider time = new();
 
@@ -1471,7 +1481,9 @@ internal sealed class NotepadViewModelTests
 
 		sut.LoadTabs();
 
-		sut.Tabs[0].Editor.Encoding = Encoding.Unicode.WebName;
+		sut.Tabs[0].Editor.Encoding = Encoding
+			.Unicode
+			.WebName;
 
 		// Act
 		time.Advance(TypingPause.Delay);
@@ -1668,7 +1680,11 @@ internal sealed class NotepadViewModelTests
 
 		sut.LoadTabs();
 
-		TextDocument document = sut.Tabs[0].Editor.Document.AsTextDocument();
+		TextDocument document = sut
+			.Tabs[0]
+			.Editor
+			.Document
+			.AsTextDocument();
 
 		document.Insert(0, "a");
 

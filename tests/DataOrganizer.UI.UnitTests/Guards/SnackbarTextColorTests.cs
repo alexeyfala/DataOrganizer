@@ -91,7 +91,9 @@ internal sealed class SnackbarTextColorTests
 			host.HostName,
 			DispatcherPriority.Normal);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.UpdateLayout();
 
@@ -172,7 +174,9 @@ internal sealed class SnackbarTextColorTests
 		// The scroller decides on arrow visibility from the previous layout pass.
 		window.UpdateLayout();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.UpdateLayout();
 

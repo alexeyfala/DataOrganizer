@@ -404,7 +404,9 @@ internal sealed class FavoritesViewModelTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder
 				.RegisterType<DesktopAccessor>()
@@ -426,7 +428,9 @@ internal sealed class FavoritesViewModelTests
 
 		Task dialogClosed = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.IsPopupOpen = true;
 
@@ -515,7 +519,9 @@ internal sealed class FavoritesViewModelTests
 		SelectedFavoritesViewModel favorites = sut.SelectedFavorites!;
 
 		// The stored selection comes back through the dispatcher before the choice.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		favorites.SelectedCategory = categories[1];
 
@@ -702,7 +708,9 @@ internal sealed class FavoritesViewModelTests
 
 			builder.RegisterInstance(contentVisibility);
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 
@@ -809,7 +817,9 @@ internal sealed class FavoritesViewModelTests
 				.When(static x => x.Watch(Arg.Any<Task>()))
 				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
 
-			builder.RegisterInstance(messenger).As<IMessenger>();
+			builder
+				.RegisterInstance(messenger)
+				.As<IMessenger>();
 
 			builder.RegisterInstance(exceptionHandler);
 
@@ -954,7 +964,9 @@ internal sealed class FavoritesViewModelTests
 
 		sut.ShowFavorites();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		sut.SaveContent();
 
@@ -1111,7 +1123,9 @@ internal sealed class FavoritesViewModelTests
 		// Act
 		sut.ShowFavorites();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.SelectedFavorites!.Categories

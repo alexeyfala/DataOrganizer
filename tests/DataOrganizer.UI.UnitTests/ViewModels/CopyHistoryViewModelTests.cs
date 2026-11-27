@@ -137,14 +137,18 @@ internal sealed class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut
 			.CopyContentCommand
 			.Execute(files[1]);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Items
@@ -210,21 +214,29 @@ internal sealed class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		sut
 			.CopyContentCommand
 			.Execute(files[1]);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// The list is shown again by a new view model.
-		using ILifetimeScope nextShowing = mock.Container.BeginLifetimeScope();
+		using ILifetimeScope nextShowing = mock
+			.Container
+			.BeginLifetimeScope();
 
 		CopyHistoryViewModel shownAgain = nextShowing.Resolve<CopyHistoryViewModel>();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		shownAgain.Items

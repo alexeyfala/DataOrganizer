@@ -457,7 +457,9 @@ public sealed class ExecutionEngine : IAsyncDisposable, IExecutionEngine
 			KillAndReleaseProcess(holder, fileId);
 		}
 
-		info.Process?.Dispose();
+		info
+			.Process?
+			.Dispose();
 	}
 
 	/// <summary>

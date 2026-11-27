@@ -313,14 +313,21 @@ internal sealed class EmbeddedFileEditorViewTests
 
 		await viewModel.EditorLoaded();
 
-		TextDocument document = sut.Editor.Document!;
+		TextDocument document = sut
+			.Editor
+			.Document!;
 
 		// Act
 		document.Insert(5, ", world");
 
-		string edited = viewModel.Editor.Document.Text;
+		string edited = viewModel
+			.Editor
+			.Document
+			.Text;
 
-		document.UndoStack.Undo();
+		document
+			.UndoStack
+			.Undo();
 
 		// Assert
 		edited
@@ -461,14 +468,18 @@ internal sealed class EmbeddedFileEditorViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ChoiceSelector encodings = GetEncodingBlock(sut);
 
 		// Act
 		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, "cp866");
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => sut.Editor.Document?.Text == text);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => sut.Editor.Document?.Text == text);
 
 		// Assert
 		sut.Editor.Document!.Text
@@ -539,14 +550,18 @@ internal sealed class EmbeddedFileEditorViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ChoiceSelector encodings = GetEncodingBlock(sut);
 
 		// Act
 		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, Encoding.Unicode.WebName);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => encodings.SelectedChoice == Encoding.UTF8.WebName);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => encodings.SelectedChoice == Encoding.UTF8.WebName);
 
 		// Assert
 		encodings.SelectedChoice
@@ -623,14 +638,18 @@ internal sealed class EmbeddedFileEditorViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ChoiceSelector encodings = GetEncodingBlock(sut);
 
 		// Act
 		encodings.SetCurrentValue(ChoiceSelector.SelectedChoiceProperty, "cp866");
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		encodings.SelectedChoice
@@ -740,7 +759,9 @@ internal sealed class EmbeddedFileEditorViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ChoiceSelector encodings = sut
 			.GetLogicalDescendants()
@@ -750,9 +771,13 @@ internal sealed class EmbeddedFileEditorViewTests
 		Button button = encodings.GetControl<Button>("CurrentChoice");
 
 		// Act
-		button.Flyout!.ShowAt(button);
+		button
+			.Flyout!
+			.ShowAt(button);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ListBox list = encodings.GetControl<ListBox>("ChoicesList");

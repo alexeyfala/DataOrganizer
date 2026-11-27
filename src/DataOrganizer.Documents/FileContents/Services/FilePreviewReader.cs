@@ -79,7 +79,9 @@ public sealed class FilePreviewReader : IFilePreviewReader
 
 		_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
 
-		return reading.Text.Truncate(MaxPreviewLength);
+		return reading
+			.Text
+			.Truncate(MaxPreviewLength);
 	}
 	#endregion
 }

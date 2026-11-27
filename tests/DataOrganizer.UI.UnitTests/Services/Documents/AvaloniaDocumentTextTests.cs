@@ -19,12 +19,18 @@ internal sealed class AvaloniaDocumentTextTests
 
 		AvaloniaDocumentText sut = new();
 
-		using IDisposable subscription = sut.Changed.Subscribe(_ => changes++);
+		using IDisposable subscription = sut
+			.Changed
+			.Subscribe(_ => changes++);
 
 		// Act
-		sut.Document.Insert(0, "a");
+		sut
+			.Document
+			.Insert(0, "a");
 
-		sut.Document.Insert(1, "b");
+		sut
+			.Document
+			.Insert(1, "b");
 
 		// Assert
 		changes

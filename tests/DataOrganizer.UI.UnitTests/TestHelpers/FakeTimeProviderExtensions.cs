@@ -28,13 +28,17 @@ internal static class FakeTimeProviderExtensions
 	/// </summary>
 	public static void RunJobsFor(this FakeTimeProvider time, TimeSpan span)
 	{
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		for (TimeSpan passed = TimeSpan.Zero; passed < span; passed += Frame)
 		{
 			time.Advance(Frame);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 	}
 
@@ -44,13 +48,17 @@ internal static class FakeTimeProviderExtensions
 	/// </summary>
 	public static void RunJobsUntil(this FakeTimeProvider time, Func<bool> condition)
 	{
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		for (TimeSpan passed = TimeSpan.Zero; passed < MaxWait && !condition(); passed += Frame)
 		{
 			time.Advance(Frame);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 	}
 	#endregion

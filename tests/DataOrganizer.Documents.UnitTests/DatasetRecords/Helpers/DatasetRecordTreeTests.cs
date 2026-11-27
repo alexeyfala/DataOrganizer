@@ -193,11 +193,15 @@ internal sealed class DatasetRecordTreeTests
 
 		RecordsGroup inner = new() { Name = "inner" };
 
-		inner.Children.Add(deep);
+		inner
+			.Children
+			.Add(deep);
 
 		RecordsGroup outer = new() { Name = "outer" };
 
-		outer.Children.Add(inner);
+		outer
+			.Children
+			.Add(inner);
 
 		ObservableCollection<DatasetRecordBase> root = [outer];
 
@@ -268,9 +272,13 @@ internal sealed class DatasetRecordTreeTests
 
 		RecordsGroup group = new() { Name = RandomString.Create(5) };
 
-		group.Children.Add(inGroup);
+		group
+			.Children
+			.Add(inGroup);
 
-		group.Children.Add(nested);
+		group
+			.Children
+			.Add(nested);
 
 		DatasetRecordBase[] records = [first, group, last];
 
@@ -296,13 +304,19 @@ internal sealed class DatasetRecordTreeTests
 
 		RecordsGroup nested = new() { Name = RandomString.Create(5) };
 
-		nested.Children.Add(leaf2);
+		nested
+			.Children
+			.Add(leaf2);
 
 		RecordsGroup root = new() { Name = RandomString.Create(5) };
 
-		root.Children.Add(leaf1);
+		root
+			.Children
+			.Add(leaf1);
 
-		root.Children.Add(nested);
+		root
+			.Children
+			.Add(nested);
 
 		DatasetRecordBase[] hierarchy = [root];
 
@@ -498,7 +512,9 @@ internal sealed class DatasetRecordTreeTests
 
 		RecordsGroup group = new() { Name = "group" };
 
-		group.Children.Add(x);
+		group
+			.Children
+			.Add(x);
 
 		ObservableCollection<DatasetRecordBase> root = [a, group];
 
@@ -532,9 +548,13 @@ internal sealed class DatasetRecordTreeTests
 
 		RecordsGroup group = new() { Name = "group" };
 
-		group.Children.Add(x);
+		group
+			.Children
+			.Add(x);
 
-		group.Children.Add(y);
+		group
+			.Children
+			.Add(y);
 
 		ObservableCollection<DatasetRecordBase> root = [group];
 
@@ -1016,7 +1036,9 @@ internal sealed class DatasetRecordTreeTests
 
 		RecordsGroup group = new() { Name = "group" };
 
-		group.Children.Add(descendant);
+		group
+			.Children
+			.Add(descendant);
 
 		ObservableCollection<DatasetRecordBase> root = [group];
 
@@ -1087,7 +1109,9 @@ internal sealed class DatasetRecordTreeTests
 
 		RecordsGroup group = new() { Name = "group" };
 
-		group.Children.Add(x);
+		group
+			.Children
+			.Add(x);
 
 		ObservableCollection<DatasetRecordBase> root = [group];
 

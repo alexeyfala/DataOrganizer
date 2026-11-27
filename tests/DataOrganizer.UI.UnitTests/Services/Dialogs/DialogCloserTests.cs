@@ -79,7 +79,9 @@ internal sealed class DialogCloserTests
 
 		Task dialogClosed = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Notepad);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		_ = sut.CloseAsync(DialogHostIdentifiers.Notepad);
@@ -137,7 +139,9 @@ internal sealed class DialogCloserTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		Task closing = sut.CloseAsync(DialogHostIdentifiers.Main);
@@ -195,7 +199,9 @@ internal sealed class DialogCloserTests
 
 		_ = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		Task closing = sut.CloseAsync(DialogHostIdentifiers.Main);
@@ -272,7 +278,9 @@ internal sealed class DialogCloserTests
 
 		_ = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		IShownDialog shown = sut.FindShownDialog(DialogHostIdentifiers.Main)!;
 
@@ -282,13 +290,17 @@ internal sealed class DialogCloserTests
 
 		time.Advance(TimeSpan.FromSeconds(2.9));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isHiddenEarly = hiding.IsCompleted;
 
 		time.Advance(TimeSpan.FromSeconds(0.1));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Taken before the close, which would end the wait by itself.
 		bool isHidden = hiding.IsCompleted;
@@ -349,7 +361,9 @@ internal sealed class DialogCloserTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		IShownDialog? shown = sut.FindShownDialog(DialogHostIdentifiers.Main);
@@ -402,7 +416,9 @@ internal sealed class DialogCloserTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		IShownDialog? shown = sut.FindShownDialog(nameof(FindShownDialog_Finds_None_Without_A_Host_Of_That_Name));
@@ -458,7 +474,9 @@ internal sealed class DialogCloserTests
 
 		_ = DialogHost.Show(new TextBlock(), DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		IShownDialog shown = sut.FindShownDialog(DialogHostIdentifiers.Main)!;
 
@@ -469,7 +487,9 @@ internal sealed class DialogCloserTests
 
 		// The fade runs on the render clock, which no TimeProvider drives, so a generous wait on real time; the fallback
 		// timer of the faked IUiTimer never fires, so only the end of the fade completes the wait.
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => hiding.IsCompleted);
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => hiding.IsCompleted);
 
 		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
 		window.Close();

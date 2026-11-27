@@ -28,7 +28,9 @@ internal static class HeadlessWindow
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		return window;
 	}

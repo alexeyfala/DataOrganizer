@@ -92,7 +92,9 @@ internal sealed class SecretTextBoxAutomationPeerTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Template

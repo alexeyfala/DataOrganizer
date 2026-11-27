@@ -159,7 +159,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		other.Bookmarks.Toggle(2);
+		other
+			.Bookmarks
+			.Toggle(2);
 
 		// Assert
 		sut.Bookmarks.GetLines()
@@ -203,11 +205,15 @@ internal sealed class DocumentTextEditorTests
 
 		if (hasBookmark)
 		{
-			sut.Bookmarks.Toggle(2);
+			sut
+				.Bookmarks
+				.Toggle(2);
 		}
 
 		// Act
-		bool canExecute = sut.ClearBookmarksCommand.CanExecute(null);
+		bool canExecute = sut
+			.ClearBookmarksCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -227,12 +233,18 @@ internal sealed class DocumentTextEditorTests
 			Document = TextDocumentFactory.CreateDocument(lineCount: 3)
 		};
 
-		sut.Bookmarks.Toggle(1);
+		sut
+			.Bookmarks
+			.Toggle(1);
 
-		sut.Bookmarks.Toggle(3);
+		sut
+			.Bookmarks
+			.Toggle(3);
 
 		// Act
-		sut.ClearBookmarksCommand.Execute(null);
+		sut
+			.ClearBookmarksCommand
+			.Execute(null);
 
 		// Assert
 		sut.Bookmarks.GetLines()
@@ -257,7 +269,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.ConvertLineEndingsCommand.Execute(lineEnding);
+		sut
+			.ConvertLineEndingsCommand
+			.Execute(lineEnding);
 
 		// Assert
 		sut.Text
@@ -278,10 +292,14 @@ internal sealed class DocumentTextEditorTests
 			Document = new("First")
 		};
 
-		sut.Document.Insert(sut.Document.TextLength, "\nSecond");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "\nSecond");
 
 		// Act
-		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(LineEnding.CrLf);
+		bool canExecute = sut
+			.ConvertLineEndingsCommand
+			.CanExecute(LineEnding.CrLf);
 
 		// Assert
 		canExecute
@@ -303,7 +321,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(LineEnding.CrLf);
+		bool canExecute = sut
+			.ConvertLineEndingsCommand
+			.CanExecute(LineEnding.CrLf);
 
 		// Assert
 		canExecute
@@ -323,10 +343,14 @@ internal sealed class DocumentTextEditorTests
 			Document = new("First\r\nSecond\nThird")
 		};
 
-		sut.ConvertLineEndingsCommand.Execute(LineEnding.Cr);
+		sut
+			.ConvertLineEndingsCommand
+			.Execute(LineEnding.Cr);
 
 		// Act
-		sut.UndoCommand.Execute(null);
+		sut
+			.UndoCommand
+			.Execute(null);
 
 		// Assert
 		sut.Text
@@ -350,7 +374,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(lineEnding);
+		bool canExecute = sut
+			.ConvertLineEndingsCommand
+			.CanExecute(lineEnding);
 
 		// Assert
 		canExecute
@@ -372,7 +398,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		bool canExecute = sut.ConvertLineEndingsCommand.CanExecute(LineEnding.CrLf);
+		bool canExecute = sut
+			.ConvertLineEndingsCommand
+			.CanExecute(LineEnding.CrLf);
 
 		// Assert
 		canExecute
@@ -394,7 +422,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.ConvertLineEndingsCommand.Execute(LineEnding.Lf);
+		sut
+			.ConvertLineEndingsCommand
+			.Execute(LineEnding.Lf);
 
 		// Assert
 		sut.Status.LineEnding
@@ -418,7 +448,9 @@ internal sealed class DocumentTextEditorTests
 		sut.Select(0, 4);
 
 		// Act
-		bool canExecute = sut.CutCommand.CanExecute(null);
+		bool canExecute = sut
+			.CutCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -444,7 +476,9 @@ internal sealed class DocumentTextEditorTests
 		}
 
 		// Act
-		bool canExecute = sut.CutCommand.CanExecute(null);
+		bool canExecute = sut
+			.CutCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -590,7 +624,9 @@ internal sealed class DocumentTextEditorTests
 			Document = document
 		};
 
-		sut.Bookmarks.Toggle(2);
+		sut
+			.Bookmarks
+			.Toggle(2);
 
 		sut.Document = new("Four\nFive\nSix");
 
@@ -686,9 +722,13 @@ internal sealed class DocumentTextEditorTests
 			Document = new("One\nTwo\nThree\nFour")
 		};
 
-		sut.Bookmarks.Toggle(1);
+		sut
+			.Bookmarks
+			.Toggle(1);
 
-		sut.Bookmarks.Toggle(3);
+		sut
+			.Bookmarks
+			.Toggle(3);
 
 		// Act
 		sut.Document.Text = newText;
@@ -853,7 +893,9 @@ internal sealed class DocumentTextEditorTests
 
 		HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		// Away from the start, so that the new document moves the caret, and the input method asks about the move.
 		sut.CaretOffset = FoldedText.Length;
@@ -864,7 +906,9 @@ internal sealed class DocumentTextEditorTests
 			RoutedEvent = InputElement.TextInputMethodClientRequestedEvent
 		};
 
-		sut.TextArea.RaiseEvent(request);
+		sut
+			.TextArea
+			.RaiseEvent(request);
 
 		TextInputMethodClient client = request.Client!;
 
@@ -893,7 +937,9 @@ internal sealed class DocumentTextEditorTests
 			Document = new("One\nTwo\nThree")
 		};
 
-		sut.Bookmarks.Toggle(2);
+		sut
+			.Bookmarks
+			.Toggle(2);
 
 		// Act
 		sut.Document = new("Four\nFive\nSix");
@@ -953,19 +999,30 @@ internal sealed class DocumentTextEditorTests
 
 		HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.CaretOffset = sut.Document.GetLineByNumber(250).Offset;
+		sut.CaretOffset = sut
+			.Document
+			.GetLineByNumber(250)
+			.Offset;
 
 		sut.ScrollToLine(250);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
-		sut.FoldAllCommand.Execute(null);
+		sut
+			.FoldAllCommand
+			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		textView.GetVisualTopByDocumentLine(100)
 			.Should()
@@ -996,14 +1053,18 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -1027,7 +1088,9 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
@@ -1037,7 +1100,9 @@ internal sealed class DocumentTextEditorTests
 		// Act
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -1061,7 +1126,9 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
@@ -1070,7 +1137,9 @@ internal sealed class DocumentTextEditorTests
 		// Act
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -1094,18 +1163,26 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
-		window.FocusManager!.Focus(null, NavigationMethod.Unspecified, KeyModifiers.None);
+		window
+			.FocusManager!
+			.Focus(null, NavigationMethod.Unspecified, KeyModifiers.None);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		// Act
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -1127,7 +1204,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.FoldAllCommand.Execute(null);
+		sut
+			.FoldAllCommand
+			.Execute(null);
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -1152,7 +1231,9 @@ internal sealed class DocumentTextEditorTests
 		sut.Select(sut.Document.GetLineByNumber(5).Offset, 3);
 
 		// Act
-		sut.FoldAllCommand.Execute(null);
+		sut
+			.FoldAllCommand
+			.Execute(null);
 
 		// Assert
 		sut.CaretOffset
@@ -1185,7 +1266,9 @@ internal sealed class DocumentTextEditorTests
 		}
 
 		// Act
-		bool canExecute = sut.FoldAllCommand.CanExecute(null);
+		bool canExecute = sut
+			.FoldAllCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -1208,7 +1291,9 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		List<FoldingChangedMessage> messages = Capture(sut);
 
@@ -1219,11 +1304,15 @@ internal sealed class DocumentTextEditorTests
 
 			Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		else
 		{
-			sut.FoldAllCommand.Execute(null);
+			sut
+				.FoldAllCommand
+				.Execute(null);
 		}
 
 		// Assert
@@ -1248,7 +1337,9 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
@@ -1257,7 +1348,9 @@ internal sealed class DocumentTextEditorTests
 		// Act
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -1281,14 +1374,18 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -1342,11 +1439,15 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.Document.Insert(0, "New ");
+		sut
+			.Document
+			.Insert(0, "New ");
 
 		sut.IsReadOnly = isReadOnly;
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		// Ctrl+Z, or ⌘+Z on macOS
 		RawInputModifiers modifiers = OperatingSystem.IsMacOS()
@@ -1358,7 +1459,9 @@ internal sealed class DocumentTextEditorTests
 
 		window.KeyReleaseQwerty(PhysicalKey.Z, modifiers);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Text
@@ -1378,14 +1481,18 @@ internal sealed class DocumentTextEditorTests
 			Document = new("Some text")
 		};
 
-		sut.Document.Insert(0, "New ");
+		sut
+			.Document
+			.Insert(0, "New ");
 
 		sut.IsReadOnly = true;
 
 		sut.IsReadOnly = false;
 
 		// Act
-		sut.UndoCommand.Execute(null);
+		sut
+			.UndoCommand
+			.Execute(null);
 
 		// Assert
 		sut.Text
@@ -1453,15 +1560,23 @@ internal sealed class DocumentTextEditorTests
 
 		HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.Bookmarks.Toggle(800);
+		sut
+			.Bookmarks
+			.Toggle(800);
 
 		// Act
-		sut.NextBookmarkCommand.Execute(null);
+		sut
+			.NextBookmarkCommand
+			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		textView.GetVisualTopByDocumentLine(800)
 			.Should()
@@ -1483,14 +1598,20 @@ internal sealed class DocumentTextEditorTests
 			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
-		sut.Bookmarks.Toggle(3);
+		sut
+			.Bookmarks
+			.Toggle(3);
 
-		sut.Bookmarks.Toggle(7);
+		sut
+			.Bookmarks
+			.Toggle(7);
 
 		sut.Select(sut.Document.GetLineByNumber(5).Offset, 3);
 
 		// Act
-		sut.NextBookmarkCommand.Execute(null);
+		sut
+			.NextBookmarkCommand
+			.Execute(null);
 
 		// Assert
 		sut.TextArea.Caret.Location
@@ -1516,11 +1637,15 @@ internal sealed class DocumentTextEditorTests
 
 		if (hasBookmark)
 		{
-			sut.Bookmarks.Toggle(2);
+			sut
+				.Bookmarks
+				.Toggle(2);
 		}
 
 		// Act
-		bool canExecute = sut.NextBookmarkCommand.CanExecute(null);
+		bool canExecute = sut
+			.NextBookmarkCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -1542,18 +1667,26 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.Bookmarks.Toggle(2);
+		sut
+			.Bookmarks
+			.Toggle(2);
 
-		sut.Bookmarks.Toggle(3);
+		sut
+			.Bookmarks
+			.Toggle(3);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		// Act
 		window.KeyPressQwerty(PhysicalKey.F2, RawInputModifiers.None);
 
 		window.KeyReleaseQwerty(PhysicalKey.F2, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		// From the first line the next bookmark is on the second line, while the previous one would be on the third.
@@ -1576,7 +1709,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		bool canExecute = sut.PasteCommand.CanExecute(null);
+		bool canExecute = sut
+			.PasteCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -1614,9 +1749,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		Point point = textView.GetColumnCenter(block.StartOffset);
 
@@ -1625,7 +1764,9 @@ internal sealed class DocumentTextEditorTests
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
 		// while a move to the same place hands it over at once.
@@ -1661,9 +1802,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
@@ -1697,9 +1842,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
@@ -1738,9 +1887,13 @@ internal sealed class DocumentTextEditorTests
 
 		sut.ScrollToLine(100);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
@@ -1772,9 +1925,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
@@ -1804,9 +1961,13 @@ internal sealed class DocumentTextEditorTests
 			.Single()
 			.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(0));
@@ -1838,9 +1999,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
@@ -1871,7 +2036,9 @@ internal sealed class DocumentTextEditorTests
 
 		HeadlessWindow.ShowInFluentTheme(sut);
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(0));
@@ -1902,9 +2069,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
@@ -1938,9 +2109,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		// Act
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
@@ -1970,16 +2145,22 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		Point point = textView.GetColumnCenter(block.StartOffset);
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
 		// The tip takes its place before the pointer can move on.
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		Raise(textView, TextView.PointerHoverStoppedEvent, point);
@@ -2025,9 +2206,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		Point point = textView.GetColumnCenter(block.StartOffset);
 
@@ -2036,7 +2221,9 @@ internal sealed class DocumentTextEditorTests
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.MouseMove(textView.GetColumnCenter(0));
 
@@ -2080,9 +2267,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		Point point = textView.GetColumnCenter(block.StartOffset);
 
@@ -2091,7 +2282,9 @@ internal sealed class DocumentTextEditorTests
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
 		// while a move to the same place hands it over at once.
@@ -2136,9 +2329,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		Point point = textView.GetColumnCenter(block.StartOffset);
 
@@ -2147,7 +2344,9 @@ internal sealed class DocumentTextEditorTests
 
 		Raise(textView, TextView.PointerHoverEvent, point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Avalonia hands the pointer over to the tip only after it draws a frame, which comes at its own time in a test,
 		// while a move to the same place hands it over at once.
@@ -2184,9 +2383,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		Point point = textView.GetColumnCenter(block.StartOffset);
 
@@ -2195,7 +2398,9 @@ internal sealed class DocumentTextEditorTests
 		// Act
 		window.Click(point);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ToolTip.GetIsOpen(textView)
@@ -2229,9 +2434,14 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(block.StartOffset);
 
 		// Act
 		window.Click(point, button);
@@ -2267,9 +2477,14 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(block.StartOffset);
 
 		// Act
 		window.Click(point, button);
@@ -2299,9 +2514,14 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(sut.Document.TextLength - 1);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(sut.Document.TextLength - 1);
 
 		// Act
 		window.Click(point, MouseButton.Left);
@@ -2332,9 +2552,14 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		Point point = sut.TextArea.TextView.GetColumnCenter(block.StartOffset);
+		Point point = sut
+			.TextArea
+			.TextView
+			.GetColumnCenter(block.StartOffset);
 
 		// Act
 		window.Click(point, MouseButton.Left);
@@ -2360,14 +2585,20 @@ internal sealed class DocumentTextEditorTests
 			Document = TextDocumentFactory.CreateDocument(lineCount: 10)
 		};
 
-		sut.Bookmarks.Toggle(3);
+		sut
+			.Bookmarks
+			.Toggle(3);
 
-		sut.Bookmarks.Toggle(7);
+		sut
+			.Bookmarks
+			.Toggle(7);
 
 		sut.Select(sut.Document.GetLineByNumber(5).Offset, 3);
 
 		// Act
-		sut.PreviousBookmarkCommand.Execute(null);
+		sut
+			.PreviousBookmarkCommand
+			.Execute(null);
 
 		// Assert
 		sut.TextArea.Caret.Location
@@ -2393,11 +2624,15 @@ internal sealed class DocumentTextEditorTests
 
 		if (hasBookmark)
 		{
-			sut.Bookmarks.Toggle(2);
+			sut
+				.Bookmarks
+				.Toggle(2);
 		}
 
 		// Act
-		bool canExecute = sut.PreviousBookmarkCommand.CanExecute(null);
+		bool canExecute = sut
+			.PreviousBookmarkCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -2419,18 +2654,26 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.Bookmarks.Toggle(2);
+		sut
+			.Bookmarks
+			.Toggle(2);
 
-		sut.Bookmarks.Toggle(3);
+		sut
+			.Bookmarks
+			.Toggle(3);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		// Act
 		window.KeyPressQwerty(PhysicalKey.F2, RawInputModifiers.Shift);
 
 		window.KeyReleaseQwerty(PhysicalKey.F2, RawInputModifiers.Shift);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		// From the first line the previous bookmark goes round to the third line, while the next one would be on the second.
@@ -2451,14 +2694,21 @@ internal sealed class DocumentTextEditorTests
 			Document = new("Some text")
 		};
 
-		sut.Document.Insert(0, "New ");
+		sut
+			.Document
+			.Insert(0, "New ");
 
-		sut.Document.UndoStack.Undo();
+		sut
+			.Document
+			.UndoStack
+			.Undo();
 
 		sut.IsReadOnly = isReadOnly;
 
 		// Act
-		bool canExecute = sut.RedoCommand.CanExecute(null);
+		bool canExecute = sut
+			.RedoCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -2478,15 +2728,22 @@ internal sealed class DocumentTextEditorTests
 			Document = new("Some text")
 		};
 
-		sut.Document.Insert(0, "New ");
+		sut
+			.Document
+			.Insert(0, "New ");
 
 		if (isUndone)
 		{
-			sut.Document.UndoStack.Undo();
+			sut
+				.Document
+				.UndoStack
+				.Undo();
 		}
 
 		// Act
-		bool canExecute = sut.RedoCommand.CanExecute(null);
+		bool canExecute = sut
+			.RedoCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -2646,7 +2903,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.Document.Insert(sut.Document.TextLength, "\nThird");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "\nThird");
 
 		// Assert
 		sut.Status.TextLength
@@ -2693,7 +2952,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.Document.Insert(sut.Document.TextLength, "\nThird");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "\nThird");
 
 		// Assert
 		sut.Status.LineCount
@@ -2818,7 +3079,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.Document.Insert(5, "!");
+		sut
+			.Document
+			.Insert(5, "!");
 
 		// Assert
 		sut.Status.CaretOffset
@@ -2846,7 +3109,9 @@ internal sealed class DocumentTextEditorTests
 		leftBehind.Text = "First\nSecond";
 
 		// Act
-		sut.Document.Insert(sut.Document.TextLength, "\r\nSecond");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "\r\nSecond");
 
 		// Assert
 		sut.Status.LineEnding
@@ -2896,9 +3161,13 @@ internal sealed class DocumentTextEditorTests
 		// Act
 		sut.Document.Text = "First\r\nSecond\r\n";
 
-		LineEnding replaced = sut.Status.LineEnding;
+		LineEnding replaced = sut
+			.Status
+			.LineEnding;
 
-		sut.Document.Insert(sut.Document.TextLength, "Third\n");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "Third\n");
 
 		// Assert
 		replaced
@@ -2930,9 +3199,13 @@ internal sealed class DocumentTextEditorTests
 
 		block.IsFolded = true;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
-		TextView textView = sut.TextArea.TextView;
+		TextView textView = sut
+			.TextArea
+			.TextView;
 
 		Raise(textView, TextView.PointerHoverEvent, textView.GetColumnCenter(block.StartOffset));
 
@@ -3181,7 +3454,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "\n    Third");
 
 		time.RunJobsFor(TimeSpan.FromSeconds(0.5));
 
@@ -3204,7 +3479,10 @@ internal sealed class DocumentTextEditorTests
 		HeadlessWindow.ShowInFluentTheme(sut);
 
 		// Act
-		bool isFound = sut.TextArea.TextView.TryFindResource(typeof(ToolTip), out object? theme);
+		bool isFound = sut
+			.TextArea
+			.TextView
+			.TryFindResource(typeof(ToolTip), out object? theme);
 
 		// Assert
 		isFound
@@ -3246,9 +3524,14 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.CaretOffset = sut.Document.GetLineByNumber(2).Offset;
+		sut.CaretOffset = sut
+			.Document
+			.GetLineByNumber(2)
+			.Offset;
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		RawInputModifiers modifiers = OperatingSystem.IsMacOS()
 			? RawInputModifiers.Meta
@@ -3259,7 +3542,9 @@ internal sealed class DocumentTextEditorTests
 
 		window.KeyReleaseQwerty(PhysicalKey.F2, modifiers);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Bookmarks.GetLines()
@@ -3282,13 +3567,20 @@ internal sealed class DocumentTextEditorTests
 
 		if (isBookmarked)
 		{
-			sut.Bookmarks.Toggle(2);
+			sut
+				.Bookmarks
+				.Toggle(2);
 		}
 
-		sut.CaretOffset = sut.Document.GetLineByNumber(2).Offset;
+		sut.CaretOffset = sut
+			.Document
+			.GetLineByNumber(2)
+			.Offset;
 
 		// Act
-		sut.ToggleBookmarkCommand.Execute(null);
+		sut
+			.ToggleBookmarkCommand
+			.Execute(null);
 
 		// Assert
 		int[] expected = isBookmarked ? [] : [2];
@@ -3314,14 +3606,18 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.None);
 
 		// Act
 		Press(window, PhysicalKey.M, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -3345,14 +3641,18 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Meta);
 
 		// Act
 		Press(window, PhysicalKey.M, RawInputModifiers.Meta);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -3376,7 +3676,9 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
@@ -3388,7 +3690,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.TextArea.RaiseEvent(args);
+		sut
+			.TextArea
+			.RaiseEvent(args);
 
 		// Assert
 		args.Handled
@@ -3410,10 +3714,15 @@ internal sealed class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		sut.CaretOffset = sut.Document.GetLineByNumber(3).Offset;
+		sut.CaretOffset = sut
+			.Document
+			.GetLineByNumber(3)
+			.Offset;
 
 		// Act
-		sut.ToggleFoldingCommand.Execute(null);
+		sut
+			.ToggleFoldingCommand
+			.Execute(null);
 
 		// Assert
 		sut.CaretOffset
@@ -3435,10 +3744,15 @@ internal sealed class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		sut.CaretOffset = sut.Document.GetLineByNumber(hasBlock ? 1 : 5).Offset;
+		sut.CaretOffset = sut
+			.Document
+			.GetLineByNumber(hasBlock ? 1 : 5)
+			.Offset;
 
 		// Act
-		bool canExecute = sut.ToggleFoldingCommand.CanExecute(null);
+		bool canExecute = sut
+			.ToggleFoldingCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -3462,7 +3776,9 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		List<FoldingChangedMessage> messages = Capture(sut);
 
@@ -3473,11 +3789,15 @@ internal sealed class DocumentTextEditorTests
 
 			Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		else
 		{
-			sut.ToggleFoldingCommand.Execute(null);
+			sut
+				.ToggleFoldingCommand
+				.Execute(null);
 		}
 
 		// Assert
@@ -3502,14 +3822,18 @@ internal sealed class DocumentTextEditorTests
 
 		Window window = HeadlessWindow.ShowInFluentTheme(sut);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
 		Press(window, PhysicalKey.M, isCtrlHeld ? RawInputModifiers.Control : RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -3539,7 +3863,9 @@ internal sealed class DocumentTextEditorTests
 		}
 
 		// Act
-		sut.ToggleFoldingCommand.Execute(null);
+		sut
+			.ToggleFoldingCommand
+			.Execute(null);
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -3566,7 +3892,9 @@ internal sealed class DocumentTextEditorTests
 		sut.Select(4, 3);
 
 		// Act
-		sut.TransformCommand.Execute(transform);
+		sut
+			.TransformCommand
+			.Execute(transform);
 
 		// Assert
 		sut.Text
@@ -3590,7 +3918,9 @@ internal sealed class DocumentTextEditorTests
 		sut.SelectAll();
 
 		// Act
-		sut.TransformCommand.Execute(TextTransform.TitleCase);
+		sut
+			.TransformCommand
+			.Execute(TextTransform.TitleCase);
 
 		// Assert
 		sut.Text
@@ -3615,7 +3945,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		bool canExecute = sut.TransformCommand.CanExecute(transform);
+		bool canExecute = sut
+			.TransformCommand
+			.CanExecute(transform);
 
 		// Assert
 		canExecute
@@ -3639,7 +3971,9 @@ internal sealed class DocumentTextEditorTests
 		sut.SelectAll();
 
 		// Act
-		bool canExecute = sut.TransformCommand.CanExecute(transform);
+		bool canExecute = sut
+			.TransformCommand
+			.CanExecute(transform);
 
 		// Assert
 		canExecute
@@ -3673,7 +4007,9 @@ internal sealed class DocumentTextEditorTests
 		}
 
 		// Act
-		bool canExecute = sut.TransformCommand.CanExecute(transform);
+		bool canExecute = sut
+			.TransformCommand
+			.CanExecute(transform);
 
 		// Assert
 		canExecute
@@ -3698,7 +4034,9 @@ internal sealed class DocumentTextEditorTests
 		sut.Select(0, 8);
 
 		// Act
-		sut.TransformCommand.Execute(TextTransform.RemoveLeadingWhitespace);
+		sut
+			.TransformCommand
+			.Execute(TextTransform.RemoveLeadingWhitespace);
 
 		// Assert
 		sut.Text
@@ -3723,7 +4061,9 @@ internal sealed class DocumentTextEditorTests
 
 		sut.Select(4, 3);
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		RawInputModifiers modifiers = OperatingSystem.IsMacOS()
 			? RawInputModifiers.Meta
@@ -3739,7 +4079,9 @@ internal sealed class DocumentTextEditorTests
 
 		window.KeyReleaseQwerty(PhysicalKey.U, modifiers);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sut.Text
@@ -3767,7 +4109,9 @@ internal sealed class DocumentTextEditorTests
 		};
 
 		// Act
-		sut.TransformCommand.Execute(transform);
+		sut
+			.TransformCommand
+			.Execute(transform);
 
 		// Assert
 		sut.Text
@@ -3787,12 +4131,16 @@ internal sealed class DocumentTextEditorTests
 			Document = new("Some text")
 		};
 
-		sut.Document.Insert(0, "New ");
+		sut
+			.Document
+			.Insert(0, "New ");
 
 		sut.IsReadOnly = isReadOnly;
 
 		// Act
-		bool canExecute = sut.UndoCommand.CanExecute(null);
+		bool canExecute = sut
+			.UndoCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -3812,12 +4160,16 @@ internal sealed class DocumentTextEditorTests
 			Document = new("Some text")
 		};
 
-		sut.Document.Insert(0, "New ");
+		sut
+			.Document
+			.Insert(0, "New ");
 
 		sut.IsReadOnly = isReadOnly;
 
 		// Act
-		sut.UndoCommand.Execute(null);
+		sut
+			.UndoCommand
+			.Execute(null);
 
 		// Assert
 		sut.Text
@@ -3839,11 +4191,15 @@ internal sealed class DocumentTextEditorTests
 
 		if (isEdited)
 		{
-			sut.Document.Insert(0, "New ");
+			sut
+				.Document
+				.Insert(0, "New ");
 		}
 
 		// Act
-		bool canExecute = sut.UndoCommand.CanExecute(null);
+		bool canExecute = sut
+			.UndoCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -3872,7 +4228,9 @@ internal sealed class DocumentTextEditorTests
 		}
 
 		// Act
-		bool canExecute = sut.UnfoldAllCommand.CanExecute(null);
+		bool canExecute = sut
+			.UnfoldAllCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -3898,7 +4256,9 @@ internal sealed class DocumentTextEditorTests
 
 		GetFoldings(sut)[1].IsFolded = true;
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		List<FoldingChangedMessage> messages = Capture(sut);
 
@@ -3909,11 +4269,15 @@ internal sealed class DocumentTextEditorTests
 
 			Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 		}
 		else
 		{
-			sut.UnfoldAllCommand.Execute(null);
+			sut
+				.UnfoldAllCommand
+				.Execute(null);
 		}
 
 		// Assert
@@ -3940,14 +4304,18 @@ internal sealed class DocumentTextEditorTests
 
 		GetFoldings(sut)[1].IsFolded = true;
 
-		sut.TextArea.Focus();
+		sut
+			.TextArea
+			.Focus();
 
 		Press(window, PhysicalKey.M, RawInputModifiers.Control);
 
 		// Act
 		Press(window, PhysicalKey.L, RawInputModifiers.Control);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -3975,7 +4343,9 @@ internal sealed class DocumentTextEditorTests
 		blocks[1].IsFolded = true;
 
 		// Act
-		sut.UnfoldAllCommand.Execute(null);
+		sut
+			.UnfoldAllCommand
+			.Execute(null);
 
 		// Assert
 		GetFoldings(sut).Select(static x => x.IsFolded)
@@ -3996,7 +4366,9 @@ internal sealed class DocumentTextEditorTests
 			SyntaxLanguage = PowerShellLanguage
 		};
 
-		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "\n    Third");
 
 		// Act
 		sut.UpdateFoldings();
@@ -4020,7 +4392,9 @@ internal sealed class DocumentTextEditorTests
 			Document = new("First\r\nSecond")
 		};
 
-		sut.Document.Insert(sut.Document.TextLength, "\nThird");
+		sut
+			.Document
+			.Insert(sut.Document.TextLength, "\nThird");
 
 		// Act
 		sut.UpdateLineEnding();
@@ -4107,7 +4481,9 @@ internal sealed class DocumentTextEditorTests
 	/// </summary>
 	private static Color[] GetWordColors(TextEditor editor)
 	{
-		TextView view = editor.TextArea.TextView;
+		TextView view = editor
+			.TextArea
+			.TextView;
 
 		if (!view.VisualLinesValid || view.VisualLines.Count == 0)
 		{
@@ -4166,7 +4542,9 @@ internal sealed class DocumentTextEditorTests
 	private static ValueTask<bool> WaitForColors(TextEditor editor, Func<Color[], bool> condition)
 	{
 		// The tokenizer posts the redraws of the colored lines to the UI thread.
-		return Dispatcher.UIThread.RunJobsUntilAsync(() => condition(GetWordColors(editor)), maxRepeats: 1000);
+		return Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => condition(GetWordColors(editor)), maxRepeats: 1000);
 	}
 	#endregion
 }

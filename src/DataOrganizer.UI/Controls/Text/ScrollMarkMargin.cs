@@ -118,7 +118,9 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 		// Until the source comes, the own selection is looked for.
 		_occurrenceSource = editor.TextArea;
 
-		TextView = editor.TextArea.TextView;
+		TextView = editor
+			.TextArea
+			.TextView;
 
 		// The tips take the look of the application rather than the Fluent one the editor brings for itself.
 		if (Application
@@ -407,7 +409,9 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 			return null;
 		}
 
-		int line = _marks.Find(x => x.Row == row).Line;
+		int line = _marks
+			.Find(x => x.Row == row)
+			.Line;
 
 		// The lines found before an edit may be gone until the next pass.
 		if (line < 1 || line > document.LineCount)

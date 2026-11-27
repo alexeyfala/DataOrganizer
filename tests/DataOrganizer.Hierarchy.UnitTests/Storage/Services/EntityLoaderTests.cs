@@ -236,7 +236,9 @@ internal sealed class EntityLoaderTests
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		file.Hotkeys.AddRange([CreateHotkey(file.Id, 2), CreateHotkey(file.Id, 0), CreateHotkey(file.Id, 1)]);
+		file
+			.Hotkeys
+			.AddRange([CreateHotkey(file.Id, 2), CreateHotkey(file.Id, 0), CreateHotkey(file.Id, 1)]);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

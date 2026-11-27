@@ -325,9 +325,13 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 			RowDefinitions = [with("*,Auto,Auto")]
 		};
 
-		_grid.Children.Add(PrimaryEditor);
+		_grid
+			.Children
+			.Add(PrimaryEditor);
 
-		_grid.Children.Add(_splitter);
+		_grid
+			.Children
+			.Add(_splitter);
 
 		LogicalChildren.Add(_grid);
 
@@ -391,9 +395,13 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 		RowDefinitions rows = _grid.RowDefinitions;
 
 		// The splitter leaves the new heights of the halves in their rows.
-		double upperHeight = rows[PrimaryRow].Height.Value;
+		double upperHeight = rows[PrimaryRow]
+			.Height
+			.Value;
 
-		double lowerHeight = rows[SecondaryRow].Height.Value;
+		double lowerHeight = rows[SecondaryRow]
+			.Height
+			.Value;
 
 		SetCurrentValue(SplitShareProperty, upperHeight / (upperHeight + lowerHeight));
 	}
@@ -455,13 +463,17 @@ internal sealed class SplitDocumentEditor : Control, IDisposable
 		{
 			SecondaryEditor = CreateEditor(SecondaryEditorName, SecondaryRow);
 
-			_grid.Children.Add(SecondaryEditor);
+			_grid
+				.Children
+				.Add(SecondaryEditor);
 		}
 
 		SecondaryEditor.IsVisible = true;
 
 		// The lower half gets its layout only once it is shown.
-		Dispatcher.UIThread.Post(CopyViewToSecondaryEditor, DispatcherPriority.Loaded);
+		Dispatcher
+			.UIThread
+			.Post(CopyViewToSecondaryEditor, DispatcherPriority.Loaded);
 	}
 
 	/// <summary>

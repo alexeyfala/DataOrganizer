@@ -205,7 +205,9 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 
 			string fileName = Path.GetFileName(itemPath);
 
-			dynamic? folderItem = document.Folder?.ParseName(fileName);
+			dynamic? folderItem = document
+				.Folder?
+				.ParseName(fileName);
 
 			if (folderItem is null)
 			{

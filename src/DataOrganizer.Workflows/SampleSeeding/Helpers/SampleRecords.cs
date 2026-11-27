@@ -137,7 +137,9 @@ internal sealed class SampleRecords
 		for (int i = 0; i < count; i++)
 		{
 			// A secret stays hidden, as a password does.
-			bool isHidden = _faker.Random.Bool(HiddenShare);
+			bool isHidden = _faker
+				.Random
+				.Bool(HiddenShare);
 
 			yield return new ValueRecord
 			{

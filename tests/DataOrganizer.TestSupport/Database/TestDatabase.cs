@@ -37,7 +37,9 @@ public sealed class TestDatabase : IDisposable
 
 		Context = new SqliteDbContext(options);
 
-		Context.Database.EnsureCreated();
+		Context
+			.Database
+			.EnsureCreated();
 	}
 	#endregion
 

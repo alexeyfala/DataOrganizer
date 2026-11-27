@@ -217,7 +217,9 @@ internal static partial class SampleDocuments
 	/// </summary>
 	public static string CreateHtml(Faker faker)
 	{
-		string title = faker.Company.CompanyName();
+		string title = faker
+			.Company
+			.CompanyName();
 
 		XElement html = new(
 			"html",
@@ -393,7 +395,9 @@ internal static partial class SampleDocuments
 		{
 			moment = moment.AddMilliseconds(faker.Random.Int(1, 5000));
 
-			string level = faker.Random.WeightedRandom(LogLevels, LogLevelWeights);
+			string level = faker
+				.Random
+				.WeightedRandom(LogLevels, LogLevelWeights);
 
 			string request = faker.Random.Bool(LogRequestShare)
 				? $" (request {faker.Random.Guid()} from {faker.Internet.Ip()})"
@@ -488,7 +492,9 @@ internal static partial class SampleDocuments
 			Random = faker.Random
 		};
 
-		return russian.Lorem.Paragraph();
+		return russian
+			.Lorem
+			.Paragraph();
 	}
 
 	/// <summary>
@@ -540,7 +546,9 @@ internal static partial class SampleDocuments
 	/// </summary>
 	public static string CreateSecrets(Faker faker)
 	{
-		string host = faker.Internet.DomainName();
+		string host = faker
+			.Internet
+			.DomainName();
 
 		JsonObject secrets = new()
 		{
@@ -789,7 +797,9 @@ internal static partial class SampleDocuments
 	/// </summary>
 	private static string CreateHeading(Faker faker)
 	{
-		string phrase = faker.Company.Bs();
+		string phrase = faker
+			.Company
+			.Bs();
 
 		return char.ToUpperInvariant(phrase[0]) + phrase[1..];
 	}
@@ -826,9 +836,13 @@ internal static partial class SampleDocuments
 			.Range(0, count)
 			.Select(_ =>
 			{
-				string firstName = faker.Name.FirstName();
+				string firstName = faker
+					.Name
+					.FirstName();
 
-				string lastName = faker.Name.LastName();
+				string lastName = faker
+					.Name
+					.LastName();
 
 				return (
 					$"{firstName} {lastName}",
@@ -902,9 +916,13 @@ internal static partial class SampleDocuments
 	/// </summary>
 	private static JsonObject CreateUser(Faker faker, int id)
 	{
-		string firstName = faker.Name.FirstName();
+		string firstName = faker
+			.Name
+			.FirstName();
 
-		string lastName = faker.Name.LastName();
+		string lastName = faker
+			.Name
+			.LastName();
 
 		return new JsonObject
 		{

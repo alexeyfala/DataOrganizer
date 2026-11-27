@@ -110,14 +110,18 @@ internal sealed class CopyHistoryViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button button = FindCopyButton(window, viewModel, file);
 
 		// Act
 		window.Click(button);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => fileTextCopier.ReceivedCalls().Any());
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => fileTextCopier.ReceivedCalls().Any());
 
 		window.Close();
 
@@ -194,7 +198,9 @@ internal sealed class CopyHistoryViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ListBoxItem item = window
 			.GetVisualDescendants()
@@ -208,7 +214,9 @@ internal sealed class CopyHistoryViewTests
 		// Act
 		window.Click(button);
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
+		await Dispatcher
+			.UIThread
+			.RunJobsUntilAsync(() => !ReferenceEquals(item.Background, background));
 
 		IBrush? highlight = item.Background;
 
@@ -271,14 +279,18 @@ internal sealed class CopyHistoryViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Button button = FindCopyButton(window, viewModel, files[1]);
 
 		// Act
 		window.Click(button);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.Close();
 
@@ -335,7 +347,9 @@ internal sealed class CopyHistoryViewTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isEnabled = FindCopyButton(window, viewModel, file).IsEffectivelyEnabled;
 
@@ -402,7 +416,9 @@ internal sealed class CopyHistoryViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		MaterialIcon icon = window
 			.GetVisualDescendants()

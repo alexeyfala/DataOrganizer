@@ -80,9 +80,13 @@ internal static class SampleSnippets
 	/// </summary>
 	public static string CreateSignature(Faker faker)
 	{
-		string firstName = faker.Name.FirstName();
+		string firstName = faker
+			.Name
+			.FirstName();
 
-		string lastName = faker.Name.LastName();
+		string lastName = faker
+			.Name
+			.LastName();
 
 		return string.Join(
 			Environment.NewLine,

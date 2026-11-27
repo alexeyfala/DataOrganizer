@@ -110,7 +110,9 @@ internal sealed class TitleBarViewTests
 
 		// Act
 		// A click sets the current value, which keeps the binding in place.
-		sut.TopmostSwitch.SetCurrentValue(ToggleButton.IsCheckedProperty, true);
+		sut
+			.TopmostSwitch
+			.SetCurrentValue(ToggleButton.IsCheckedProperty, true);
 
 		// Assert
 		window.Topmost
@@ -151,7 +153,9 @@ internal sealed class TitleBarViewTests
 
 		// Act
 		// A click sets the current value, which keeps the binding in place.
-		sut.MaximizeButton.SetCurrentValue(ToggleButton.IsCheckedProperty, true);
+		sut
+			.MaximizeButton
+			.SetCurrentValue(ToggleButton.IsCheckedProperty, true);
 
 		// Assert
 		window.WindowState

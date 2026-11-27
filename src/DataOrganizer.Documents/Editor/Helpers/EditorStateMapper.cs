@@ -55,7 +55,9 @@ public static class EditorStateMapper
 	/// </summary>
 	public static FileEditorState Create(IEditorStateValues values, string? encoding, bool isEncrypted)
 	{
-		DocumentViewState view = values.ViewState.GetValueOrDefault();
+		DocumentViewState view = values
+			.ViewState
+			.GetValueOrDefault();
 
 		return new()
 		{

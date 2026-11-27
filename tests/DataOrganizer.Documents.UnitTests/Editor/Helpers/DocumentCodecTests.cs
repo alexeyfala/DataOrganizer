@@ -203,7 +203,10 @@ internal sealed class DocumentCodecTests
 		// Arrange
 		DocumentCodec sut = new();
 
-		byte[] contents = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetBytes(CyrillicText);
+		byte[] contents = CodePagesEncodingProvider
+			.Instance
+			.GetEncoding(866)!
+			.GetBytes(CyrillicText);
 
 		// Act
 		string? text = sut.Read(contents, DosCyrillic);
@@ -331,7 +334,9 @@ internal sealed class DocumentCodecTests
 		// Arrange
 		DocumentCodec sut = new();
 
-		byte[] contents = Encoding.UTF8.GetBytes(CyrillicText);
+		byte[] contents = Encoding
+			.UTF8
+			.GetBytes(CyrillicText);
 
 		sut.Read(contents, chosenEncoding: null);
 
@@ -339,7 +344,10 @@ internal sealed class DocumentCodecTests
 		EncodingChange? change = sut.Reread(CyrillicText, DosCyrillic);
 
 		// Assert
-		string expected = CodePagesEncodingProvider.Instance.GetEncoding(866)!.GetString(contents);
+		string expected = CodePagesEncodingProvider
+			.Instance
+			.GetEncoding(866)!
+			.GetString(contents);
 
 		change!.Text
 			.Should()

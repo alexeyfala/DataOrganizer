@@ -51,7 +51,9 @@ internal sealed class ConsoleWindowTests
 		consoleLog.Write("Record");
 
 		// Assert
-		TextDocument document = sut.Editor.Document;
+		TextDocument document = sut
+			.Editor
+			.Document;
 
 		document.Text
 			.Should()

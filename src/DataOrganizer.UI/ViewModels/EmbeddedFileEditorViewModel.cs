@@ -322,7 +322,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void EnqueueSave()
 	{
-		bool wasTextOutsideEncoding = Editor.Codec.IsTextOutsideEncoding;
+		bool wasTextOutsideEncoding = Editor
+			.Codec
+			.IsTextOutsideEncoding;
 
 		// The byte order mark taken off the text on load goes back in front of it.
 		if (Editor.Codec.Encode(Editor.Document.Text, out string? missingCharacter) is not { } contents)

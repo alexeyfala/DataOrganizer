@@ -95,7 +95,9 @@ public sealed class FileExecutionScenario : IFileExecutionScenario
 	public async Task ExecuteAsync(FileDto file, bool isReadOnly)
 	{
 		// The key that opens the contents also encrypts the changes made to them while the file runs.
-		Guid? keeperId = file.FindUnlockedKeeper()?.Id;
+		Guid? keeperId = file
+			.FindUnlockedKeeper()?
+			.Id;
 
 		if (await _fileContentsOpener
 			.OpenAsync(file.Id, keeperId, file.Name, file.Kind)

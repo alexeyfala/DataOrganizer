@@ -62,7 +62,9 @@ internal sealed class StatusIconAutomationTests
 			Kind = MaterialIconKind.Lock
 		};
 
-		icon.Classes.Add(StatusIconClass);
+		icon
+			.Classes
+			.Add(StatusIconClass);
 
 		ToolTip.SetTip(icon, tip);
 

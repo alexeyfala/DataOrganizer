@@ -180,7 +180,9 @@ internal sealed class FlyoutButton : Button
 			icon.Foreground = IconForeground;
 		}
 
-		stackPanel.Children.Add(icon);
+		stackPanel
+			.Children
+			.Add(icon);
 
 		stackPanel.Children.Add(new TextBlock
 		{
@@ -203,7 +205,9 @@ internal sealed class FlyoutButton : Button
 			Text = gesture
 		};
 
-		keys.Classes.Add(GestureClass);
+		keys
+			.Classes
+			.Add(GestureClass);
 
 		DockPanel.SetDock(keys, Dock.Right);
 

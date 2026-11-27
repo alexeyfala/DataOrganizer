@@ -163,7 +163,9 @@ internal sealed partial class ContainerSetupStyleTests
 
 		foreach (Match declaration in DoubleDeclarationRegex().Matches(setup.CodeBefore))
 		{
-			string name = declaration.Groups["name"].Value;
+			string name = declaration
+				.Groups["name"]
+				.Value;
 
 			Regex use = new($@"\b{name}\b");
 

@@ -82,7 +82,9 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 
 		foreach (RM_PROCESS_INFO entry in QueryHolders(filePath))
 		{
-			int processId = entry.Process.dwProcessId;
+			int processId = entry
+				.Process
+				.dwProcessId;
 
 			string appName = new(entry.strAppName);
 

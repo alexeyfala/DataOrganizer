@@ -199,7 +199,10 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 			return;
 		}
 
-		AdornerLayer.GetAdornerLayer(AssociatedObject)?.Children.Remove(_adorner);
+		AdornerLayer
+			.GetAdornerLayer(AssociatedObject)?
+			.Children
+			.Remove(_adorner);
 
 		_adorner = null;
 	}
@@ -236,7 +239,9 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 
 			AdornerLayer.SetAdornedElement(_adorner, AssociatedObject);
 
-			layer.Children.Add(_adorner);
+			layer
+				.Children
+				.Add(_adorner);
 		}
 
 		_adorner.BorderThickness = placement switch

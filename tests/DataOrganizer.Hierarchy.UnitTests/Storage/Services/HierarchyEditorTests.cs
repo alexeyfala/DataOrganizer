@@ -149,7 +149,9 @@ internal sealed class HierarchyEditorTests
 		// Arrange
 		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.Children.AddRange(ItemDtoFactory.CreateFileDtos(2));
+		folder
+			.Children
+			.AddRange(ItemDtoFactory.CreateFileDtos(2));
 
 		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5)];
 

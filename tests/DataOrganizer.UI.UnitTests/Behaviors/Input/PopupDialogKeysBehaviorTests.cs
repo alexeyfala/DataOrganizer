@@ -60,7 +60,9 @@ internal sealed class PopupDialogKeysBehaviorTests
 
 		window.KeyReleaseQwerty(PhysicalKey.Enter, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Closed before the assertion, otherwise the focus stays in the popup for the following tests.
 		popupRoot.Dispose();
@@ -119,7 +121,9 @@ internal sealed class PopupDialogKeysBehaviorTests
 
 		window.KeyReleaseQwerty(PhysicalKey.Enter, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Closed before the assertion, otherwise the focus stays in the popup for the following tests.
 		popupRoot.Dispose();
@@ -174,7 +178,9 @@ internal sealed class PopupDialogKeysBehaviorTests
 
 		window.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Closed before the assertion, otherwise the focus stays in the popup for the following tests.
 		popupRoot.Dispose();
@@ -210,7 +216,9 @@ internal sealed class PopupDialogKeysBehaviorTests
 
 		popupRoot.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		return popupRoot;
 	}

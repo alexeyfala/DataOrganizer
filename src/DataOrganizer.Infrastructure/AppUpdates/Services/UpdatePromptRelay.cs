@@ -34,7 +34,9 @@ public sealed class UpdatePromptRelay : IUpdatePrompt
 			return false;
 		}
 
-		return await request.Response.ConfigureAwait(true);
+		return await request
+			.Response
+			.ConfigureAwait(true);
 	}
 	#endregion
 }

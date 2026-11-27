@@ -65,14 +65,18 @@ internal sealed class SettingsViewTests
 
 		Task dialogClosed = DialogHost.Show(new SettingsView(), DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		mainWindow.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
 		mainWindow.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isClosed = dialogClosed.IsCompleted;
 
@@ -100,7 +104,9 @@ internal sealed class SettingsViewTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		ListBox categories = sut.GetControl<ListBox>(CategoriesListName);
 
@@ -116,7 +122,9 @@ internal sealed class SettingsViewTests
 		{
 			categories.SelectedIndex = index;
 
-			Dispatcher.UIThread.RunJobs();
+			Dispatcher
+				.UIThread
+				.RunJobs();
 
 			heights.Add(panel.Bounds.Height);
 		}
@@ -169,7 +177,9 @@ internal sealed class SettingsViewTests
 		// Act
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		ListBox categories = sut.GetControl<ListBox>(CategoriesListName);
@@ -181,7 +191,9 @@ internal sealed class SettingsViewTests
 		// Act
 		categories.SelectedIndex = 1;
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		sessionState.LastCategoryIndex

@@ -190,7 +190,9 @@ public static class DatasetRecordTree
 
 				target = group.Children;
 
-				index = group.Children.Count;
+				index = group
+					.Children
+					.Count;
 
 				return true;
 
@@ -198,8 +200,7 @@ public static class DatasetRecordTree
 			case DatasetRecordBase record:
 				if (ReferenceEquals(record, dragged)
 					|| FindOwner(records, record) is not { } owner
-					|| (dragged is RecordsGroup group2
-						&& IsSelfOrDescendant(group2, owner)))
+					|| (dragged is RecordsGroup group2 && IsSelfOrDescendant(group2, owner)))
 				{
 					return false;
 				}

@@ -210,7 +210,9 @@ internal sealed class DocumentTabTemplateTests
 		EmbeddedFileEditorViewModel first = viewModelMock.Create<EmbeddedFileEditorViewModel>();
 
 		// AutoMock gives one instance of a type per scope, while a file opened again gets an editor of its own.
-		await using ILifetimeScope reopening = viewModelMock.Container.BeginLifetimeScope();
+		await using ILifetimeScope reopening = viewModelMock
+			.Container
+			.BeginLifetimeScope();
 
 		EmbeddedFileEditorViewModel second = reopening.Resolve<EmbeddedFileEditorViewModel>();
 

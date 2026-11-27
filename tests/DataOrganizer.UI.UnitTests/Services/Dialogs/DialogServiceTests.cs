@@ -255,7 +255,9 @@ internal sealed class DialogServiceTests
 
 		notepadWindow.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		_ = sut.RequestKeyValueInputAsync(new()
@@ -264,7 +266,9 @@ internal sealed class DialogServiceTests
 			DialogHostIdentifier = DialogHostIdentifiers.Notepad
 		});
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isNotepadHostOpen = notepadHost.IsOpen;
 
@@ -323,12 +327,16 @@ internal sealed class DialogServiceTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		Task<TextInputResult> task = sut.RequestMultilineTextAsync("text", name);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		viewModel.Header
@@ -340,7 +348,9 @@ internal sealed class DialogServiceTests
 			.CancelCommand
 			.ExecuteAsync(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		await task;
 
@@ -441,14 +451,18 @@ internal sealed class DialogServiceTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		_ = isYesCancel
 			? sut.RequestYesCancelAsync("Text")
 			: sut.RequestYesNoAsync("Text");
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Closed before the assertions: a closed window takes its host out of the list every headless test shares.
 		window.Close();
@@ -521,18 +535,24 @@ internal sealed class DialogServiceTests
 
 		notepadWindow.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		_ = sut.RequestYesNoAsync("Text", DialogHostIdentifiers.Notepad);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		viewModel
 			.YesButtonPressedCommand
 			.Execute(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isNotepadHostOpen = notepadHost.IsOpen;
 
@@ -598,12 +618,16 @@ internal sealed class DialogServiceTests
 
 		notepadWindow.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		_ = sut.RequestYesNoAsync("Text");
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isMainHostOpen = mainHost.IsOpen;
 
@@ -677,12 +701,16 @@ internal sealed class DialogServiceTests
 
 		notepadWindow.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		_ = sut.RequestYesNoAsync("Text", DialogHostIdentifiers.Notepad);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		bool isNotepadHostOpen = notepadHost.IsOpen;
 
@@ -743,12 +771,16 @@ internal sealed class DialogServiceTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		Task<EntityCreationResult?> task = sut.ShowEntityCreationAsync(folderName);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		string? header = viewModel.Header;
 
@@ -757,7 +789,9 @@ internal sealed class DialogServiceTests
 			.CancelCommand
 			.ExecuteAsync(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		await task;
 
@@ -807,12 +841,16 @@ internal sealed class DialogServiceTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Act
 		Task<EntityCreationResult?> task = sut.ShowEntityCreationAsync(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		string? header = viewModel.Header;
 
@@ -821,7 +859,9 @@ internal sealed class DialogServiceTests
 			.CancelCommand
 			.ExecuteAsync(null);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		await task;
 
@@ -893,18 +933,24 @@ internal sealed class DialogServiceTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		Task showTask = sut.ShowSettingsAsync();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		viewModel.CheckForUpdates = !viewModel.CheckForUpdates;
 
 		// Act
 		DialogHost.Close(DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		showTask.IsCompleted
@@ -923,7 +969,9 @@ internal sealed class DialogServiceTests
 		// The view model closes through a substituted IDialogHostCloser, so the real host is closed here.
 		DialogHost.Close(DialogHostIdentifiers.Main);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		await showTask;

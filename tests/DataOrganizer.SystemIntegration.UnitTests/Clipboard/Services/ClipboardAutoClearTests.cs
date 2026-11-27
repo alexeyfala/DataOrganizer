@@ -50,7 +50,9 @@ internal sealed class ClipboardAutoClearTests
 
 			builder.RegisterInstance<TimeProvider>(time);
 
-			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+			builder
+				.RegisterType<ClipboardGate>()
+				.As<IClipboardGate>();
 		});
 
 		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
@@ -98,7 +100,9 @@ internal sealed class ClipboardAutoClearTests
 
 			builder.RegisterInstance<TimeProvider>(time);
 
-			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+			builder
+				.RegisterType<ClipboardGate>()
+				.As<IClipboardGate>();
 		});
 
 		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
@@ -194,7 +198,9 @@ internal sealed class ClipboardAutoClearTests
 
 			builder.RegisterInstance<TimeProvider>(time);
 
-			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+			builder
+				.RegisterType<ClipboardGate>()
+				.As<IClipboardGate>();
 		});
 
 		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();
@@ -249,7 +255,9 @@ internal sealed class ClipboardAutoClearTests
 
 			builder.RegisterInstance<TimeProvider>(time);
 
-			builder.RegisterType<ClipboardGate>().As<IClipboardGate>();
+			builder
+				.RegisterType<ClipboardGate>()
+				.As<IClipboardGate>();
 		});
 
 		ClipboardAutoClear sut = mock.Create<ClipboardAutoClear>();

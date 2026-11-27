@@ -43,7 +43,9 @@ internal sealed class YesNoCancelBoxViewTests
 
 		Task<YesNoCancelAnswer> answer = viewModel.GetResultAsync(new TaskCompletionSource().Task, variant);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		window.UpdateLayout();
 
@@ -52,7 +54,9 @@ internal sealed class YesNoCancelBoxViewTests
 
 		window.KeyReleaseQwerty(PhysicalKey.Escape, RawInputModifiers.None);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		YesNoCancelAnswer actual = await answer;
 

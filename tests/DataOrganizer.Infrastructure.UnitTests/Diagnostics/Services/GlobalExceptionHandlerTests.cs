@@ -119,11 +119,15 @@ internal sealed class GlobalExceptionHandlerTests
 		// Act
 		sut.HandleException(new InvalidOperationException("repeated"));
 
-		int afterFirst = logger.ReceivedCalls().Count();
+		int afterFirst = logger
+			.ReceivedCalls()
+			.Count();
 
 		sut.HandleException(new InvalidOperationException("repeated"));
 
-		int afterSecond = logger.ReceivedCalls().Count();
+		int afterSecond = logger
+			.ReceivedCalls()
+			.Count();
 
 		// Assert
 		afterFirst
@@ -154,11 +158,15 @@ internal sealed class GlobalExceptionHandlerTests
 			sut.HandleException(new InvalidOperationException($"unique-{i}"));
 		}
 
-		int afterFiveUnique = logger.ReceivedCalls().Count();
+		int afterFiveUnique = logger
+			.ReceivedCalls()
+			.Count();
 
 		sut.HandleException(new InvalidOperationException("unique-1"));
 
-		int afterReplay = logger.ReceivedCalls().Count();
+		int afterReplay = logger
+			.ReceivedCalls()
+			.Count();
 
 		// Assert: after the set was reset, the previously seen "unique-1" must be logged again.
 		afterReplay
@@ -185,7 +193,9 @@ internal sealed class GlobalExceptionHandlerTests
 	public void StartMonitoring_Logs_An_Exception_Nobody_Observed()
 	{
 		// Arrange
-		string message = Guid.NewGuid().ToString();
+		string message = Guid
+			.NewGuid()
+			.ToString();
 
 		ILogger logger = Substitute.For<ILogger>();
 
@@ -213,9 +223,13 @@ internal sealed class GlobalExceptionHandlerTests
 	public void StartMonitoring_Skips_The_Accent_Color_Failure_Only_On_Linux(bool isLinux, bool isLogged)
 	{
 		// Arrange
-		string accentColorMessage = Guid.NewGuid().ToString();
+		string accentColorMessage = Guid
+			.NewGuid()
+			.ToString();
 
-		string otherMessage = Guid.NewGuid().ToString();
+		string otherMessage = Guid
+			.NewGuid()
+			.ToString();
 
 		ILogger logger = Substitute.For<ILogger>();
 

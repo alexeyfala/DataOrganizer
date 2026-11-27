@@ -140,7 +140,9 @@ internal sealed class SampleHierarchy
 	/// <summary>
 	/// Cyrillic code page of the Windows console, which .NET provides apart from its built-in encodings.
 	/// </summary>
-	private static readonly Encoding Cp866 = CodePagesEncodingProvider.Instance.GetEncoding("cp866")!;
+	private static readonly Encoding Cp866 = CodePagesEncodingProvider
+		.Instance
+		.GetEncoding("cp866")!;
 
 	/// <summary>
 	/// First keys of the hotkeys of the snippets, tried from left to right along the rows of the keyboard, the top row first.
@@ -172,7 +174,9 @@ internal sealed class SampleHierarchy
 	/// <summary>
 	/// Cyrillic code page of Windows, which .NET provides apart from its built-in encodings.
 	/// </summary>
-	private static readonly Encoding Windows1251 = CodePagesEncodingProvider.Instance.GetEncoding("windows-1251")!;
+	private static readonly Encoding Windows1251 = CodePagesEncodingProvider
+		.Instance
+		.GetEncoding("windows-1251")!;
 
 	/// <summary>
 	/// Identifiers of the files made so far whose contents are to be damaged once they are encrypted.

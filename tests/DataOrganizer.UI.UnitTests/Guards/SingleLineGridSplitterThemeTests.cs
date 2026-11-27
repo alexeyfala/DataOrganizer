@@ -53,7 +53,10 @@ internal sealed class SingleLineGridSplitterThemeTests
 		GridSplitterHost.Show(sut);
 
 		// Assert
-		Size grip = GridSplitterHost.GetPart(sut, GripPartName).Bounds.Size;
+		Size grip = GridSplitterHost
+			.GetPart(sut, GripPartName)
+			.Bounds
+			.Size;
 
 		grip.Width
 			.Should()
@@ -78,7 +81,9 @@ internal sealed class SingleLineGridSplitterThemeTests
 		// Act
 		window.MouseMove(window.CenterOf(sut));
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Border grip = GridSplitterHost.GetPart(sut, GripPartName);
@@ -105,7 +110,10 @@ internal sealed class SingleLineGridSplitterThemeTests
 		GridSplitterHost.Show(sut);
 
 		// Assert
-		Size grip = GridSplitterHost.GetPart(sut, GripPartName).Bounds.Size;
+		Size grip = GridSplitterHost
+			.GetPart(sut, GripPartName)
+			.Bounds
+			.Size;
 
 		grip.Height
 			.Should()
@@ -202,7 +210,9 @@ internal sealed class SingleLineGridSplitterThemeTests
 		// Act
 		window.MouseDown(window.CenterOf(sut), MouseButton.Left);
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		// Assert
 		Border part = GridSplitterHost.GetPart(sut, partName);

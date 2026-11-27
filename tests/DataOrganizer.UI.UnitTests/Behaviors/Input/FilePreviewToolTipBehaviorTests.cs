@@ -75,7 +75,9 @@ internal sealed class FilePreviewToolTipBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		FilePreviewToolTipBehavior sut = new()
 		{
@@ -138,7 +140,9 @@ internal sealed class FilePreviewToolTipBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		FilePreviewToolTipBehavior sut = new()
 		{
@@ -204,7 +208,9 @@ internal sealed class FilePreviewToolTipBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		FilePreviewToolTipBehavior sut = new()
 		{
@@ -265,7 +271,9 @@ internal sealed class FilePreviewToolTipBehaviorTests
 
 		window.Show();
 
-		Dispatcher.UIThread.RunJobs();
+		Dispatcher
+			.UIThread
+			.RunJobs();
 
 		FilePreviewToolTipBehavior sut = new();
 

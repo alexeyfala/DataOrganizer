@@ -40,7 +40,9 @@ internal sealed class DesktopAccessorTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 		});
 
 		DesktopAccessor sut = mock.Create<DesktopAccessor>();
@@ -93,7 +95,9 @@ internal sealed class DesktopAccessorTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 		});
 
 		DesktopAccessor sut = mock.Create<DesktopAccessor>();
@@ -128,7 +132,9 @@ internal sealed class DesktopAccessorTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 		});
 
 		DesktopAccessor sut = mock.Create<DesktopAccessor>();
@@ -192,7 +198,9 @@ internal sealed class DesktopAccessorTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 		});
 
 		DesktopAccessor sut = mock.Create<DesktopAccessor>();
@@ -251,7 +259,9 @@ internal sealed class DesktopAccessorTests
 
 			app.ApplicationLifetime = lifetime;
 
-			builder.RegisterInstance(app).As<Application>();
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
 
 			builder.RegisterInstance(processTerminator);
 		});

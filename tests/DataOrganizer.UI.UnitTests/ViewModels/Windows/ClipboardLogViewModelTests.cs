@@ -381,7 +381,9 @@ internal sealed class ClipboardLogViewModelTests
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act
-		sut.OpenUrlCommand.Execute(ClipboardEntryFactory.CreateTextEntry("https://example.com/", [1]));
+		sut
+			.OpenUrlCommand
+			.Execute(ClipboardEntryFactory.CreateTextEntry("https://example.com/", [1]));
 
 		// Assert
 		processLauncher
@@ -417,7 +419,9 @@ internal sealed class ClipboardLogViewModelTests
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act
-		sut.OpenUrlCommand.Execute(ClipboardEntryFactory.CreateUrlEntry(url));
+		sut
+			.OpenUrlCommand
+			.Execute(ClipboardEntryFactory.CreateUrlEntry(url));
 
 		// Assert
 		processLauncher
@@ -584,7 +588,9 @@ internal sealed class ClipboardLogViewModelTests
 		ClipboardTextEntry entry = ClipboardEntryFactory.CreateTextEntry("a", [1]);
 
 		// Act
-		sut.TogglePinCommand.Execute(entry);
+		sut
+			.TogglePinCommand
+			.Execute(entry);
 
 		// Assert
 		clipboardLog

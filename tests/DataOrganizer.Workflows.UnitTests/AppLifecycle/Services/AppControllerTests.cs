@@ -178,7 +178,9 @@ internal sealed class AppControllerTests
 		// Assert
 		Received.InOrder(() =>
 		{
-			fileSystem.Directory.CreateDirectory(appDataFolder);
+			fileSystem
+				.Directory
+				.CreateDirectory(appDataFolder);
 
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 

@@ -84,7 +84,10 @@ internal sealed class WixVersionConsistencyTests
 	/// <exception cref="InvalidDataException">The header names no WiX SDK with a version.</exception>
 	private static string ReadSdkVersion(XDocument project)
 	{
-		string sdk = project.Root!.Attribute("Sdk")!.Value;
+		string sdk = project
+			.Root!
+			.Attribute("Sdk")!
+			.Value;
 
 		return sdk.StartsWith(SdkPrefix, StringComparison.Ordinal)
 			? sdk[SdkPrefix.Length..]
