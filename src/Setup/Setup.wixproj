@@ -52,9 +52,9 @@
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(DesignTimeBuild)' != 'true'">
 		<!--
-		With .wxl files WiX builds into a culture subfolder. One culture is built at a time, so the MSI moves
-		up to the output folder, where Bundle and the release steps take it, and the subfolder with the .wixpdb goes.
-	-->
+			With .wxl files WiX builds into a culture subfolder. One culture is built at a time, so the MSI moves
+			up to the output folder, where Bundle and the release steps take it, and the subfolder with the .wixpdb goes.
+		-->
 		<PropertyGroup>
 			<_CultureOutputDir>$([System.IO.Path]::GetDirectoryName('$(TargetPath)'))\</_CultureOutputDir>
 		</PropertyGroup>
