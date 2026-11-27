@@ -1,10 +1,14 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
 using DataOrganizer.UI.UnitTests.TestHelpers;
 using DataOrganizer.UI.Views;
+using System;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
@@ -41,6 +45,34 @@ internal sealed class TitleBarViewTests
 		button.DataContext
 			.Should()
 			.BeSameAs(dataContext);
+	}
+
+	/// <summary>
+	/// <see cref="TitleBarView" />: a right press on the bar frees the pointer on Windows, so Windows opens the system menu.
+	/// </summary>
+	[AvaloniaTest]
+	public void Pointer_Right_Press_On_The_Bar_Frees_The_Pointer_On_Windows()
+	{
+		// Arrange
+		IPointer? pointer = null;
+
+		TitleBarView sut = new();
+
+		sut.AddHandler(
+			InputElement.PointerPressedEvent,
+			(_, e) => pointer = e.Pointer,
+			RoutingStrategies.Bubble,
+			handledEventsToo: true);
+
+		Window window = HeadlessWindow.Show(sut);
+
+		// Act
+		window.MouseDown(window.CenterOf(sut.WindowTitle), MouseButton.Right);
+
+		// Assert
+		(pointer!.Captured is null)
+			.Should()
+			.Be(OperatingSystem.IsWindows());
 	}
 
 	/// <summary>

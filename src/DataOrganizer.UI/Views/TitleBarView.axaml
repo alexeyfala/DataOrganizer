@@ -6,6 +6,7 @@
 	xmlns:converters="using:DataOrganizer.UI.Converters"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:DataOrganizer.Shared.Properties"
+	xmlns:windowBehaviors="using:DataOrganizer.UI.Behaviors.Windows"
 	x:Name="View">
 
 	<UserControl.Styles>
@@ -16,6 +17,10 @@
 		Height="{StaticResource TitleBarHeight}"
 		chrome:WindowDecorationProperties.ElementRole="TitleBar"
 		Background="Transparent">
+
+		<Interaction.Behaviors>
+			<windowBehaviors:TitleBarSystemMenuBehavior />
+		</Interaction.Behaviors>
 
 		<Panel>
 			<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">

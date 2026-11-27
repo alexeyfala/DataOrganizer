@@ -564,25 +564,25 @@ License of vscode-swift:
 5. MIT License (MIT)
 --------------------------------------------------------------------------
 
-  * Avalonia 12.1.6 - Copyright (c) Avalonia Team
+  * Avalonia 12.2.0 - Copyright (c) Avalonia Team
   * Avalonia.AvaloniaEdit 12.0.0 - Copyright (c) Avalonia Team
-  * Avalonia.BuildServices 11.3.2 - Copyright (c) Avalonia Team
-  * Avalonia.Desktop 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.Fonts.Inter 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop.AtSpi 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.HarfBuzz 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.Native 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.Remote.Protocol 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.Skia 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.Themes.Fluent 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.Win32 12.1.6 - Copyright (c) Avalonia Team
-  * Avalonia.X11 12.1.6 - Copyright (c) Avalonia Team
+  * Avalonia.BuildServices 12.0.0 - Copyright (c) Avalonia Team
+  * Avalonia.Desktop 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.Fonts.Inter 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop.AtSpi 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.HarfBuzz 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.Native 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.Remote.Protocol 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.Skia 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.Themes.Fluent 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.Win32 12.2.0 - Copyright (c) Avalonia Team
+  * Avalonia.X11 12.2.0 - Copyright (c) Avalonia Team
   * AvaloniaEdit.TextMate 12.0.0 - Copyright (c) Avalonia Team
   * Baksteen.Extensions.DeepCopy 1.0.5 - Copyright (c) jpmikkers
   * Bogus 35.6.5 - Copyright (c) Brian Chavez
   * CommunityToolkit.Mvvm 8.4.2 - Copyright (c) Microsoft
-  * DialogHost.Avalonia 0.12.3 - Copyright (c) SKProCH
+  * DialogHost.Avalonia 0.12.4 - Copyright (c) SKProCH
   * DynamicData 9.5.0 - Copyright (c) Roland Pheasant
   * Generator.Equals 4.1.0 - Copyright (c) Diego Frata
   * Generator.Equals.Runtime 4.1.0 - Copyright (c) Diego Frata
@@ -595,10 +595,10 @@ License of vscode-swift:
   * Mapster 10.0.14 - Copyright (c) chaowlert,eric_swann,andrerav
   * Mapster.Core 10.0.14 - Copyright (c) chaowlert,eric_swann,andrerav
   * Mapster.DependencyInjection 10.0.14 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Material.Avalonia 3.21.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
+  * Material.Avalonia 3.22.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
   * Material.Icons 3.0.2 - Copyright (c) SKProCH
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
-  * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime
+  * MicroCom.Runtime 0.11.7 - Copyright (c) MicroCom.Runtime
   * Microsoft.Bcl.HashCode 6.0.0 - Copyright (c) Microsoft
   * Microsoft.Data.Sqlite.Core 11.0.0 - Copyright (c) Microsoft
   * Microsoft.EntityFrameworkCore 11.0.0 - Copyright (c) Microsoft
@@ -630,13 +630,13 @@ License of vscode-swift:
   * SkiaSharp.NativeAssets.Win32 3.119.4 - Copyright (c) Microsoft
   * System.Drawing.Common 11.0.0 - Copyright (c) Microsoft
   * System.Reactive 7.0.0 - Copyright (c) .NET Foundation and Contributors
-  * Testably.Abstractions 11.0.0 - Copyright (c) Testably
-  * Testably.Abstractions.FileSystem.Interface 11.0.0 - Copyright (c) Testably
-  * Testably.Abstractions.Interface 11.0.0 - Copyright (c) Testably
+  * Testably.Abstractions 11.1.0 - Copyright (c) Testably
+  * Testably.Abstractions.FileSystem.Interface 11.1.0 - Copyright (c) Testably
+  * Testably.Abstractions.Interface 11.1.0 - Copyright (c) Testably
   * TextMateSharp 2.0.3 - Copyright (c) Daniel Peñalba
   * TextMateSharp.Grammars 2.0.3 - Copyright (c) Daniel Peñalba
   * Tmds.DBus.Protocol 0.94.1 - Copyright (c) Tom Deseyn
-  * Xaml.Behaviors 12.1.5 - Copyright (c) Wiesław Šoltés
+  * Xaml.Behaviors 12.2.0 - Copyright (c) Wiesław Šoltés
   * ZString 2.6.0 - Copyright (c) Cysharp
 
 The above components are licensed under the MIT License. Copyright is held by

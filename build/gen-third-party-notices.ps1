@@ -8,7 +8,8 @@
     DataOrganizer.Desktop) from its project.assets.json, looks up each package's
     license and authors from the .nuspec files in the NuGet cache, groups the
     components by license, and writes THIRD-PARTY-NOTICES.txt at the repository
-    root.
+    root. Packages referenced with PrivateAssets, such as analyzers, are left out:
+    they never reach the application.
 
     The manual "libuiohook (LGPL)" section is always emitted first: libuiohook is
     a native library bundled inside the SharpHook package and does not appear as a
@@ -212,9 +213,18 @@ foreach ($af in $AssetsFile) {
     }
     $assets = Get-Content $af -Raw | ConvertFrom-Json
     foreach ($pf in $assets.packageFolders.PSObject.Properties.Name) { $pkgFolders += $pf }
+
+    # A reference with PrivateAssets (an analyzer) carries suppressParent and stays out of the application.
+    $privateIds = @(foreach ($framework in $assets.project.frameworks.PSObject.Properties.Value) {
+        foreach ($dep in $framework.dependencies.PSObject.Properties) {
+            if ($dep.Value.suppressParent) { $dep.Name }
+        }
+    })
+
     foreach ($target in $assets.targets.PSObject.Properties.Value) {
         foreach ($lib in $target.PSObject.Properties) {
             if ($lib.Value.type -ne 'package') { continue }
+            if ($privateIds -contains ($lib.Name -split '/')[0]) { continue }
             if (-not $packages.ContainsKey($lib.Name)) { $packages[$lib.Name] = $true }
         }
     }
