@@ -7,6 +7,8 @@
 		<ApplicationIcon>$(AppIconPath)</ApplicationIcon>
 		<ApplicationDisplayVersion>$(AppVersion)</ApplicationDisplayVersion>
 		<ApplicationVersion>$(AppVersion)</ApplicationVersion>
+		<!-- Replaces CFBundleDisplayName of Info.plist; the .app bundle takes this name too. -->
+		<ApplicationTitle>$(AppName)</ApplicationTitle>
 		<AssemblyName>$(AppName)</AssemblyName>
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
@@ -39,4 +41,24 @@
 		<_RidArch>$(RuntimeIdentifier.Substring($([MSBuild]::Add($(RuntimeIdentifier.LastIndexOf('-')), 1))))</_RidArch>
 		<MacInstallerName>$(OutputBaseName)-$(_RidOs)-$(_RidArch)$(_DebugSuffix)</MacInstallerName>
 	</PropertyGroup>
+
+	<!--
+		The localized names of the bundle, from AppDisplayName: the menu bar shows CFBundleName,
+		Finder, the Dock and Spotlight show CFBundleDisplayName.
+	-->
+	<PropertyGroup>
+		<CollectBundleResourcesDependsOn>$(CollectBundleResourcesDependsOn);WriteInfoPlistStrings</CollectBundleResourcesDependsOn>
+	</PropertyGroup>
+
+	<Target Name="WriteInfoPlistStrings">
+		<WriteLinesToFile
+			File="$(IntermediateOutputPath)InfoPlist.strings"
+			Lines="CFBundleDisplayName = &quot;$(AppDisplayName)&quot;%3B;CFBundleName = &quot;$(AppDisplayName)&quot;%3B"
+			Overwrite="true"
+			WriteOnlyWhenDifferent="true" />
+
+		<ItemGroup>
+			<BundleResource Include="$(IntermediateOutputPath)InfoPlist.strings" LogicalName="en.lproj/InfoPlist.strings" />
+		</ItemGroup>
+	</Target>
 </Project>

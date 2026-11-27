@@ -71,4 +71,9 @@
 
 		<StyleInclude Source="/Styling/Styles.axaml" />
 	</Application.Styles>
+
+	<!--  Without a menu of its own, Avalonia puts "About Avalonia" into the application menu of macOS.  -->
+	<NativeMenu.Menu>
+		<NativeMenu />
+	</NativeMenu.Menu>
 </Application>

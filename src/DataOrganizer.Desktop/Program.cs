@@ -29,8 +29,8 @@ public static class Program
 			.UsePlatformDetect()
 			.With(new X11PlatformOptions
 			{
-				// The application has no native menu, and exporting an empty one only registers every window and popup
-				// with the global menu of Linux, which leaves warnings when one closes at once.
+				// The application shows no native menu items, and exporting an empty menu only registers every window and
+				// popup with the global menu of Linux, which leaves warnings when one closes at once.
 				UseDBusMenu = false
 			})
 			.WithInterFont()

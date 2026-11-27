@@ -4,8 +4,6 @@
 	<dict>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>en</string>
-		<key>CFBundleDisplayName</key>
-		<string>DataOrganizer</string>
 		<key>LSHasLocalizedDisplayName</key>
 		<true/>
 		<key>CFBundlePackageType</key>

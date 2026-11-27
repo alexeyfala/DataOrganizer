@@ -82,7 +82,6 @@
 **`DataOrganizer.MacOS`**
 
 - ⚙️ [`Info.plist`](../src/DataOrganizer.MacOS/Info.plist) — `.app` bundle metadata.
-- ⚙️ [`InfoPlist.strings`](../src/DataOrganizer.MacOS/Resources/en.lproj/InfoPlist.strings) — the name Finder, the Dock and Spotlight show.
 - ⚙️ [`Roots.xml`](../src/DataOrganizer.MacOS/Roots.xml) — trimmer roots for publishing.
 - 🖼️ `Logo.icns` — application icon for macOS.
 

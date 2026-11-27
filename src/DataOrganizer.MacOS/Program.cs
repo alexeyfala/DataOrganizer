@@ -29,12 +29,7 @@ public static class Program
 			.Configure<App>()
 			.UsePlatformDetect()
 			.WithInterFont()
-			.LogToTrace()
-			.With(new MacOSPlatformOptions
-			{
-				//ShowInDock = false,
-				//DisableDefaultApplicationMenuItems = true
-			});
+			.LogToTrace();
 	}
 	#endregion
 }

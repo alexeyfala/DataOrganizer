@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Database.Entities.Models;
@@ -49,6 +50,26 @@ internal sealed partial class AppTests
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// <see cref="App.Initialize" />: the application has a menu of its own with no items, so the application menu of
+	/// macOS gets no "About Avalonia".
+	/// </summary>
+	[AvaloniaTest]
+	public void Initialize_Leaves_The_Application_Menu_Empty()
+	{
+		// Act
+		NativeMenu? menu = NativeMenu.GetMenu(Application.Current!);
+
+		// Assert
+		menu
+			.Should()
+			.NotBeNull();
+
+		menu!.Items
+			.Should()
+			.BeEmpty();
+	}
+
 	/// <summary>
 	/// <see cref="App.RegisterServices" />: a class registered as a singleton under its own type is handed out under other
 	/// types only through factories, so the container builds it once and its state stays shared.
