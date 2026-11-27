@@ -15,16 +15,6 @@ internal sealed class TempSqliteFile : IDisposable
 {
 	#region Properties
 	/// <summary>
-	/// Connection string of the database.
-	/// </summary>
-	public string ConnectionString { get; }
-
-	/// <summary>
-	/// Path of the database file.
-	/// </summary>
-	public string FilePath { get; }
-
-	/// <summary>
 	/// Folder that holds the folders of the test processes, one per process.
 	/// </summary>
 	public static string RootDirectoryPath { get; } = Path.Combine(Path.GetTempPath(), "DataOrganizerTests");
@@ -35,6 +25,16 @@ internal sealed class TempSqliteFile : IDisposable
 	public static string RunDirectoryPath { get; } = Path.Combine(
 		RootDirectoryPath,
 		Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
+
+	/// <summary>
+	/// Connection string of the database.
+	/// </summary>
+	public string ConnectionString { get; }
+
+	/// <summary>
+	/// Path of the database file.
+	/// </summary>
+	public string FilePath { get; }
 	#endregion
 
 	#region Data

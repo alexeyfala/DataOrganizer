@@ -52,6 +52,24 @@ internal sealed class CodeLiteralReaderTests
 	}
 
 	/// <summary>
+	/// <see cref="CodeLiteralReader.ReadInterpolatedStrings" />: a string in a hole of another is read too.
+	/// </summary>
+	[Test]
+	public void ReadInterpolatedStrings_Reads_The_Strings_In_A_Hole()
+	{
+		// Arrange
+		const string text = "$\"{(x ? $\"<{y}>\" : \"\")}\"";
+
+		// Act
+		string[] values = [.. CodeLiteralReader.ReadInterpolatedStrings(text).Select(static x => x.Value)];
+
+		// Assert
+		values
+			.Should()
+			.BeEquivalentTo(text, "$\"<{y}>\"");
+	}
+
+	/// <summary>
 	/// <see cref="CodeLiteralReader.ReadInterpolatedStrings" />: a string gives its place, its text pieces and the code of
 	/// its holes.
 	/// </summary>
@@ -77,24 +95,6 @@ internal sealed class CodeLiteralReaderTests
 				Texts = ["say \"", "\" to ", string.Empty],
 				Value = value
 			});
-	}
-
-	/// <summary>
-	/// <see cref="CodeLiteralReader.ReadInterpolatedStrings" />: a string in a hole of another is read too.
-	/// </summary>
-	[Test]
-	public void ReadInterpolatedStrings_Reads_The_Strings_In_A_Hole()
-	{
-		// Arrange
-		const string text = "$\"{(x ? $\"<{y}>\" : \"\")}\"";
-
-		// Act
-		string[] values = [.. CodeLiteralReader.ReadInterpolatedStrings(text).Select(static x => x.Value)];
-
-		// Assert
-		values
-			.Should()
-			.BeEquivalentTo(text, "$\"<{y}>\"");
 	}
 
 	/// <summary>

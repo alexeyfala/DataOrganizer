@@ -125,6 +125,7 @@ internal sealed class EnumToBoolConverterTests
 	private enum Sample
 	{
 		A,
+
 		B
 	}
 	#endregion

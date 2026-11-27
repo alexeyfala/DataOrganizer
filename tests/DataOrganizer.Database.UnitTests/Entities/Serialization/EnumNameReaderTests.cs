@@ -67,6 +67,7 @@ internal sealed class EnumNameReaderTests
 	private enum SignedValue
 	{
 		None = 0,
+
 		First = 1
 	}
 	#endregion

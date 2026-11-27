@@ -460,6 +460,62 @@ internal sealed class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: the notepad is closed, so that it saves its settings.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task CloseSecondaryWindowsAsync_Closes_The_Notepad()
+	{
+		// Arrange
+		bool isClosed = false;
+
+		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<DocumentTextFactory>()
+				.As<IDocumentTextFactory>();
+		});
+
+		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
+
+		NotepadWindow notepad = new(viewModel);
+
+		notepad.Closed += (_, _) => isClosed = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([notepad]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		notepad.Show();
+
+		// Act
+		await sut.CloseSecondaryWindowsAsync();
+
+		// Assert
+		isClosed
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: the wait for a console that puts its closing off ends as
 	/// the console closes, with no pause after it.
 	/// </summary>
@@ -608,62 +664,6 @@ internal sealed class ViewLauncherTests
 
 		// Assert
 		isLeftOpen
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.CloseSecondaryWindowsAsync" />: the notepad is closed, so that it saves its settings.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task CloseSecondaryWindowsAsync_Closes_The_Notepad()
-	{
-		// Arrange
-		bool isClosed = false;
-
-		using AutoMock viewModelMock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<DocumentTextFactory>()
-				.As<IDocumentTextFactory>();
-		});
-
-		NotepadViewModel viewModel = viewModelMock.Create<NotepadViewModel>();
-
-		NotepadWindow notepad = new(viewModel);
-
-		notepad.Closed += (_, _) => isClosed = true;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			lifetime
-				.Windows
-				.Returns([notepad]);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder
-				.RegisterInstance(app)
-				.As<Application>();
-
-			builder
-				.RegisterType<DesktopAccessor>()
-				.AsImplementedInterfaces();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		notepad.Show();
-
-		// Act
-		await sut.CloseSecondaryWindowsAsync();
-
-		// Assert
-		isClosed
 			.Should()
 			.BeTrue();
 	}
@@ -1806,6 +1806,61 @@ internal sealed class ViewLauncherTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the width of its navigation column.
+	/// </summary>
+	[AvaloniaTest]
+	public void CreateEditorWindow_Saves_The_Navigation_Column_Width_When_The_Window_Closes()
+	{
+		// Arrange
+		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
+
+		// The editor lives as long as the test, as the window saves it when it closes.
+		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
+			.RegisterType<WorkSession>()
+			.AsImplementedInterfaces()
+			.SingleInstance());
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
+
+			builder.RegisterInstance(jsonFileStore);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder
+				.RegisterType<WindowSettingsStore>()
+				.As<IWindowSettingsStore>();
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		EditorWindow window = sut.CreateEditorWindow();
+
+		window.ViewModel.NavigationColumnWidth = 222.0;
+
+		// Act
+		window.Close();
+
+		// Assert
+		jsonFileStore.Received(1).Write(
+			Arg.Is<EditorWindowSettings>(x => x.NavigationColumnWidth == 222.0),
+			Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="ViewLauncher.CreateEditorWindow" />: an object shown when the editor opens takes the place of the object
 	/// selected before, and both are saved from the loaded window.
 	/// </summary>
@@ -1935,61 +1990,6 @@ internal sealed class ViewLauncherTests
 		saved
 			.Should()
 			.OnlyContain(x => x.IsLoaded);
-	}
-
-	/// <summary>
-	/// <see cref="ViewLauncher.CreateEditorWindow" />: closing the window saves the width of its navigation column.
-	/// </summary>
-	[AvaloniaTest]
-	public void CreateEditorWindow_Saves_The_Navigation_Column_Width_When_The_Window_Closes()
-	{
-		// Arrange
-		IJsonFileStore jsonFileStore = Substitute.For<IJsonFileStore>();
-
-		// The editor lives as long as the test, as the window saves it when it closes.
-		using AutoMock windowMock = AutoMock.GetLoose(builder => builder
-			.RegisterType<WorkSession>()
-			.AsImplementedInterfaces()
-			.SingleInstance());
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
-
-			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateViewModel<EditorViewModel>()
-				.Returns(viewModel);
-
-			viewFactory
-				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
-				.Returns(editorWindow);
-
-			builder.RegisterInstance(jsonFileStore);
-
-			builder.RegisterInstance(viewFactory);
-
-			builder
-				.RegisterType<WindowSettingsStore>()
-				.As<IWindowSettingsStore>();
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		EditorWindow window = sut.CreateEditorWindow();
-
-		window.ViewModel.NavigationColumnWidth = 222.0;
-
-		// Act
-		window.Close();
-
-		// Assert
-		jsonFileStore.Received(1).Write(
-			Arg.Is<EditorWindowSettings>(x => x.NavigationColumnWidth == 222.0),
-			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -3252,64 +3252,6 @@ internal sealed class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: an already-open window is focused instead of opening a duplicate.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowClipboardLogWindowAsync_Focuses_Existing_Window()
-	{
-		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
-		{
-			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
-
-			clipboardLogService
-				.Entries
-				.Returns([]);
-
-			windowBuilder.RegisterInstance(clipboardLogService);
-		});
-
-		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
-
-		ClipboardLogWindow existing = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-			Application app = Substitute.For<Application>();
-
-			lifetime
-				.Windows
-				.Returns([existing, new TestMainWindow()]);
-
-			app.ApplicationLifetime = lifetime;
-
-			builder
-				.RegisterInstance(app)
-				.As<Application>();
-
-			builder
-				.RegisterType<DesktopAccessor>()
-				.AsImplementedInterfaces();
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		await sut.ShowClipboardLogWindowAsync();
-
-		// Assert
-		viewFactory
-			.DidNotReceive()
-			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
-	}
-
-	/// <summary>
 	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: the view model of the window is disposed when the window
 	/// closes, so that it no longer listens to the messages.
 	/// </summary>
@@ -3368,6 +3310,64 @@ internal sealed class ViewLauncherTests
 		messenger.IsRegistered<ClipboardLogEntryCountChangedMessage>(window.ViewModel)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: an already-open window is focused instead of opening a duplicate.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowClipboardLogWindowAsync_Focuses_Existing_Window()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose(windowBuilder =>
+		{
+			IClipboardLogService clipboardLogService = Substitute.For<IClipboardLogService>();
+
+			clipboardLogService
+				.Entries
+				.Returns([]);
+
+			windowBuilder.RegisterInstance(clipboardLogService);
+		});
+
+		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+		ClipboardLogWindow existing = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+			Application app = Substitute.For<Application>();
+
+			lifetime
+				.Windows
+				.Returns([existing, new TestMainWindow()]);
+
+			app.ApplicationLifetime = lifetime;
+
+			builder
+				.RegisterInstance(app)
+				.As<Application>();
+
+			builder
+				.RegisterType<DesktopAccessor>()
+				.AsImplementedInterfaces();
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync();
+
+		// Assert
+		viewFactory
+			.DidNotReceive()
+			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
 	}
 
 	/// <summary>

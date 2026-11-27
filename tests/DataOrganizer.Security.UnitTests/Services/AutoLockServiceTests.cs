@@ -20,6 +20,51 @@ internal sealed class AutoLockServiceTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="AutoLockService.Arm" />: a countdown armed again after a stop runs the timer again once the timer of
+	/// the stopped one has ended.
+	/// </summary>
+	[Test]
+	public void Arm_After_A_Stop_Runs_The_Timer_Again()
+	{
+		// Arrange
+		IUiTimer uiTimer = Substitute.For<IUiTimer>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAutoLockSettings autoLockSettings = Substitute.For<IAutoLockSettings>();
+
+			autoLockSettings
+				.AutoLockMinutes
+				.Returns(1);
+
+			builder
+				.RegisterType<FakeTimeProvider>()
+				.As<TimeProvider>();
+
+			builder.RegisterInstance(autoLockSettings);
+
+			builder.RegisterInstance(uiTimer);
+		});
+
+		AutoLockService sut = mock.Create<AutoLockService>();
+
+		sut.Arm();
+
+		sut.Stop();
+
+		// The timer of the stopped countdown ticks once more and ends.
+		sut.Tick();
+
+		// Act
+		sut.Arm();
+
+		// Assert
+		uiTimer
+			.Received(2)
+			.Run(Arg.Any<Func<bool>>(), Arg.Any<TimeSpan>());
+	}
+
+	/// <summary>
 	/// <see cref="AutoLockService.Arm" />: an arm after the lock starts the countdown again.
 	/// </summary>
 	[Test]
@@ -64,51 +109,6 @@ internal sealed class AutoLockServiceTests
 		sut.Remaining
 			.Should()
 			.Be(TimeSpan.FromSeconds(59.0));
-	}
-
-	/// <summary>
-	/// <see cref="AutoLockService.Arm" />: a countdown armed again after a stop runs the timer again once the timer of
-	/// the stopped one has ended.
-	/// </summary>
-	[Test]
-	public void Arm_After_A_Stop_Runs_The_Timer_Again()
-	{
-		// Arrange
-		IUiTimer uiTimer = Substitute.For<IUiTimer>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAutoLockSettings autoLockSettings = Substitute.For<IAutoLockSettings>();
-
-			autoLockSettings
-				.AutoLockMinutes
-				.Returns(1);
-
-			builder
-				.RegisterType<FakeTimeProvider>()
-				.As<TimeProvider>();
-
-			builder.RegisterInstance(autoLockSettings);
-
-			builder.RegisterInstance(uiTimer);
-		});
-
-		AutoLockService sut = mock.Create<AutoLockService>();
-
-		sut.Arm();
-
-		sut.Stop();
-
-		// The timer of the stopped countdown ticks once more and ends.
-		sut.Tick();
-
-		// Act
-		sut.Arm();
-
-		// Assert
-		uiTimer
-			.Received(2)
-			.Run(Arg.Any<Func<bool>>(), Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>

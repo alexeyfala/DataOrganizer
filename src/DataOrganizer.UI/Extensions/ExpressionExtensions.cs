@@ -29,6 +29,34 @@ public static class ExpressionExtensions
 
 	#region Helpers
 	/// <summary>
+	/// Computes the value of an expression without runtime compilation.
+	/// </summary>
+	private static object? Evaluate(Expression? expression)
+	{
+		return expression switch
+		{
+			null => null,
+			ConstantExpression constant => constant.Value,
+			MemberExpression member => GetMemberValue(member.Member, Evaluate(member.Expression)),
+			// Fallback for unsupported expression shapes.
+			_ => Expression.Lambda(expression).Compile().DynamicInvoke()
+		};
+	}
+
+	/// <summary>
+	/// Reads a field or property value via reflection.
+	/// </summary>
+	private static object? GetMemberValue(MemberInfo member, object? target)
+	{
+		return member switch
+		{
+			FieldInfo field => field.GetValue(target),
+			PropertyInfo property => property.GetValue(target),
+			_ => null
+		};
+	}
+
+	/// <summary>
 	/// Returns a reference to the property's owner object.
 	/// </summary>
 	/// <typeparam name="T">Property type.</typeparam>
@@ -58,34 +86,6 @@ public static class ExpressionExtensions
 		};
 
 		return Evaluate(owner);
-	}
-
-	/// <summary>
-	/// Computes the value of an expression without runtime compilation.
-	/// </summary>
-	private static object? Evaluate(Expression? expression)
-	{
-		return expression switch
-		{
-			null => null,
-			ConstantExpression constant => constant.Value,
-			MemberExpression member => GetMemberValue(member.Member, Evaluate(member.Expression)),
-			// Fallback for unsupported expression shapes.
-			_ => Expression.Lambda(expression).Compile().DynamicInvoke()
-		};
-	}
-
-	/// <summary>
-	/// Reads a field or property value via reflection.
-	/// </summary>
-	private static object? GetMemberValue(MemberInfo member, object? target)
-	{
-		return member switch
-		{
-			FieldInfo field => field.GetValue(target),
-			PropertyInfo property => property.GetValue(target),
-			_ => null
-		};
 	}
 
 	/// <summary>

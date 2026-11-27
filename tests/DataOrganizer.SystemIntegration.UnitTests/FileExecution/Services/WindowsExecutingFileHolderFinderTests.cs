@@ -10,22 +10,6 @@ internal sealed class WindowsExecutingFileHolderFinderTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="WindowsExecutingFileHolderFinder.IsHolderToKill" />: this application is never killed, whatever kind
-	/// the Restart Manager gives it.
-	/// </summary>
-	[Test]
-	public void IsHolderToKill_Leaves_This_Application_Alone()
-	{
-		// Act
-		bool result = WindowsExecutingFileHolderFinder.IsHolderToKill(1, 100, 100);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
 	/// <see cref="WindowsExecutingFileHolderFinder.IsHolderToKill" />: programs of every kind are killed, but services,
 	/// Explorer and critical processes are left alone.
 	/// </summary>
@@ -39,6 +23,22 @@ internal sealed class WindowsExecutingFileHolderFinderTests
 	public bool IsHolderToKill_Leaves_Services_Explorer_And_Critical_Processes_Alone(int applicationType)
 	{
 		return WindowsExecutingFileHolderFinder.IsHolderToKill(applicationType, 100, 200);
+	}
+
+	/// <summary>
+	/// <see cref="WindowsExecutingFileHolderFinder.IsHolderToKill" />: this application is never killed, whatever kind
+	/// the Restart Manager gives it.
+	/// </summary>
+	[Test]
+	public void IsHolderToKill_Leaves_This_Application_Alone()
+	{
+		// Act
+		bool result = WindowsExecutingFileHolderFinder.IsHolderToKill(1, 100, 100);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 }

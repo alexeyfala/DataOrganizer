@@ -153,83 +153,6 @@ public class ViewLauncher :
 		}
 	}
 
-	/// <summary>
-	/// Configures <see cref="EditorWindow" />.
-	/// </summary>
-	internal EditorWindow CreateEditorWindow(in Guid showObjectId = default)
-	{
-		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
-
-		EditorViewModel viewModel = _viewFactory.CreateViewModel<EditorViewModel>();
-
-		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>(viewModel);
-
-		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppInfo.AppVersion}";
-
-		viewModel.NotifyDecryptedContentsChanged();
-
-		// The selection of the last session comes back first: selecting it again saves nothing, and an object shown then
-		// takes its place as any other choice does.
-		viewModel.RestoreSelection();
-
-		if (showObjectId.IsNotDefault())
-		{
-			viewModel.ShowObject(showObjectId);
-		}
-
-		EditorWindowSettings? windowSettings = _windowSettings.Read<EditorWindowSettings>();
-
-		// The stored size, when there is one, replaces the default.
-		WindowPlacementHelper.SetDefaultSize(window);
-
-		WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
-
-		if (windowSettings is null || windowSettings.NavigationColumnWidth <= default(double))
-		{
-			viewModel.SetDefaultNavigationColumnWidth(window.Width);
-		}
-
-		if (windowSettings is not null)
-		{
-			viewModel.Initialize(windowSettings);
-		}
-
-		SaveOnClosing<EditorWindow, EditorWindowSettings>(window, SaveEditorSettings);
-
-		return window;
-	}
-
-	/// <summary>
-	/// Configures <see cref="FavoritesWindow" />.
-	/// </summary>
-	internal FavoritesWindow CreateFavoritesWindow()
-	{
-		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
-
-		FavoritesViewModel viewModel = _viewFactory.CreateViewModel<FavoritesViewModel>();
-
-		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>(viewModel);
-
-		FavoritesWindowSettings? windowSettings = _windowSettings.Read<FavoritesWindowSettings>();
-
-		WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
-
-		if (windowSettings is not null)
-		{
-			viewModel.Initialize(windowSettings, _windowSettings.Read<FavoritesViewSettings>() ?? new());
-		}
-		else
-		{
-			viewModel.SetDefaultPopupSize();
-
-			viewModel.SetDefaultNavigationColumnWidth();
-		}
-
-		SaveOnClosing<FavoritesWindow, FavoritesWindowSettings>(window, SaveFavoritesSettings);
-
-		return window;
-	}
-
 	/// <inheritdoc />
 	public async Task ShowClipboardLogWindowAsync()
 	{
@@ -319,9 +242,101 @@ public class ViewLauncher :
 
 		CreateFavoritesWindow().Show();
 	}
+
+	/// <summary>
+	/// Configures <see cref="EditorWindow" />.
+	/// </summary>
+	internal EditorWindow CreateEditorWindow(in Guid showObjectId = default)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
+
+		EditorViewModel viewModel = _viewFactory.CreateViewModel<EditorViewModel>();
+
+		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>(viewModel);
+
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppInfo.AppVersion}";
+
+		viewModel.NotifyDecryptedContentsChanged();
+
+		// The selection of the last session comes back first: selecting it again saves nothing, and an object shown then
+		// takes its place as any other choice does.
+		viewModel.RestoreSelection();
+
+		if (showObjectId.IsNotDefault())
+		{
+			viewModel.ShowObject(showObjectId);
+		}
+
+		EditorWindowSettings? windowSettings = _windowSettings.Read<EditorWindowSettings>();
+
+		// The stored size, when there is one, replaces the default.
+		WindowPlacementHelper.SetDefaultSize(window);
+
+		WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
+
+		if (windowSettings is null || windowSettings.NavigationColumnWidth <= default(double))
+		{
+			viewModel.SetDefaultNavigationColumnWidth(window.Width);
+		}
+
+		if (windowSettings is not null)
+		{
+			viewModel.Initialize(windowSettings);
+		}
+
+		SaveOnClosing<EditorWindow, EditorWindowSettings>(window, SaveEditorSettings);
+
+		return window;
+	}
+
+	/// <summary>
+	/// Configures <see cref="FavoritesWindow" />.
+	/// </summary>
+	internal FavoritesWindow CreateFavoritesWindow()
+	{
+		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
+
+		FavoritesViewModel viewModel = _viewFactory.CreateViewModel<FavoritesViewModel>();
+
+		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>(viewModel);
+
+		FavoritesWindowSettings? windowSettings = _windowSettings.Read<FavoritesWindowSettings>();
+
+		WindowPlacementHelper.Restore(window, windowSettings, WindowPlacementHelper.SetDefaultLocation);
+
+		if (windowSettings is not null)
+		{
+			viewModel.Initialize(windowSettings, _windowSettings.Read<FavoritesViewSettings>() ?? new());
+		}
+		else
+		{
+			viewModel.SetDefaultPopupSize();
+
+			viewModel.SetDefaultNavigationColumnWidth();
+		}
+
+		SaveOnClosing<FavoritesWindow, FavoritesWindowSettings>(window, SaveFavoritesSettings);
+
+		return window;
+	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Closes the main window to give way to the other one; such a close asks for no exit.
+	/// </summary>
+	private void CloseMainWindowToSwitch()
+	{
+		if (_windowFinder.FindMainWindow() is not IMainWindow window)
+		{
+			return;
+		}
+
+		window.IsClosingToSwitch = true;
+
+		window.Close();
+	}
+
 	/// <summary>
 	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
@@ -347,21 +362,6 @@ public class ViewLauncher :
 		SaveOnClosing<ClipboardLogWindow, ClipboardLogWindowSettings>(window, SaveClipboardLogSettings);
 
 		return window;
-	}
-
-	/// <summary>
-	/// Closes the main window to give way to the other one; such a close asks for no exit.
-	/// </summary>
-	private void CloseMainWindowToSwitch()
-	{
-		if (_windowFinder.FindMainWindow() is not IMainWindow window)
-		{
-			return;
-		}
-
-		window.IsClosingToSwitch = true;
-
-		window.Close();
 	}
 
 	/// <summary>

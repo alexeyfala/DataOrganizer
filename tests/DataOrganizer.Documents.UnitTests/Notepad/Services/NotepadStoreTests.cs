@@ -36,6 +36,7 @@ internal sealed class NotepadStoreTests
 	/// Directory the texts of the tabs live in.
 	/// </summary>
 	private static readonly string NotepadFolder = TestPath.Combine(NotepadFolderName);
+
 	/// <summary>
 	/// Directory the settings live in.
 	/// </summary>

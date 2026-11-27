@@ -780,6 +780,22 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	#region Helpers
 	/// <summary>
+	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
+	/// </summary>
+	private static bool HasChildren(RecordsGroup? group) => group?.Children.Count > 0;
+
+	/// <summary>
+	/// <c>True</c> when <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
+	/// </summary>
+	private static bool HasGroups(RecordsGroup? group)
+	{
+		return group?
+			.Children
+			.OfType<RecordsGroup>()
+			.Any() ?? false;
+	}
+
+	/// <summary>
 	/// Sorts the records of a group, or the whole list without one, in a direction once the user agrees.
 	/// </summary>
 	private async Task ConfirmAndSortAsync(RecordsGroup? group, ListSortDirection direction)
@@ -799,22 +815,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 
 		await SortAsync(group, direction).ConfigureAwait(false);
-	}
-
-	/// <summary>
-	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
-	/// </summary>
-	private static bool HasChildren(RecordsGroup? group) => group?.Children.Count > 0;
-
-	/// <summary>
-	/// <c>True</c> when <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
-	/// </summary>
-	private static bool HasGroups(RecordsGroup? group)
-	{
-		return group?
-			.Children
-			.OfType<RecordsGroup>()
-			.Any() ?? false;
 	}
 
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />

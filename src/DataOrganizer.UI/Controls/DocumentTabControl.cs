@@ -134,6 +134,11 @@ internal sealed class DocumentTabControl : TabControl
 
 	#region Data
 	/// <summary>
+	/// Subscription to the removals from <see cref="ItemsControl.ItemsSource" />, replaced with the source.
+	/// </summary>
+	private readonly SerialDisposable _itemsSubscription = new();
+
+	/// <summary>
 	/// Tab the left button was pressed on, which follows the pointer along the row while the button is down.
 	/// </summary>
 	private TabItem? _draggedTab;
@@ -142,11 +147,6 @@ internal sealed class DocumentTabControl : TabControl
 	/// Point of <see cref="_draggedTab" /> the pointer grabbed it at.
 	/// </summary>
 	private Point _grabPoint;
-
-	/// <summary>
-	/// Subscription to the removals from <see cref="ItemsControl.ItemsSource" />, replaced with the source.
-	/// </summary>
-	private readonly SerialDisposable _itemsSubscription = new();
 
 	/// <summary>
 	/// Tab the middle button was pressed on.

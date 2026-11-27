@@ -18,6 +18,9 @@ public sealed partial class NotepadTabViewModel : ObservableObject, INotepadTab
 	/// </summary>
 	public DocumentEditorViewModel Editor { get; }
 
+	/// <inheritdoc />
+	IEncodedDocument INotepadTab.Editor => Editor;
+
 	/// <summary>
 	/// Header: <see cref="Name" />, or <see cref="Strings.New" /> with <see cref="Number" /> while the tab has no name.
 	/// </summary>
@@ -40,9 +43,6 @@ public sealed partial class NotepadTabViewModel : ObservableObject, INotepadTab
 	/// Number of the tab, unique among the open tabs.
 	/// </summary>
 	public required int Number { get; init; }
-
-	/// <inheritdoc />
-	IEncodedDocument INotepadTab.Editor => Editor;
 	#endregion
 
 	#region Constructors

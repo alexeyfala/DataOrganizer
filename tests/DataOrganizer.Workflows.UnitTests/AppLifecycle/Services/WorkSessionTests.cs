@@ -111,6 +111,31 @@ internal sealed class WorkSessionTests
 	}
 
 	/// <summary>
+	/// <see cref="WorkSession.SetExpanded" />: folders expanded at the same time from many threads all stay expanded.
+	/// </summary>
+	[Test]
+	public async Task SetExpanded_Keeps_Every_Object_Marked_In_Parallel()
+	{
+		// Arrange
+		Guid[] ids = [.. Enumerable.Range(0, 10_000).Select(static _ => Guid.NewGuid())];
+
+		WorkSession sut = new();
+
+		// Act
+		await Parallel.ForEachAsync(ids, (id, _) =>
+		{
+			sut.SetExpanded(id, true);
+
+			return ValueTask.CompletedTask;
+		});
+
+		// Assert
+		ids.Select(sut.IsExpanded)
+			.Should()
+			.OnlyContain(static x => x);
+	}
+
+	/// <summary>
 	/// <see cref="WorkSession.SetExpanded" />: an object is marked expanded and then collapsed again.
 	/// </summary>
 	[Test]
@@ -136,31 +161,6 @@ internal sealed class WorkSessionTests
 		sut.IsExpanded(id)
 			.Should()
 			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="WorkSession.SetExpanded" />: folders expanded at the same time from many threads all stay expanded.
-	/// </summary>
-	[Test]
-	public async Task SetExpanded_Keeps_Every_Object_Marked_In_Parallel()
-	{
-		// Arrange
-		Guid[] ids = [.. Enumerable.Range(0, 10_000).Select(static _ => Guid.NewGuid())];
-
-		WorkSession sut = new();
-
-		// Act
-		await Parallel.ForEachAsync(ids, (id, _) =>
-		{
-			sut.SetExpanded(id, true);
-
-			return ValueTask.CompletedTask;
-		});
-
-		// Assert
-		ids.Select(sut.IsExpanded)
-			.Should()
-			.OnlyContain(static x => x);
 	}
 
 	/// <summary>

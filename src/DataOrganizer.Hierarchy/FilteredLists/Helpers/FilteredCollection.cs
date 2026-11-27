@@ -174,17 +174,6 @@ public sealed class FilteredCollection<TModel> : IDisposable where TModel : INot
 		}
 	}
 
-	/// <summary>
-	/// Emits the item that <paramref name="item" /> returns each time <see cref="Visible" /> changes and shows it.
-	/// </summary>
-	public IObservable<TModel> WhenShown(Func<TModel?> item)
-	{
-		return _visibleChanges
-			.Select(_ => item())
-			.Where(x => x is not null && _visible.Contains(x))
-			.Select(static x => x!);
-	}
-
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Remove" />
 	public bool Remove(TModel item) => _source.Remove(item);
 
@@ -224,6 +213,17 @@ public sealed class FilteredCollection<TModel> : IDisposable where TModel : INot
 	/// hidden by an active filter.
 	/// </summary>
 	public IEnumerable<TResult> SelectFromSource<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
+
+	/// <summary>
+	/// Emits the item that <paramref name="item" /> returns each time <see cref="Visible" /> changes and shows it.
+	/// </summary>
+	public IObservable<TModel> WhenShown(Func<TModel?> item)
+	{
+		return _visibleChanges
+			.Select(_ => item())
+			.Where(x => x is not null && _visible.Contains(x))
+			.Select(static x => x!);
+	}
 	#endregion
 
 	#region Helpers

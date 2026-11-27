@@ -280,9 +280,11 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 
 	#region Native
 	private const int SVSI_SELECT_ITEM = 0x001D;
+
 	private const int SW_RESTORE = 9;
 
 	private const int SW_SHOW = 5;
+
 	[LibraryImport(User32Dll)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool AttachThreadInput(

@@ -27,14 +27,14 @@ internal sealed class MessageChannel<TContent> where TContent : notnull
 	private DateTimeOffset? _removeAt;
 
 	/// <summary>
-	/// Moment the free surface may be given to the next message at.
-	/// </summary>
-	private DateTimeOffset _showNextAt;
-
-	/// <summary>
 	/// The message on the screen; <c>null</c> while none is shown.
 	/// </summary>
 	private TContent? _shown;
+
+	/// <summary>
+	/// Moment the free surface may be given to the next message at.
+	/// </summary>
+	private DateTimeOffset _showNextAt;
 	#endregion
 
 	#region Constructors

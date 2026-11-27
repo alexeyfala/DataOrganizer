@@ -26,6 +26,7 @@
 		<PackageVersion Include="Mapster.DependencyInjection" Version="10.0.14" />
 		<PackageVersion Include="Material.Avalonia" Version="3.22.0" />
 		<PackageVersion Include="Material.Icons.Avalonia" Version="3.0.2" />
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="11.0.0" />
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="11.0.0" />
 		<PackageVersion Include="Microsoft.Extensions.Http" Version="11.0.0" />

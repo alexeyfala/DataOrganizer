@@ -11,16 +11,6 @@ public sealed class HierarchyFilter
 {
 	#region Properties
 	/// <summary>
-	/// Folders on the way to the matched objects.
-	/// </summary>
-	public required IReadOnlySet<Guid> ExpandedIds { get; init; }
-
-	/// <summary>
-	/// <c>True</c> when a search matches no object.
-	/// </summary>
-	public bool IsNothingFound => Query is not null && ShownIds.Count == 0;
-
-	/// <summary>
 	/// Filter that shows every object.
 	/// </summary>
 	public static HierarchyFilter None { get; } = new()
@@ -29,6 +19,16 @@ public sealed class HierarchyFilter
 		Query = null,
 		ShownIds = FrozenSet<Guid>.Empty
 	};
+
+	/// <summary>
+	/// Folders on the way to the matched objects.
+	/// </summary>
+	public required IReadOnlySet<Guid> ExpandedIds { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when a search matches no object.
+	/// </summary>
+	public bool IsNothingFound => Query is not null && ShownIds.Count == 0;
 
 	/// <summary>
 	/// Applied search; <c>null</c> while the filter shows every object.

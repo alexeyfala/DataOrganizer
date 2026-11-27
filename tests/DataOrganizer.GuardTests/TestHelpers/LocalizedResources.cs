@@ -13,16 +13,6 @@ internal static class LocalizedResources
 {
 	#region Data
 	/// <summary>
-	/// Folder of the resources, relative to the repository root.
-	/// </summary>
-	private const string Folder = "src/DataOrganizer.Shared/Properties";
-
-	/// <summary>
-	/// File of the resources of the neutral language.
-	/// </summary>
-	private const string NeutralFileName = "Strings.resx";
-
-	/// <summary>
 	/// Resources of the neutral language, relative to the repository root.
 	/// </summary>
 	public const string NeutralPath = $"{Folder}/{NeutralFileName}";
@@ -31,6 +21,16 @@ internal static class LocalizedResources
 	/// Resources of the Russian language, relative to the repository root.
 	/// </summary>
 	public const string RussianPath = $"{Folder}/Strings.ru.resx";
+
+	/// <summary>
+	/// Folder of the resources, relative to the repository root.
+	/// </summary>
+	private const string Folder = "src/DataOrganizer.Shared/Properties";
+
+	/// <summary>
+	/// File of the resources of the neutral language.
+	/// </summary>
+	private const string NeutralFileName = "Strings.resx";
 	#endregion
 
 	#region Methods

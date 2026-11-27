@@ -195,6 +195,40 @@ internal sealed class ExecutingFilesTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutingFiles.Receive(CloseExecutingFileMessage)" />: a message that names no executing file closes
+	/// nothing.
+	/// </summary>
+	[Test]
+	public void Receive_CloseExecutingFile_Closes_Nothing_For_A_File_That_Does_Not_Run()
+	{
+		// Arrange
+		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterType<InlineDispatcherAccessor>()
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(engine);
+
+			builder.RegisterInstance(messenger);
+		});
+
+		_ = mock.Create<ExecutingFiles>();
+
+		// Act
+		messenger.Send(new CloseExecutingFileMessage(Guid.NewGuid()));
+
+		// Assert
+		engine
+			.DidNotReceiveWithAnyArgs()
+			.CloseAsync(default);
+	}
+
+	/// <summary>
 	/// <see cref="ExecutingFiles.Receive(CloseExecutingFileMessage)" />: only the executing file the message names is
 	/// removed from the list, unmarked and closed in the engine.
 	/// </summary>
@@ -254,40 +288,6 @@ internal sealed class ExecutingFilesTests
 		await engine
 			.DidNotReceive()
 			.CloseAsync(other.Id, Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="ExecutingFiles.Receive(CloseExecutingFileMessage)" />: a message that names no executing file closes
-	/// nothing.
-	/// </summary>
-	[Test]
-	public void Receive_CloseExecutingFile_Closes_Nothing_For_A_File_That_Does_Not_Run()
-	{
-		// Arrange
-		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
-
-		IMessenger messenger = new StrongReferenceMessenger();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterType<InlineDispatcherAccessor>()
-				.As<IDispatcherAccessor>();
-
-			builder.RegisterInstance(engine);
-
-			builder.RegisterInstance(messenger);
-		});
-
-		_ = mock.Create<ExecutingFiles>();
-
-		// Act
-		messenger.Send(new CloseExecutingFileMessage(Guid.NewGuid()));
-
-		// Assert
-		engine
-			.DidNotReceiveWithAnyArgs()
-			.CloseAsync(default);
 	}
 	#endregion
 

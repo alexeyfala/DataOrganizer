@@ -275,6 +275,53 @@ internal sealed class FileEraserTests
 	}
 
 	/// <summary>
+	/// <see cref="FileEraser.EraseAndDeleteFile" />: the contents are overwritten before the file is deleted.
+	/// </summary>
+	[Test]
+	public void EraseAndDeleteFile_Overwrites_The_Contents_Before_The_Delete()
+	{
+		// Arrange
+		byte[] contents = RandomValues.CreateBytes(ContentsLength);
+
+		byte[]? erased = null;
+
+		MockFileSystem files = new();
+
+		files
+			.Directory
+			.CreateDirectory(Folder);
+
+		files
+			.File
+			.WriteAllBytes(FilePath, contents);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			_ = files
+				.Intercept
+				.Deleting(FileSystemTypes.File, x => erased = files.File.ReadAllBytes(x.Path));
+
+			builder.RegisterInstance<IFileSystem>(files);
+		});
+
+		FileEraser sut = mock.Create<FileEraser>();
+
+		// Act
+		sut.EraseAndDeleteFile(FilePath);
+
+		// Assert
+		erased
+			.Should()
+			.HaveCount(ContentsLength)
+			.And
+			.NotEqual(contents);
+
+		files.File.Exists(FilePath)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="FileEraser.EraseAndDeleteFile" />: the contents are overwritten with random bytes, so two equal files
 	/// get different ones.
 	/// </summary>
@@ -322,53 +369,6 @@ internal sealed class FileEraserTests
 		erased[FilePath]
 			.Should()
 			.NotEqual(erased[secondFilePath]);
-	}
-
-	/// <summary>
-	/// <see cref="FileEraser.EraseAndDeleteFile" />: the contents are overwritten before the file is deleted.
-	/// </summary>
-	[Test]
-	public void EraseAndDeleteFile_Overwrites_The_Contents_Before_The_Delete()
-	{
-		// Arrange
-		byte[] contents = RandomValues.CreateBytes(ContentsLength);
-
-		byte[]? erased = null;
-
-		MockFileSystem files = new();
-
-		files
-			.Directory
-			.CreateDirectory(Folder);
-
-		files
-			.File
-			.WriteAllBytes(FilePath, contents);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			_ = files
-				.Intercept
-				.Deleting(FileSystemTypes.File, x => erased = files.File.ReadAllBytes(x.Path));
-
-			builder.RegisterInstance<IFileSystem>(files);
-		});
-
-		FileEraser sut = mock.Create<FileEraser>();
-
-		// Act
-		sut.EraseAndDeleteFile(FilePath);
-
-		// Assert
-		erased
-			.Should()
-			.HaveCount(ContentsLength)
-			.And
-			.NotEqual(contents);
-
-		files.File.Exists(FilePath)
-			.Should()
-			.BeFalse();
 	}
 	#endregion
 }

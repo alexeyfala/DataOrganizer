@@ -82,60 +82,6 @@ internal sealed class SelectedFavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="SelectedFavoritesViewModel.FavoriteSearch" />: the favorite chosen last comes back once the search shows it
-	/// again while nothing is chosen.
-	/// </summary>
-	[Test]
-	public void FavoriteSearch_Brings_Back_The_Favorite_Chosen_Last()
-	{
-		// Arrange
-		FakeTimeProvider time = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<TimeProvider>(time));
-
-		// Without a context the filter applies the search on this thread, as the pause ends.
-		SynchronizationContext.SetSynchronizationContext(null);
-
-		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
-
-		FavoriteCategory category = FavoriteFactory.CreateFavoriteCategory();
-
-		category
-			.Children
-			.AddRange(ItemDtoFactory.CreateFileDtos(3));
-
-		FileDto chosen = category.Children[0];
-
-		sut.Initialize(
-			navigationColumnWidth: 100.0,
-			selectedCategoryId: category.Id,
-			categories: [category],
-			orderedCategoryIds: [],
-			selectedPairs: []);
-
-		sut.SelectedFavorite = chosen;
-
-		// The search hides the chosen favorite after its pause, and the list lets the choice go.
-		sut.FavoriteSearch = Guid
-			.NewGuid()
-			.ToString();
-
-		time.Advance(SearchPause);
-
-		sut.SelectedFavorite = null;
-
-		// Act
-		sut.FavoriteSearch = null;
-
-		time.Advance(SearchPause);
-
-		// Assert
-		sut.SelectedFavorite
-			.Should()
-			.BeSameAs(chosen);
-	}
-
-	/// <summary>
 	/// <see cref="FileListViewModelBase.CopyContentCommand" />: a file copied from the list goes into the copy history,
 	/// and a shown list moves it at its next showing.
 	/// </summary>
@@ -271,6 +217,60 @@ internal sealed class SelectedFavoritesViewModelTests
 		sut.SelectedFavorite
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="SelectedFavoritesViewModel.FavoriteSearch" />: the favorite chosen last comes back once the search shows it
+	/// again while nothing is chosen.
+	/// </summary>
+	[Test]
+	public void FavoriteSearch_Brings_Back_The_Favorite_Chosen_Last()
+	{
+		// Arrange
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<TimeProvider>(time));
+
+		// Without a context the filter applies the search on this thread, as the pause ends.
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
+
+		FavoriteCategory category = FavoriteFactory.CreateFavoriteCategory();
+
+		category
+			.Children
+			.AddRange(ItemDtoFactory.CreateFileDtos(3));
+
+		FileDto chosen = category.Children[0];
+
+		sut.Initialize(
+			navigationColumnWidth: 100.0,
+			selectedCategoryId: category.Id,
+			categories: [category],
+			orderedCategoryIds: [],
+			selectedPairs: []);
+
+		sut.SelectedFavorite = chosen;
+
+		// The search hides the chosen favorite after its pause, and the list lets the choice go.
+		sut.FavoriteSearch = Guid
+			.NewGuid()
+			.ToString();
+
+		time.Advance(SearchPause);
+
+		sut.SelectedFavorite = null;
+
+		// Act
+		sut.FavoriteSearch = null;
+
+		time.Advance(SearchPause);
+
+		// Assert
+		sut.SelectedFavorite
+			.Should()
+			.BeSameAs(chosen);
 	}
 
 	/// <summary>

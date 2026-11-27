@@ -221,7 +221,6 @@ internal sealed class DocumentConvertersTests
 	/// <summary>
 	/// Runs a converter over a language of the syntax highlighting.
 	/// </summary>
-
 	private static object? Convert(FuncValueConverter<string?, string> converter, string? language)
 	{
 		return converter.Convert(

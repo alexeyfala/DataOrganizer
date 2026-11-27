@@ -60,6 +60,51 @@ public sealed class ClipboardHistory : IClipboardHistory
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Hashes a text payload together with whether it carries companion formats, so the same text
+	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
+	/// Trade-off: identical text with only different HTML/RTF formatting hashes the same and is deduped.
+	/// </summary>
+	public static byte[] ComputeTextEntryHash(
+		string text,
+		string? html,
+		string? rtf)
+	{
+		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+		hash.AppendData(TextDefaults
+			.Encoding
+			.GetBytes(text));
+
+		// Only the presence of companion formats — not their payloads, which Office can re-render
+		// non-deterministically per read (delayed rendering) and would change the hash every poll tick.
+		hash.AppendData([(byte)((html is null ? 0 : 1) | (rtf is null ? 0 : 2))]);
+
+		return hash.GetHashAndReset();
+	}
+
+	/// <summary>
+	/// Hashes the file list, including kind marker so a folder and a file with the same
+	/// path don't collide. Order-sensitive — selection order is preserved by the OS.
+	/// </summary>
+	public static byte[] HashFiles(IReadOnlyList<ClipboardFileSystemEntry> entries)
+	{
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
+
+		foreach (ClipboardFileSystemEntry entry in entries)
+		{
+			builder.Append(entry.IsFolder ? 'D' : 'F');
+
+			builder.Append('|');
+
+			builder.Append(entry.Path);
+
+			builder.Append('\0');
+		}
+
+		return SHA256.HashData(TextDefaults.Encoding.GetBytes(builder.ToString()));
+	}
+
 	/// <inheritdoc />
 	public int Clear(bool preservePinned)
 	{
@@ -260,51 +305,6 @@ public sealed class ClipboardHistory : IClipboardHistory
 		{
 			_logger.LogException(ex);
 		}
-	}
-
-	/// <summary>
-	/// Hashes a text payload together with whether it carries companion formats, so the same text
-	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
-	/// Trade-off: identical text with only different HTML/RTF formatting hashes the same and is deduped.
-	/// </summary>
-	public static byte[] ComputeTextEntryHash(
-		string text,
-		string? html,
-		string? rtf)
-	{
-		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-
-		hash.AppendData(TextDefaults
-			.Encoding
-			.GetBytes(text));
-
-		// Only the presence of companion formats — not their payloads, which Office can re-render
-		// non-deterministically per read (delayed rendering) and would change the hash every poll tick.
-		hash.AppendData([(byte)((html is null ? 0 : 1) | (rtf is null ? 0 : 2))]);
-
-		return hash.GetHashAndReset();
-	}
-
-	/// <summary>
-	/// Hashes the file list, including kind marker so a folder and a file with the same
-	/// path don't collide. Order-sensitive — selection order is preserved by the OS.
-	/// </summary>
-	public static byte[] HashFiles(IReadOnlyList<ClipboardFileSystemEntry> entries)
-	{
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		foreach (ClipboardFileSystemEntry entry in entries)
-		{
-			builder.Append(entry.IsFolder ? 'D' : 'F');
-
-			builder.Append('|');
-
-			builder.Append(entry.Path);
-
-			builder.Append('\0');
-		}
-
-		return SHA256.HashData(TextDefaults.Encoding.GetBytes(builder.ToString()));
 	}
 	#endregion
 

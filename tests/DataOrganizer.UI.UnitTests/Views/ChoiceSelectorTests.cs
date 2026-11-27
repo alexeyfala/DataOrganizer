@@ -629,6 +629,7 @@ internal sealed class ChoiceSelectorTests
 			.Should()
 			.Be(360.0);
 	}
+
 	/// <summary>
 	/// <see cref="ChoiceSelector.IsSearchable" />: a list without a search hides the search box and takes the height of
 	/// its items.

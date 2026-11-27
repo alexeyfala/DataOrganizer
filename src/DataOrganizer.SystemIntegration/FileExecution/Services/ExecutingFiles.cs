@@ -27,11 +27,11 @@ public sealed class ExecutingFiles : IExecutingFiles, IRecipient<CloseExecutingF
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
-	/// <inheritdoc cref="IExecutionEngine" />
-	private readonly IExecutionEngine _executionEngine;
-
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
+
+	/// <inheritdoc cref="IExecutionEngine" />
+	private readonly IExecutionEngine _executionEngine;
 
 	/// <summary>
 	/// Source of <see cref="Files" />.

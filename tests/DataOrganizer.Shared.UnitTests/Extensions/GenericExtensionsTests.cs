@@ -150,6 +150,27 @@ internal sealed class GenericExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />: a read-only property is passed over, and the writable
+	/// ones are copied.
+	/// </summary>
+	[Test]
+	public void CopyPropertiesTo_Same_Type_Skips_Read_Only_Properties()
+	{
+		// Arrange
+		PartlyWritable source = new() { Name = "alpha" };
+
+		PartlyWritable target = new();
+
+		// Act
+		source.CopyPropertiesTo(target);
+
+		// Assert
+		target.Name
+			.Should()
+			.Be("alpha");
+	}
+
+	/// <summary>
 	/// <see cref="GenericExtensions.CopyPropertiesTo{TSource, TTarget}(TSource, TTarget, string[])" />: copies only the named properties to the target, leaving the rest untouched.
 	/// </summary>
 	[Test]
@@ -203,27 +224,6 @@ internal sealed class GenericExtensionsTests
 		target.Comment
 			.Should()
 			.Be("untouched");
-	}
-
-	/// <summary>
-	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />: a read-only property is passed over, and the writable
-	/// ones are copied.
-	/// </summary>
-	[Test]
-	public void CopyPropertiesTo_Same_Type_Skips_Read_Only_Properties()
-	{
-		// Arrange
-		PartlyWritable source = new() { Name = "alpha" };
-
-		PartlyWritable target = new();
-
-		// Act
-		source.CopyPropertiesTo(target);
-
-		// Assert
-		target.Name
-			.Should()
-			.Be("alpha");
 	}
 
 	/// <summary>

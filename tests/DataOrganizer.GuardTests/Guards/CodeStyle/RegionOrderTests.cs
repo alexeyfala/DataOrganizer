@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.GuardTests.Guards.Architecture;
+namespace DataOrganizer.GuardTests.Guards.CodeStyle;
 
 [Guard]
 [TestFixture(Description = "Guards the order of the regions that lay out the members of a type")]

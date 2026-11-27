@@ -132,6 +132,40 @@ internal sealed class FileExecutionScenarioTests
 	}
 
 	/// <summary>
+	/// <see cref="FileExecutionScenario.ExecuteAsync" />: a file whose contents cannot be read is not run.
+	/// </summary>
+	[Test]
+	public async Task ExecuteAsync_Executes_Nothing_Without_Contents()
+	{
+		// Arrange
+		IExecutingFiles executingFiles = Substitute.For<IExecutingFiles>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileContentsOpener fileContentsOpener = Substitute.For<IFileContentsOpener>();
+
+			// The contents cannot be read or opened.
+			fileContentsOpener
+				.OpenAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<string?>(), Arg.Any<EntityKind>())
+				.Returns((byte[]?)null);
+
+			builder.RegisterInstance(executingFiles);
+
+			builder.RegisterInstance(fileContentsOpener);
+		});
+
+		FileExecutionScenario sut = mock.Create<FileExecutionScenario>();
+
+		// Act
+		await sut.ExecuteAsync(ItemDtoFactory.CreateFileDto(), isReadOnly: false);
+
+		// Assert
+		await executingFiles
+			.DidNotReceive()
+			.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="FileExecutionScenario.ExecuteAsync" />: the contents read for the file are run, with the keeper whose key
 	/// opened them, so that the changes are encrypted by it.
 	/// </summary>
@@ -174,40 +208,6 @@ internal sealed class FileExecutionScenarioTests
 				&& x.IsReadOnly == isReadOnly
 				&& x.KeeperId == keeper.Id),
 			Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// <see cref="FileExecutionScenario.ExecuteAsync" />: a file whose contents cannot be read is not run.
-	/// </summary>
-	[Test]
-	public async Task ExecuteAsync_Executes_Nothing_Without_Contents()
-	{
-		// Arrange
-		IExecutingFiles executingFiles = Substitute.For<IExecutingFiles>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileContentsOpener fileContentsOpener = Substitute.For<IFileContentsOpener>();
-
-			// The contents cannot be read or opened.
-			fileContentsOpener
-				.OpenAsync(Arg.Any<Guid>(), Arg.Any<Guid?>(), Arg.Any<string?>(), Arg.Any<EntityKind>())
-				.Returns((byte[]?)null);
-
-			builder.RegisterInstance(executingFiles);
-
-			builder.RegisterInstance(fileContentsOpener);
-		});
-
-		FileExecutionScenario sut = mock.Create<FileExecutionScenario>();
-
-		// Act
-		await sut.ExecuteAsync(ItemDtoFactory.CreateFileDto(), isReadOnly: false);
-
-		// Assert
-		await executingFiles
-			.DidNotReceive()
-			.ExecuteAsync(Arg.Any<ExecuteFileParameters>(), Arg.Any<CancellationToken>());
 	}
 	#endregion
 }

@@ -221,6 +221,43 @@ internal sealed class ContentsWriteQueueTests
 	}
 
 	/// <summary>
+	/// <see cref="ContentsWriteQueue.RunAsync" />: written contents are wiped once the write ends.
+	/// </summary>
+	[Test]
+	public async Task RunAsync_Wipes_The_Written_Contents()
+	{
+		// Arrange
+		byte[] contents = RandomValues.CreateBytes(10);
+
+		byte[] expected = [.. contents];
+
+		byte[]? written = null;
+
+		ContentsWriteQueue sut = new(x =>
+		{
+			written = [.. x];
+
+			return Task.FromResult(true);
+		});
+
+		sut.Enqueue(contents);
+
+		sut.Complete();
+
+		// Act
+		await sut.RunAsync();
+
+		// Assert
+		written
+			.Should()
+			.Equal(expected);
+
+		contents
+			.Should()
+			.OnlyContain(x => x == 0);
+	}
+
+	/// <summary>
 	/// <see cref="ContentsWriteQueue.RunAsync" />: of the contents waiting together, only the latest is written, and the
 	/// others are wiped.
 	/// </summary>
@@ -303,43 +340,6 @@ internal sealed class ContentsWriteQueueTests
 		writeCount
 			.Should()
 			.Be(2);
-	}
-
-	/// <summary>
-	/// <see cref="ContentsWriteQueue.RunAsync" />: written contents are wiped once the write ends.
-	/// </summary>
-	[Test]
-	public async Task RunAsync_Wipes_The_Written_Contents()
-	{
-		// Arrange
-		byte[] contents = RandomValues.CreateBytes(10);
-
-		byte[] expected = [.. contents];
-
-		byte[]? written = null;
-
-		ContentsWriteQueue sut = new(x =>
-		{
-			written = [.. x];
-
-			return Task.FromResult(true);
-		});
-
-		sut.Enqueue(contents);
-
-		sut.Complete();
-
-		// Act
-		await sut.RunAsync();
-
-		// Assert
-		written
-			.Should()
-			.Equal(expected);
-
-		contents
-			.Should()
-			.OnlyContain(x => x == 0);
 	}
 
 	/// <summary>

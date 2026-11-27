@@ -79,24 +79,6 @@ internal static partial class TypeCatalog
 	}
 
 	/// <summary>
-	/// Enumerates the names of the services a parameter of a type takes: the type itself and, for a wrapper or an
-	/// array, the type it wraps.
-	/// </summary>
-	public static IEnumerable<string> GetTakenServices(string parameterType)
-	{
-		yield return parameterType;
-
-		if (parameterType.EndsWith("[]", StringComparison.Ordinal))
-		{
-			yield return parameterType[..^2];
-		}
-		else if (WrapperRegex().Match(parameterType) is { Success: true } wrapper && Wrappers.Contains(wrapper.Groups["wrapper"].Value))
-		{
-			yield return SplitTopLevel(wrapper.Groups["arguments"].Value).First();
-		}
-	}
-
-	/// <summary>
 	/// Enumerates the names of the interfaces a type of a name implements, an interface counting itself.
 	/// </summary>
 	public static IEnumerable<string> GetInterfaces(string name)
@@ -122,6 +104,24 @@ internal static partial class TypeCatalog
 			.FirstOrDefault(static x => x is not null);
 
 		return memberType is null ? null : Format(memberType);
+	}
+
+	/// <summary>
+	/// Enumerates the names of the services a parameter of a type takes: the type itself and, for a wrapper or an
+	/// array, the type it wraps.
+	/// </summary>
+	public static IEnumerable<string> GetTakenServices(string parameterType)
+	{
+		yield return parameterType;
+
+		if (parameterType.EndsWith("[]", StringComparison.Ordinal))
+		{
+			yield return parameterType[..^2];
+		}
+		else if (WrapperRegex().Match(parameterType) is { Success: true } wrapper && Wrappers.Contains(wrapper.Groups["wrapper"].Value))
+		{
+			yield return SplitTopLevel(wrapper.Groups["arguments"].Value).First();
+		}
 	}
 
 	/// <summary>
@@ -251,7 +251,6 @@ internal static partial class TypeCatalog
 	/// </summary>
 	[GeneratedRegex(@"\b(?:[A-Za-z_]\w*\.)+(?=[A-Za-z_])")]
 	private static partial Regex QualifierRegex();
-
 
 	/// <summary>
 	/// Cuts the arity and the type arguments from a name.

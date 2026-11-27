@@ -330,6 +330,17 @@ internal sealed class SelectedFavoritesViewTests
 
 	#region Helpers
 	/// <summary>
+	/// Returns the item of the favorites list that shows a file; <c>null</c> while the list shows none.
+	/// </summary>
+	private static ListBoxItem? FindItem(Window window, FileDto file)
+	{
+		return window
+			.GetVisualDescendants()
+			.OfType<ListBoxItem>()
+			.FirstOrDefault(x => x.DataContext == file);
+	}
+
+	/// <summary>
 	/// Returns the navigation column of the favorites view a window shows.
 	/// </summary>
 	private static ColumnDefinition FindNavigationColumn(Window window)
@@ -342,17 +353,6 @@ internal sealed class SelectedFavoritesViewTests
 			.OfType<Grid>()
 			.First()
 			.ColumnDefinitions[0];
-	}
-
-	/// <summary>
-	/// Returns the item of the favorites list that shows a file; <c>null</c> while the list shows none.
-	/// </summary>
-	private static ListBoxItem? FindItem(Window window, FileDto file)
-	{
-		return window
-			.GetVisualDescendants()
-			.OfType<ListBoxItem>()
-			.FirstOrDefault(x => x.DataContext == file);
 	}
 
 	/// <summary>

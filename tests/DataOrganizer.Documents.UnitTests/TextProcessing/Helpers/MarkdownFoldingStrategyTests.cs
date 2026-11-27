@@ -52,28 +52,6 @@ internal sealed partial class MarkdownFoldingStrategyTests
 	}
 
 	/// <summary>
-	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: an item of a list folds the deeper items under it.
-	/// </summary>
-	[Test]
-	public void CreateNewFoldings_Folds_The_Items_Of_A_Nested_List()
-	{
-		// Arrange
-		TextDocument document = new("- a\n  - b\n- c");
-
-		using FoldingText text = new(document.Text);
-
-		MarkdownFoldingStrategy sut = new(Rules, TabSize);
-
-		// Act
-		TextFolding[] foldings = sut.CreateNewFoldings(text);
-
-		// Assert
-		GetLines(document, foldings)
-			.Should()
-			.Equal((1, 2));
-	}
-
-	/// <summary>
 	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: a heading needs a line to fold under it, and so the last
 	/// line of a text, read as a heading, keeps the section above it to the line before.
 	/// </summary>
@@ -94,6 +72,28 @@ internal sealed partial class MarkdownFoldingStrategyTests
 		foldings
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="MarkdownFoldingStrategy.CreateNewFoldings" />: an item of a list folds the deeper items under it.
+	/// </summary>
+	[Test]
+	public void CreateNewFoldings_Folds_The_Items_Of_A_Nested_List()
+	{
+		// Arrange
+		TextDocument document = new("- a\n  - b\n- c");
+
+		using FoldingText text = new(document.Text);
+
+		MarkdownFoldingStrategy sut = new(Rules, TabSize);
+
+		// Act
+		TextFolding[] foldings = sut.CreateNewFoldings(text);
+
+		// Assert
+		GetLines(document, foldings)
+			.Should()
+			.Equal((1, 2));
 	}
 
 	/// <summary>

@@ -862,6 +862,7 @@ internal sealed class AppControllerTests
 			appShutdown.Shutdown();
 		});
 	}
+
 	/// <summary>
 	/// <see cref="AppController.Receive(ExitAppMessage)" />: the exit stops the background services, closes the secondary
 	/// windows and the executing files and erases the sandbox before the application ends.

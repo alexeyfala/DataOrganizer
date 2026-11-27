@@ -216,13 +216,13 @@ public sealed partial class FavoritesViewModel :
 	/// <inheritdoc cref="IMainWindowLauncher" />
 	private readonly IMainWindowLauncher _mainWindowLauncher;
 
+	/// <inheritdoc cref="IProtectionScenarios" />
+	private readonly IProtectionScenarios _protectionScenarios;
+
 	/// <summary>
 	/// Previous <see cref="PopupContent" /> value.
 	/// </summary>
 	private FavoritesPopupContentKind _previousPopupContent;
-
-	/// <inheritdoc cref="IProtectionScenarios" />
-	private readonly IProtectionScenarios _protectionScenarios;
 	#endregion
 
 	#region Constructors
@@ -273,18 +273,6 @@ public sealed partial class FavoritesViewModel :
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public void Receive(ConfirmUpdateMessage message) => message.Reply(ConfirmUpdateAsync(message.Text, message.Token));
-
-	/// <inheritdoc />
-	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(_protectionScenarios.LockAsync());
-
-	/// <inheritdoc />
-	public void Receive(ShowFavoritesMessage message) => ShowFavorites();
-
-	/// <inheritdoc />
-	public void Receive(ShowInEditorMessage message) => _mainWindowLauncher.SwitchToEditor(message.Id);
-
 	/// <summary>
 	/// Restores the popup size and the favorites from the stored settings.
 	/// </summary>
@@ -316,6 +304,18 @@ public sealed partial class FavoritesViewModel :
 
 		FavoritesSettings.OrderedCategoryIds = favoritesSettings.OrderedCategoryIds;
 	}
+
+	/// <inheritdoc />
+	public void Receive(ConfirmUpdateMessage message) => message.Reply(ConfirmUpdateAsync(message.Text, message.Token));
+
+	/// <inheritdoc />
+	public void Receive(SessionAutoLockedMessage message) => _exceptionHandler.Watch(_protectionScenarios.LockAsync());
+
+	/// <inheritdoc />
+	public void Receive(ShowFavoritesMessage message) => ShowFavorites();
+
+	/// <inheritdoc />
+	public void Receive(ShowInEditorMessage message) => _mainWindowLauncher.SwitchToEditor(message.Id);
 
 	/// <summary>
 	/// Saves the favorites while the popup shows them.

@@ -96,14 +96,14 @@ public abstract partial class ViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="IMessenger" />
 	protected readonly IMessenger _messenger;
 
+	/// <inheritdoc cref="IViewModelFactory" />
+	protected readonly IViewModelFactory _viewModelFactory;
+
 	/// <inheritdoc cref="ISecondaryWindowLauncher" />
 	private readonly ISecondaryWindowLauncher _secondaryWindowLauncher;
 
 	/// <inheritdoc cref="ISessionHierarchy" />
 	private readonly ISessionHierarchy _sessionHierarchy;
-
-	/// <inheritdoc cref="IViewModelFactory" />
-	protected readonly IViewModelFactory _viewModelFactory;
 	#endregion
 
 	#region Constructors

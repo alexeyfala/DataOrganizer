@@ -141,6 +141,22 @@ public static class HierarchyExtensions
 	}
 
 	/// <summary>
+	/// Counts files and folders in the hierarchy.
+	/// </summary>
+	public static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy)
+	{
+		return Count(hierarchy.Flatten());
+	}
+
+	/// <summary>
+	/// Counts the files and folders of the hierarchy whose identifiers are in <paramref name="ids" />.
+	/// </summary>
+	public static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy, IReadOnlySet<Guid> ids)
+	{
+		return Count(hierarchy.FilterBy(x => ids.Contains(x.Id)));
+	}
+
+	/// <summary>
 	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by type <see cref="FileDto" />.
 	/// </summary>
 	/// <returns>Flat list <see cref="FileDto" />.</returns>
@@ -258,22 +274,6 @@ public static class HierarchyExtensions
 
 			folder.Parent = parent;
 		}
-	}
-
-	/// <summary>
-	/// Counts files and folders in the hierarchy.
-	/// </summary>
-	public static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy)
-	{
-		return Count(hierarchy.Flatten());
-	}
-
-	/// <summary>
-	/// Counts the files and folders of the hierarchy whose identifiers are in <paramref name="ids" />.
-	/// </summary>
-	public static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy, IReadOnlySet<Guid> ids)
-	{
-		return Count(hierarchy.FilterBy(x => ids.Contains(x.Id)));
 	}
 	#endregion
 

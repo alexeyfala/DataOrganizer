@@ -11,11 +11,11 @@ public sealed partial class FavoritesWindow : AppWindowBase, IMainWindow
 	/// <inheritdoc />
 	public bool IsClosingToSwitch { get; set; }
 
-	/// <inheritdoc cref="WindowPlacementTracker" />
-	internal WindowPlacementTracker Placement { get; }
-
 	/// <inheritdoc cref="FavoritesViewModel" />
 	public FavoritesViewModel ViewModel { get; } = null!;
+
+	/// <inheritdoc cref="WindowPlacementTracker" />
+	internal WindowPlacementTracker Placement { get; }
 	#endregion
 
 	#region Constructors

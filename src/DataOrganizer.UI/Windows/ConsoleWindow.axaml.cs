@@ -8,11 +8,11 @@ namespace DataOrganizer.UI.Windows;
 public sealed partial class ConsoleWindow : AppWindowBase
 {
 	#region Properties
-	/// <inheritdoc cref="WindowPlacementTracker" />
-	internal WindowPlacementTracker Placement { get; }
-
 	/// <inheritdoc cref="ConsoleViewModel" />
 	public ConsoleViewModel ViewModel { get; } = null!;
+
+	/// <inheritdoc cref="WindowPlacementTracker" />
+	internal WindowPlacementTracker Placement { get; }
 	#endregion
 
 	#region Constructors
