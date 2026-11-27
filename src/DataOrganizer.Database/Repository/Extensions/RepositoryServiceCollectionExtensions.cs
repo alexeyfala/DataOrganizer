@@ -25,10 +25,14 @@ public static class RepositoryServiceCollectionExtensions
 		this IServiceCollection services,
 		Func<IServiceProvider, string> getDatabaseFilePath)
 	{
-		services.AddDbContext<SqliteDbContext>((provider, builder) => ConfigureDbContext(
-			builder,
-			getDatabaseFilePath,
-			provider));
+		// One context for the whole run: the application opens no scopes, and the singleton DbContextService holds it.
+		services.AddDbContext<SqliteDbContext>(
+			(provider, builder) => ConfigureDbContext(
+				builder,
+				getDatabaseFilePath,
+				provider),
+			contextLifetime: ServiceLifetime.Singleton,
+			optionsLifetime: ServiceLifetime.Singleton);
 
 		services.AddTransient<IDbMaintenance, DbMaintenance>();
 		services.AddTransient<IExplorerItemRepository, ExplorerItemRepository>();

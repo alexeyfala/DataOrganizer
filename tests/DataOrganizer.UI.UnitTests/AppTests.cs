@@ -50,6 +50,47 @@ internal sealed partial class AppTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: a class registered as a singleton under its own type is handed out under other
+	/// types only through factories, so the container builds it once and its state stays shared.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Builds_Each_Shared_Singleton_Once()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		HashSet<Type> shared =
+		[
+			.. services
+				.Where(static x => x is { IsKeyedService: false, Lifetime: ServiceLifetime.Singleton }
+					&& x.ImplementationType == x.ServiceType)
+				.Select(static x => x.ServiceType)
+		];
+
+		// Act
+		string[] duplicated =
+		[
+			.. services
+				.Select(static x => (x.ServiceType, Implementation: GetImplementationType(x)))
+				.Where(x => x.Implementation is { } implementation
+					&& implementation != x.ServiceType
+					&& shared.Contains(implementation))
+				.Select(static x => $"{x.ServiceType.Name} -> {x.Implementation!.Name}")
+		];
+
+		// Assert
+		shared
+			.Should()
+			.NotBeEmpty();
+
+		duplicated
+			.Should()
+			.HaveCount(0);
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: the view model of the console, which the view factory builds with no
 	/// registration of its own, finds every dependency, the text of its log included.
 	/// </summary>
@@ -235,6 +276,35 @@ internal sealed partial class AppTests
 	}
 
 	/// <summary>
+	/// <see cref="App.RegisterServices" />: the container accepts the registrations when it checks them on build, so a
+	/// missing dependency or a type that depends on itself through constructors is named here, not at startup.
+	/// </summary>
+	[AvaloniaTest]
+	public void RegisterServices_Passes_The_Checks_Of_The_Container()
+	{
+		// Arrange
+		ServiceCollection services = [];
+
+		((App)Application.Current!).RegisterServices(services, []);
+
+		ServiceProviderOptions options = new()
+		{
+			ValidateOnBuild = true,
+			ValidateScopes = true
+		};
+
+		// Act
+		Action act = () => services
+			.BuildServiceProvider(options)
+			.Dispose();
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
+	}
+
+	/// <summary>
 	/// <see cref="App.RegisterServices" />: the program that opens a file is chosen the way of the operating system the
 	/// application runs on.
 	/// </summary>
@@ -280,35 +350,6 @@ internal sealed partial class AppTests
 			.Be(OperatingSystem.IsWindows()
 				? typeof(WindowsExecutingFileHolderFinder)
 				: typeof(UnsupportedExecutingFileHolderFinder));
-	}
-
-	/// <summary>
-	/// <see cref="App.RegisterServices" />: every registered type can be built from the registrations
-	/// alone, so a missing one is named here instead of failing on the first resolve at startup.
-	/// </summary>
-	[AvaloniaTest]
-	public void RegisterServices_Registers_Every_Dependency()
-	{
-		// Arrange
-		ServiceCollection services = [];
-
-		((App)Application.Current!).RegisterServices(services, []);
-
-		// Act
-		string[] unsatisfied =
-		[
-			.. services
-				.Select(GetImplementationType)
-				.Where(IsOwnType)
-				.Distinct()
-				.Select(x => DescribeMissingDependencies(services, x!))
-				.Where(x => x.Length > 0)
-		];
-
-		// Assert
-		unsatisfied
-			.Should()
-			.BeEmpty();
 	}
 
 	/// <summary>
