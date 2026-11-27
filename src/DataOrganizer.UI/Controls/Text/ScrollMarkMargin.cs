@@ -105,9 +105,13 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 
 	#region Constructors
 	/// <summary>
-	/// Places the tips of the marks and updates the marks after each run of changes of the text or of the selection.
+	/// Places the tips of the marks and updates the marks after each run of changes of the text or of the selection, with
+	/// the pause counted by <paramref name="timeProvider" />.
 	/// </summary>
-	public ScrollMarkMargin(TextEditorBase editor, IObservable<TextArea> occurrenceSource)
+	public ScrollMarkMargin(
+		TextEditorBase editor,
+		IObservable<TextArea> occurrenceSource,
+		TimeProvider timeProvider)
 	{
 		_editor = editor;
 
@@ -144,7 +148,7 @@ internal sealed class ScrollMarkMargin : AbstractMargin, IRecipient<BookmarksCha
 					x => editor.TextChanged += x,
 					x => editor.TextChanged -= x)
 				.Select(static _ => Unit.Default))
-			.SetDelay(MarksDelay)
+			.SetDelay(MarksDelay, timeProvider)
 			.Subscribe(_ => UpdateMarks());
 	}
 	#endregion

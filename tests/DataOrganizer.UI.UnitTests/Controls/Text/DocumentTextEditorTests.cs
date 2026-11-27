@@ -24,6 +24,7 @@ using DataOrganizer.UI.Controls.Text;
 using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UI.UnitTests.TestHelpers;
 using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
+using Microsoft.Extensions.Time.Testing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3168,10 +3169,12 @@ internal sealed class DocumentTextEditorTests
 	/// <see cref="TextEditor.TextChanged" />: a pause after an edit brings the blocks that fold up to date.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task TextChanged_Finds_The_Blocks_After_A_Pause()
+	public void TextChanged_Finds_The_Blocks_After_A_Pause()
 	{
 		// Arrange
-		using DocumentTextEditor sut = new()
+		FakeTimeProvider time = new();
+
+		using DocumentTextEditor sut = new(time)
 		{
 			Document = new("First\nSecond"),
 			SyntaxLanguage = PowerShellLanguage
@@ -3180,13 +3183,12 @@ internal sealed class DocumentTextEditorTests
 		// Act
 		sut.Document.Insert(sut.Document.TextLength, "\n    Third");
 
-		// Assert
-		// The pause ends on a timer, which posts the pass over the lines to the UI thread.
-		bool result = await Dispatcher.UIThread.RunJobsUntilAsync(() => GetFoldedLines(sut).Length > 0, maxRepeats: 1000);
+		time.RunJobsFor(TimeSpan.FromSeconds(0.5));
 
-		result
+		// Assert
+		GetFoldedLines(sut)
 			.Should()
-			.BeTrue();
+			.NotBeEmpty();
 	}
 
 	/// <summary>

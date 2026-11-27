@@ -22,6 +22,7 @@ using DataOrganizer.UI.ViewModels;
 using DataOrganizer.UI.Views;
 using DataOrganizer.Workflows.AppLifecycle.Services;
 using Material.Icons.Avalonia;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Collections.ObjectModel;
@@ -34,6 +35,13 @@ namespace DataOrganizer.UI.UnitTests.Views;
 [TestFixture(Description = $@"Tests of ""{nameof(CopyHistoryView)}"" type")]
 internal sealed class CopyHistoryViewTests
 {
+	#region Data
+	/// <summary>
+	/// Time longer than the pause of the pointer before the tip of a file shows.
+	/// </summary>
+	private static readonly TimeSpan PastTheTipDelay = TimeSpan.FromSeconds(1.0);
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="FileListViewModelBase.CopyContentCommand" />: a click on the copy button of a file in the list copies the
@@ -344,10 +352,12 @@ internal sealed class CopyHistoryViewTests
 	/// text in a tip.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Pointer_On_The_Eye_Icon_Shows_The_Preview_Of_The_File()
+	public void Pointer_On_The_Eye_Icon_Shows_The_Preview_Of_The_File()
 	{
 		// Arrange
 		FileDto file = ItemDtoFactory.CreateFileDto();
+
+		FakeTimeProvider time = new();
 
 		IFilePreviewReader reader = Substitute.For<IFilePreviewReader>();
 
@@ -399,17 +409,20 @@ internal sealed class CopyHistoryViewTests
 			.OfType<MaterialIcon>()
 			.First(x => x.DataContext == file && Interaction.GetBehaviors(x).OfType<FilePreviewToolTipBehavior>().Any());
 
-		// The markup resolves the reader from the services of the running application, which a test has not.
-		Interaction
+		FilePreviewToolTipBehavior behavior = Interaction
 			.GetBehaviors(icon)
 			.OfType<FilePreviewToolTipBehavior>()
-			.Single()
-			.Reader = reader;
+			.Single();
+
+		// The markup resolves the reader from the services of the running application, which a test has not.
+		behavior.Reader = reader;
+
+		behavior.RunOnce = (action, delay) => time.CreateTimer(_ => action(), null, delay, Timeout.InfiniteTimeSpan);
 
 		// Act
 		window.MouseMove(window.CenterOf(icon));
 
-		await Dispatcher.UIThread.RunJobsUntilAsync(() => ToolTip.GetTip(icon) is not null);
+		time.RunJobsFor(PastTheTipDelay);
 
 		object? tip = ToolTip.GetTip(icon);
 

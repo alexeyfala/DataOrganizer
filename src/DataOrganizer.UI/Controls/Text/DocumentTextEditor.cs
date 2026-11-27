@@ -205,14 +205,14 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 	#region Data
 	/// <summary>
-	/// The longest text that gets the syntax highlighting, as a longer one would take too much time and memory.
-	/// </summary>
-	private const int MaxHighlightedLength = 5 * 1024 * 1024;
-
-	/// <summary>
 	/// Modifier of the keys of the commands: ⌘ on macOS, like the keys of the engine, and Ctrl elsewhere.
 	/// </summary>
 	internal static readonly KeyModifiers CommandModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+
+	/// <summary>
+	/// The longest text that gets the syntax highlighting, as a longer one would take too much time and memory.
+	/// </summary>
+	private const int MaxHighlightedLength = 5 * 1024 * 1024;
 
 	/// <inheritdoc cref="DocumentBookmarkNavigation" />
 	private readonly DocumentBookmarkNavigation _bookmarkNavigation;
@@ -249,9 +249,17 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 
 	#region Constructors
 	/// <summary>
-	/// Sets up the commands, key bindings and bookmarks, and follows the switches, language, theme and document.
+	/// Sets up the editor with its pauses on the system clock.
 	/// </summary>
-	public DocumentTextEditor()
+	public DocumentTextEditor() : this(TimeProvider.System)
+	{
+	}
+
+	/// <summary>
+	/// Sets up the commands, key bindings and bookmarks, and follows the switches, language, theme and document; the
+	/// pauses after the changes run on <paramref name="timeProvider" />.
+	/// </summary>
+	internal DocumentTextEditor(TimeProvider timeProvider) : base(timeProvider)
 	{
 		_folding = new(this);
 
@@ -349,7 +357,7 @@ internal sealed class DocumentTextEditor : TextEditorBase, IDisposable
 		Observable.FromEventPattern<EventHandler, EventArgs>(
 			x => TextChanged += x,
 			x => TextChanged -= x)
-			.SetDelay(TimeSpan.FromSeconds(0.5))
+			.SetDelay(TimeSpan.FromSeconds(0.5), timeProvider)
 			.Subscribe(_ =>
 			{
 				UpdateLineEnding();

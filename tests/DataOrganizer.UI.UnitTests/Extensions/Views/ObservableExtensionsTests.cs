@@ -103,8 +103,8 @@ internal sealed class ObservableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="ObservableExtensions.SetDelay{T}(IObservable{T}, TimeSpan)" />: returns the source unchanged when there is
-	/// no sync context.
+	/// <see cref="ObservableExtensions.SetDelay{T}(IObservable{T}, TimeSpan, TimeProvider)" />: returns the source unchanged
+	/// when there is no sync context.
 	/// </summary>
 	[Test]
 	public void SetDelay_Returns_Source_When_No_Sync_Context()
@@ -115,7 +115,7 @@ internal sealed class ObservableExtensionsTests
 		Subject<EventPattern<EventArgs>> subject = new();
 
 		// Act
-		IObservable<EventPattern<EventArgs>> result = subject.SetDelay(TimeSpan.FromMilliseconds(100));
+		IObservable<EventPattern<EventArgs>> result = subject.SetDelay(Delay, new FakeTimeProvider());
 
 		// Assert
 		result

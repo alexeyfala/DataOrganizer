@@ -20,9 +20,10 @@ using DataOrganizer.UI.Messages.Documents;
 using DataOrganizer.UI.UnitTests.TestHelpers;
 using DataOrganizer.UI.UnitTests.TestHelpers.Factories;
 using DataOrganizer.UI.UnitTests.TestHelpers.Fakes;
+using Microsoft.Extensions.Time.Testing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
@@ -34,6 +35,11 @@ internal sealed class ScrollMarkMarginTests
 	/// Resource key of the brush of the bookmarks.
 	/// </summary>
 	private const string BookmarkBrushKey = "BookmarkBrush";
+
+	/// <summary>
+	/// Pause after the last change of the selection or the text before the marks are found again.
+	/// </summary>
+	private static readonly TimeSpan MarksDelay = TimeSpan.FromSeconds(0.2);
 	#endregion
 
 	#region Methods
@@ -876,9 +882,11 @@ internal sealed class ScrollMarkMarginTests
 	/// <see cref="TextArea.SelectionChanged" />: a pause after each selection in the source brings its marks.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task SelectionChanged_Of_The_Source_Brings_The_Marks_After_A_Pause()
+	public void SelectionChanged_Of_The_Source_Brings_The_Marks_After_A_Pause()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		TextDocument document = new(string.Join('\n', Enumerable
 			.Range(1, 1000)
 			.Select(static x => x is 1 or 500 or 1000 ? "needle" : $"Line {x:D4}")));
@@ -888,7 +896,7 @@ internal sealed class ScrollMarkMarginTests
 			Document = document
 		};
 
-		TestTextEditor editor = new()
+		TestTextEditor editor = new(time)
 		{
 			Document = document
 		};
@@ -902,34 +910,36 @@ internal sealed class ScrollMarkMarginTests
 
 		source.Select(0, 6);
 
-		// The change of the source and the setting of the document bring a pass of their own, which the first
-		// selection may still catch.
-		bool isFirstMarked = await WaitForMarks(sut, count: 3);
+		time.RunJobsFor(MarksDelay);
+
+		int firstRowCount = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color).Length;
 
 		// Act
 		// "Line 0002".
 		source.Select(7, 9);
 
+		time.RunJobsFor(MarksDelay);
+
 		// Assert
-		bool result = await WaitForMarks(sut, count: 1);
-
-		isFirstMarked
+		firstRowCount
 			.Should()
-			.BeTrue();
+			.Be(3);
 
-		result
+		GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)
 			.Should()
-			.BeTrue();
+			.ContainSingle();
 	}
 
 	/// <summary>
 	/// <see cref="TextEditor.TextChanged" />: a pause after an edit brings the marks of the occurrences it adds.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task TextChanged_Brings_The_Marks_After_A_Pause()
+	public void TextChanged_Brings_The_Marks_After_A_Pause()
 	{
 		// Arrange
-		TestTextEditor editor = new()
+		FakeTimeProvider time = new();
+
+		TestTextEditor editor = new(time)
 		{
 			Document = new(string.Join('\n', Enumerable
 				.Range(1, 1000)
@@ -942,7 +952,9 @@ internal sealed class ScrollMarkMarginTests
 
 		editor.Select(0, 6);
 
-		bool isFirstMarked = await WaitForMarks(sut, count: 3);
+		time.RunJobsFor(MarksDelay);
+
+		int firstRowCount = GetRows(sut.Draw(), TextHighlight.MarkBrush.Color).Length;
 
 		TextDocument document = editor.Document;
 
@@ -950,16 +962,16 @@ internal sealed class ScrollMarkMarginTests
 		// Far from the other occurrences, so that its mark gets a row of its own.
 		document.Insert(document.GetLineByNumber(250).Offset, "needle\n");
 
+		time.RunJobsFor(MarksDelay);
+
 		// Assert
-		bool result = await WaitForMarks(sut, count: 4);
-
-		isFirstMarked
+		firstRowCount
 			.Should()
-			.BeTrue();
+			.Be(3);
 
-		result
+		GetRows(sut.Draw(), TextHighlight.MarkBrush.Color)
 			.Should()
-			.BeTrue();
+			.HaveCount(4);
 	}
 	#endregion
 
@@ -1022,16 +1034,5 @@ internal sealed class ScrollMarkMarginTests
 	/// Returns the tip of the margin.
 	/// </summary>
 	private static StackPanel GetTip(ScrollMarkMargin margin) => (StackPanel)ToolTip.GetTip(margin)!;
-
-	/// <summary>
-	/// Waits until the margin draws a number of rows of occurrence marks.
-	/// </summary>
-	private static ValueTask<bool> WaitForMarks(ScrollMarkMargin margin, int count)
-	{
-		// The pause ends on a timer, which posts the pass over the document to the UI thread.
-		return Dispatcher.UIThread.RunJobsUntilAsync(
-			() => GetRows(margin.Draw(), TextHighlight.MarkBrush.Color).Length == count,
-			maxRepeats: 1000);
-	}
 	#endregion
 }

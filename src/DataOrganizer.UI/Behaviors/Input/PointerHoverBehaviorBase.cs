@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.UI.Helpers.Views;
 using System;
+using Action = System.Action;
 
 namespace DataOrganizer.UI.Behaviors.Input;
 
@@ -27,7 +28,7 @@ internal abstract class PointerHoverBehaviorBase : Behavior<InputElement>
 	/// <summary>
 	/// Runs an action once after a delay, <see cref="DispatcherTimer.RunOnce" /> by default; disposing the result cancels it.
 	/// </summary>
-	internal Func<System.Action, TimeSpan, IDisposable> RunOnce { get; init; } =
+	internal Func<Action, TimeSpan, IDisposable> RunOnce { get; set; } =
 		static (action, delay) => DispatcherTimer.RunOnce(action, delay);
 	#endregion
 

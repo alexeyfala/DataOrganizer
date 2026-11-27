@@ -48,22 +48,38 @@ namespace DataOrganizer.UI.UnitTests.Windows;
 [TestFixture(Description = $@"Tests of ""{nameof(NotepadWindow)}"" type")]
 internal sealed class NotepadWindowTests
 {
+	#region Data
+	/// <summary>
+	/// Time longer than the pause before the first focus of the text of a tab.
+	/// </summary>
+	private static readonly TimeSpan PastThePause = TimeSpan.FromSeconds(1.0);
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="NotepadViewModel.SelectedTab" />: a click on a tab from the text of another one gives the focus to its
 	/// text.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task Click_On_A_Tab_Gives_The_Focus_To_Its_Text()
+	public void Click_On_A_Tab_Gives_The_Focus_To_Its_Text()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
-				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+				.Returns(x =>
+				{
+					NotepadTabView view = new((NotepadTabViewModel)x.Arg<object[]>()[0]);
+
+					view.Editor.RunOnce = (action, delay) => time.CreateTimer(_ => action(), null, delay, Timeout.InfiniteTimeSpan);
+
+					return view;
+				});
 
 			builder.RegisterInstance(viewFactory);
 
@@ -94,8 +110,8 @@ internal sealed class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		// The editor of the second tab was shown earlier, so its own first focus is behind it as well.
-		await WaitForFirstFocus(GetShownTextArea(sut));
+		// The first focus of both editors comes after a pause, which runs out here, so that it cannot come later.
+		time.RunJobsFor(PastThePause);
 
 		Point point = sut.CenterOf(sut.Tabs.GetHeaderText(sut.ViewModel.Tabs[1].Header));
 
@@ -564,16 +580,25 @@ internal sealed class NotepadWindowTests
 	/// it goes to.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task CtrlTab_Gives_The_Focus_To_The_Text_Of_The_Tab()
+	public void CtrlTab_Gives_The_Focus_To_The_Text_Of_The_Tab()
 	{
 		// Arrange
+		FakeTimeProvider time = new();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateUserControl<NotepadTabView>(Arg.Any<object[]>())
-				.Returns(x => new NotepadTabView((NotepadTabViewModel)x.Arg<object[]>()[0]));
+				.Returns(x =>
+				{
+					NotepadTabView view = new((NotepadTabViewModel)x.Arg<object[]>()[0]);
+
+					view.Editor.RunOnce = (action, delay) => time.CreateTimer(_ => action(), null, delay, Timeout.InfiniteTimeSpan);
+
+					return view;
+				});
 
 			builder.RegisterInstance(viewFactory);
 
@@ -604,8 +629,8 @@ internal sealed class NotepadWindowTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		// The editor of the second tab was shown earlier, so its own first focus is behind it as well.
-		await WaitForFirstFocus(GetShownTextArea(sut));
+		// The first focus of both editors comes after a pause, which runs out here, so that it cannot come later.
+		time.RunJobsFor(PastThePause);
 
 		// Act
 		sut.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.Control);
@@ -1120,15 +1145,6 @@ internal sealed class NotepadWindowTests
 			.Editor
 			.PrimaryEditor
 			.TextArea;
-	}
-
-	/// <summary>
-	/// Waits for the focus an editor gives its text a moment after it is first loaded, so that it cannot come later.
-	/// </summary>
-	private static ValueTask<bool> WaitForFirstFocus(TextArea area)
-	{
-		// The focus comes on a timer, which posts it to the UI thread.
-		return Dispatcher.UIThread.RunJobsUntilAsync(() => area.IsFocused, maxRepeats: 1000);
 	}
 	#endregion
 }

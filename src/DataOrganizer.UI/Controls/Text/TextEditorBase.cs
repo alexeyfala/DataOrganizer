@@ -131,9 +131,17 @@ internal abstract class TextEditorBase : TextEditor
 
 	#region Constructors
 	/// <summary>
-	/// Sets up the font, the margins, the occurrence highlight, the scroll marks and the commands of the editor.
+	/// Sets up the editor with its pauses on the system clock.
 	/// </summary>
-	protected TextEditorBase()
+	protected TextEditorBase() : this(TimeProvider.System)
+	{
+	}
+
+	/// <summary>
+	/// Sets up the font, the margins, the occurrence highlight, the scroll marks and the commands of the editor; the pauses
+	/// of the scroll marks run on <paramref name="timeProvider" />.
+	/// </summary>
+	protected TextEditorBase(TimeProvider timeProvider)
 	{
 		FontFamily = new FontFamily("Cascadia Code,Consolas,Menlo,Monospace");
 
@@ -175,7 +183,7 @@ internal abstract class TextEditorBase : TextEditor
 
 		WhitespaceRunSelection.Attach(TextArea);
 
-		_scrollMarkMargin = new ScrollMarkMargin(this, occurrenceSource);
+		_scrollMarkMargin = new ScrollMarkMargin(this, occurrenceSource, timeProvider);
 
 		// The tips of the scroll marks take their styles through the logical tree.
 		LogicalChildren.Add(_scrollMarkMargin);

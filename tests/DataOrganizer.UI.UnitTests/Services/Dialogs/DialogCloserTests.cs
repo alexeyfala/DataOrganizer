@@ -467,11 +467,9 @@ internal sealed class DialogCloserTests
 
 		Task hiding = shown.WaitUntilHiddenAsync();
 
-		// The wait runs out before the fallback timeout of a stalled fade would end it.
-		await Dispatcher.UIThread.RunJobsUntilAsync(
-			() => hiding.IsCompleted,
-			millisecondsDelay: 20,
-			maxRepeats: 25);
+		// The fade runs on the render clock, which no TimeProvider drives, so a generous wait on real time; the fallback
+		// timer of the faked IUiTimer never fires, so only the end of the fade completes the wait.
+		await Dispatcher.UIThread.RunJobsUntilAsync(() => hiding.IsCompleted);
 
 		// Closed before the assertion: a closed window takes its host out of the list every headless test shares.
 		window.Close();
