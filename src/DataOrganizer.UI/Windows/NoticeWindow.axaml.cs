@@ -3,6 +3,9 @@ using DataOrganizer.UI.ViewModels.Windows;
 
 namespace DataOrganizer.UI.Windows;
 
+/// <summary>
+/// Window that shows a notice.
+/// </summary>
 internal partial class NoticeWindow : Window
 {
 	#region Constructors

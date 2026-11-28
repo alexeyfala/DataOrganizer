@@ -6,7 +6,10 @@ using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UI.UnitTests.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ToastWindow)}"" type")]
+/// <summary>
+/// Tests of <see cref="ToastWindow" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ToastWindowTests
 {
 	#region Methods

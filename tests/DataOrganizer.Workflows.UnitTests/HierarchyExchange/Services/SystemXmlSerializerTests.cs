@@ -11,7 +11,10 @@ using System.Xml.Serialization;
 
 namespace DataOrganizer.Workflows.UnitTests.HierarchyExchange.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SystemXmlSerializer)}"" type")]
+/// <summary>
+/// Tests of <see cref="SystemXmlSerializer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SystemXmlSerializerTests
 {
 	#region Data

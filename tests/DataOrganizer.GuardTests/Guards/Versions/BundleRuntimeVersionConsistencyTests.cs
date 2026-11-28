@@ -7,8 +7,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Versions;
 
+/// <summary>
+/// Guards that the bundle installs the runtime of the framework the application targets.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the bundle installs the runtime of the framework the application targets")]
+[TestFixture]
 internal sealed class BundleRuntimeVersionConsistencyTests
 {
 	#region Data

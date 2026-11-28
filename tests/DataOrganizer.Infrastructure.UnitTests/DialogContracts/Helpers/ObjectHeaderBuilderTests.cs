@@ -4,7 +4,10 @@ using DataOrganizer.Shared.Helpers;
 
 namespace DataOrganizer.Infrastructure.UnitTests.DialogContracts.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ObjectHeaderBuilder)}"" type")]
+/// <summary>
+/// Tests of <see cref="ObjectHeaderBuilder" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ObjectHeaderBuilderTests
 {
 	#region Methods

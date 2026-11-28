@@ -8,8 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.CodeStyle;
 
+/// <summary>
+/// Guards the order of the regions that lay out the members of a type.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the order of the regions that lay out the members of a type")]
+[TestFixture]
 internal sealed partial class RegionOrderTests
 {
 	#region Data

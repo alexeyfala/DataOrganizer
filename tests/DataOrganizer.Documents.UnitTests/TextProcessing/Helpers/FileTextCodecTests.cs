@@ -11,7 +11,10 @@ using System.Text;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileTextCodec)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileTextCodec" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileTextCodecTests
 {
 	#region Data

@@ -4,7 +4,10 @@ using System.Linq;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SandboxFileName)}"" type")]
+/// <summary>
+/// Tests of <see cref="SandboxFileName" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SandboxFileNameTests
 {
 	#region Methods

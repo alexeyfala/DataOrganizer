@@ -8,8 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
+/// <summary>
+/// Guards the tests against libraries, texts and the disk that the test style rules out.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the tests against libraries, texts and the disk that the test style rules out")]
+[TestFixture]
 internal sealed partial class TestDependencyTests
 {
 	#region Data

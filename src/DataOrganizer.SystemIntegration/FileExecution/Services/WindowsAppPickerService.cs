@@ -487,6 +487,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	#endregion
 
 	#region Native
+	/// <summary>
+	/// Destroys an icon and frees the memory it takes.
+	/// </summary>
 	[LibraryImport("user32.dll")]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool DestroyIcon(IntPtr hIcon);
@@ -502,6 +505,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		AssocFilter afFilter,
 		[MarshalAs(UnmanagedType.Interface)] out IEnumAssocHandlers? ppEnumHandler);
 
+	/// <summary>
+	/// Reads information about a file, such as its icon.
+	/// </summary>
 	[LibraryImport("shell32.dll", EntryPoint = "SHGetFileInfoW", StringMarshalling = StringMarshalling.Utf16)]
 	private static partial IntPtr SHGetFileInfo(
 		string pszPath,
@@ -510,6 +516,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		uint cbFileInfo,
 		uint uFlags);
 
+	/// <summary>
+	/// Resolves an indirect string, such as a reference to a string resource, into its text.
+	/// </summary>
 	[LibraryImport("shlwapi.dll", EntryPoint = "SHLoadIndirectString", StringMarshalling = StringMarshalling.Utf16)]
 	private static partial int SHLoadIndirectString(
 		string pszSource,
@@ -524,8 +533,14 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// </summary>
 	private enum AssocFilter
 	{
+		/// <summary>
+		/// All handlers registered for the file type.
+		/// </summary>
 		None = 0,
 
+		/// <summary>
+		/// Only the handlers recommended for the file type.
+		/// </summary>
 		Recommended = 1
 	}
 
@@ -546,26 +561,47 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	private interface IAssocHandler
 	{
+		/// <summary>
+		/// Returns the full path of the program file of the handler.
+		/// </summary>
 		[PreserveSig]
 		int GetName([MarshalAs(UnmanagedType.LPWStr)] out string? ppsz);
 
+		/// <summary>
+		/// Returns the display name of the handler.
+		/// </summary>
 		[PreserveSig]
 		int GetUIName([MarshalAs(UnmanagedType.LPWStr)] out string? ppsz);
 
+		/// <summary>
+		/// Returns the path of the file that holds the icon of the handler and the index of the icon in it.
+		/// </summary>
 		[PreserveSig]
 		int GetIconLocation(
 			[MarshalAs(UnmanagedType.LPWStr)] out string? ppszPath,
 			out int pIndex);
 
+		/// <summary>
+		/// Tells whether the handler is recommended for the file type.
+		/// </summary>
 		[PreserveSig]
 		int IsRecommended();
 
+		/// <summary>
+		/// Makes the handler the default one for the file type.
+		/// </summary>
 		[PreserveSig]
 		int MakeDefault([MarshalAs(UnmanagedType.LPWStr)] string pszDescription);
 
+		/// <summary>
+		/// Opens the items of a data object with the handler.
+		/// </summary>
 		[PreserveSig]
 		int Invoke(IntPtr pdo);
 
+		/// <summary>
+		/// Creates an invoker that opens the items of a data object with the handler.
+		/// </summary>
 		[PreserveSig]
 		int CreateInvoker(IntPtr pdo, out IntPtr ppInvoker);
 	}
@@ -582,6 +618,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	private interface IEnumAssocHandlers
 	{
+		/// <summary>
+		/// Fetches the next handlers of the enumeration.
+		/// </summary>
 		[PreserveSig]
 		int Next(
 			int celt,
@@ -596,14 +635,29 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	[StructLayout(LayoutKind.Sequential)]
 	private unsafe struct SHFILEINFO
 	{
+		/// <summary>
+		/// Handle of the icon of the file.
+		/// </summary>
 		public IntPtr hIcon;
 
+		/// <summary>
+		/// Index of the icon in the system image list.
+		/// </summary>
 		public int iIcon;
 
+		/// <summary>
+		/// Attributes of the file.
+		/// </summary>
 		public uint dwAttributes;
 
+		/// <summary>
+		/// Display name of the file.
+		/// </summary>
 		public fixed char szDisplayName[260];
 
+		/// <summary>
+		/// Description of the type of the file.
+		/// </summary>
 		public fixed char szTypeName[80];
 	}
 	#endregion

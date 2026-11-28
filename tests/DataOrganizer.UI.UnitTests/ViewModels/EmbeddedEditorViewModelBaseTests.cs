@@ -23,7 +23,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EmbeddedEditorViewModelBase)}"" type")]
+/// <summary>
+/// Tests of <see cref="EmbeddedEditorViewModelBase" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EmbeddedEditorViewModelBaseTests
 {
 	#region Methods
@@ -321,11 +324,17 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	/// </summary>
 	public List<bool> QueuedWhileReadOnly { get; } = [];
 
+	/// <summary>
+	/// Calls the protected <see cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />.
+	/// </summary>
 	public Task<bool> InvokeSaveContentsAsync(byte[] contents, FileContentsChange change)
 	{
 		return SaveContentsAsync(contents, change);
 	}
 
+	/// <summary>
+	/// Marks the editor as initialized.
+	/// </summary>
 	public void MarkInitialized() => IsInitialized = true;
 
 	/// <inheritdoc />

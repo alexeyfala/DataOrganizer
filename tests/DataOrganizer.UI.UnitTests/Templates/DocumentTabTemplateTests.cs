@@ -25,7 +25,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Templates;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentTabTemplate)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocumentTabTemplate" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocumentTabTemplateTests
 {
 	#region Data

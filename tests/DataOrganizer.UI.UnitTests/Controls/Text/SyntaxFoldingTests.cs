@@ -11,7 +11,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SyntaxFolding)}"" type")]
+/// <summary>
+/// Tests of <see cref="SyntaxFolding" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SyntaxFoldingTests
 {
 	#region Data

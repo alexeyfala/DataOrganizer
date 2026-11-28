@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(MessengerExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="MessengerExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class MessengerExtensionsTests
 {
 	#region Methods

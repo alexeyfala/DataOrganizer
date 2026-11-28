@@ -2,6 +2,9 @@ using Avalonia.Controls;
 
 namespace DataOrganizer.UI.Views.Settings;
 
+/// <summary>
+/// Page of the settings with the clipboard history.
+/// </summary>
 internal sealed partial class SettingsClipboardView : UserControl
 {
 	#region Constructors

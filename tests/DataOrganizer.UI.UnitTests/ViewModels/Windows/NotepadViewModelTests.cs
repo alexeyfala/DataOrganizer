@@ -34,7 +34,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotepadViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotepadViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NotepadViewModelTests
 {
 	#region Methods

@@ -10,7 +10,10 @@ using System.Text;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentEditorViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocumentEditorViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocumentEditorViewModelTests
 {
 	#region Methods

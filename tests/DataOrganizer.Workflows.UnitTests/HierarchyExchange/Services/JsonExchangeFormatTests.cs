@@ -22,7 +22,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Workflows.UnitTests.HierarchyExchange.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(JsonExchangeFormat)}"" type")]
+/// <summary>
+/// Tests of <see cref="JsonExchangeFormat" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class JsonExchangeFormatTests
 {
 	#region Data

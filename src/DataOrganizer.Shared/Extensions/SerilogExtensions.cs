@@ -263,6 +263,9 @@ public static partial class SerilogExtensions
 		string callerName,
 		int lineNumber) => $"{callerName} {lineNumber} {Path.GetFileName(PlatformInfo.NormalizeSourcePath(filePath))}";
 
+	/// <summary>
+	/// Matches a <c>\u</c> escape of a Unicode character with the four letters or digits of its code.
+	/// </summary>
 	[GeneratedRegex(@"\\u(?<Value>[a-zA-Z0-9]{4})", RegexOptions.Compiled)]
 	private static partial Regex UnicodeCharRegex();
 	#endregion

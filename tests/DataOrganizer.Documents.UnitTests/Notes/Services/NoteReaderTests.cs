@@ -11,7 +11,10 @@ using NSubstitute;
 
 namespace DataOrganizer.Documents.UnitTests.Notes.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NoteReader)}"" type")]
+/// <summary>
+/// Tests of <see cref="NoteReader" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NoteReaderTests
 {
 	#region Methods

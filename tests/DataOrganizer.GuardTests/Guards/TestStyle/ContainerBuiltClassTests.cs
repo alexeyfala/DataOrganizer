@@ -10,8 +10,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
+/// <summary>
+/// Guards the tests against building with new a class that the container of the application builds.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the tests against building with new a class that the container of the application builds")]
+[TestFixture]
 internal sealed partial class ContainerBuiltClassTests
 {
 	#region Data

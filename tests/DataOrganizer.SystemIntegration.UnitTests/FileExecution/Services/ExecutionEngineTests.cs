@@ -26,7 +26,10 @@ using TimeProvider = System.TimeProvider;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExecutionEngine)}"" type")]
+/// <summary>
+/// Tests of <see cref="ExecutionEngine" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExecutionEngineTests
 {
 	#region Data

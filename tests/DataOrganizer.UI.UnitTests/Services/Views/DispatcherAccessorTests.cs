@@ -8,7 +8,10 @@ using System;
 
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DispatcherAccessor)}"" type")]
+/// <summary>
+/// Tests of <see cref="DispatcherAccessor" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DispatcherAccessorTests
 {
 	#region Methods

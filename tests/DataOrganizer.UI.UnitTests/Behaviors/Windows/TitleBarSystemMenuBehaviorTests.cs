@@ -1,4 +1,3 @@
-using System;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
@@ -9,10 +8,14 @@ using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.UI.Behaviors.Windows;
 using DataOrganizer.UI.UnitTests.TestHelpers;
+using System;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(TitleBarSystemMenuBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="TitleBarSystemMenuBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class TitleBarSystemMenuBehaviorTests
 {
 	#region Methods

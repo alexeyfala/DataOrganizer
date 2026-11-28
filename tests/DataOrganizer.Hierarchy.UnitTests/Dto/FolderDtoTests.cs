@@ -5,7 +5,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Hierarchy.UnitTests.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FolderDto)}"" type")]
+/// <summary>
+/// Tests of <see cref="FolderDto" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FolderDtoTests
 {
 	#region Methods

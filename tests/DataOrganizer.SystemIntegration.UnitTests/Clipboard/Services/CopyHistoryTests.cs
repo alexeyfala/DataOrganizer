@@ -14,7 +14,10 @@ using System.Linq;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(CopyHistory)}"" type")]
+/// <summary>
+/// Tests of <see cref="CopyHistory" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class CopyHistoryTests
 {
 	#region Methods

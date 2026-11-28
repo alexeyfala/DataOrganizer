@@ -10,7 +10,10 @@ using System;
 
 namespace DataOrganizer.Hierarchy.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EntityMappingRegister)}"" type")]
+/// <summary>
+/// Tests of <see cref="EntityMappingRegister" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EntityMappingRegisterTests
 {
 	#region Methods

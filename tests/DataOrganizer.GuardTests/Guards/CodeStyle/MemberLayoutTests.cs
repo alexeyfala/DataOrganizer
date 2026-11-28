@@ -10,8 +10,11 @@ using System.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.CodeStyle;
 
+/// <summary>
+/// Guards the layout of the members of a type: their order and the blank line between them.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the layout of the members of a type: their order and the blank line between them")]
+[TestFixture]
 internal sealed class MemberLayoutTests
 {
 	#region Methods

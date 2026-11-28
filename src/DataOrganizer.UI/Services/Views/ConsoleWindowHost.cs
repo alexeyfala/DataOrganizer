@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.Services.Views;
 
+/// <inheritdoc cref="IConsoleWindowHost" />
 internal sealed class ConsoleWindowHost : IConsoleWindowHost
 {
 	#region Data
@@ -77,7 +78,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 		WindowPlacementHelper.Restore(window, storedSettings, WindowPlacementHelper.SetDefaultLocation);
 
-		window.Closing += delegate
+		window.Closing += (_, _) =>
 		{
 			try
 			{
@@ -111,10 +112,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 		TaskCompletionSource source = new();
 
-		window.Loaded += delegate
-		{
-			source.SetResult();
-		};
+		window.Loaded += (_, _) => source.SetResult();
 
 		window.Show();
 

@@ -3,7 +3,10 @@ using DataOrganizer.Database.Repository.Dto;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PropertyDescription)}"" type")]
+/// <summary>
+/// Tests of <see cref="PropertyDescription" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PropertyDescriptionTests
 {
 	#region Methods

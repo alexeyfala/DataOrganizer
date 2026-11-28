@@ -8,7 +8,10 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(MarkerFoldingStrategy)}"" type")]
+/// <summary>
+/// Tests of <see cref="MarkerFoldingStrategy" /> type.
+/// </summary>
+[TestFixture]
 internal sealed partial class MarkerFoldingStrategyTests
 {
 	#region Data

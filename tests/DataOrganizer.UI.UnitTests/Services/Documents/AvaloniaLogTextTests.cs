@@ -6,7 +6,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Services.Documents;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AvaloniaLogText)}"" type")]
+/// <summary>
+/// Tests of <see cref="AvaloniaLogText" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AvaloniaLogTextTests
 {
 	#region Methods

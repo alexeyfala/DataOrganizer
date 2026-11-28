@@ -9,8 +9,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Tooling;
 
+/// <summary>
+/// Guards that .vscode configs stay in sync with the app name and the target framework in Directory.Build.props.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that .vscode configs stay in sync with the app name and the target framework in Directory.Build.props")]
+[TestFixture]
 internal sealed class VsCodeConfigConsistencyTests
 {
 	#region Data

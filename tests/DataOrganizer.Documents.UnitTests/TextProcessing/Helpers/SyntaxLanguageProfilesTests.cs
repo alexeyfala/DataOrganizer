@@ -5,7 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SyntaxLanguageProfiles)}"" type")]
+/// <summary>
+/// Tests of <see cref="SyntaxLanguageProfiles" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SyntaxLanguageProfilesTests
 {
 	#region Methods

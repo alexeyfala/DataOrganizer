@@ -4,7 +4,10 @@ using DataOrganizer.TestSupport.Common;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SecretMask)}"" type")]
+/// <summary>
+/// Tests of <see cref="SecretMask" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SecretMaskTests
 {
 	#region Methods

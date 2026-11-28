@@ -20,7 +20,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HotkeyContentCopier)}"" type")]
+/// <summary>
+/// Tests of <see cref="HotkeyContentCopier" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class HotkeyContentCopierTests
 {
 	#region Methods

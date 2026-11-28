@@ -3,8 +3,11 @@ using System.Runtime.Versioning;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
+/// <summary>
+/// Tests of <see cref="WindowsAppPickerService" /> type.
+/// </summary>
 [SupportedOSPlatform("windows")]
-[TestFixture(Description = $@"Tests of ""{nameof(WindowsAppPickerService)}"" type")]
+[TestFixture]
 internal sealed class WindowsAppPickerServiceTests
 {
 	#region Methods

@@ -18,7 +18,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Infrastructure.UnitTests.FileSystemOperations.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(LinuxExplorerManager)}"" type")]
+/// <summary>
+/// Tests of <see cref="LinuxExplorerManager" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class LinuxExplorerManagerTests
 {
 	#region Data
@@ -434,7 +437,7 @@ internal sealed class LinuxExplorerManagerTests
 			"--method",
 			"org.freedesktop.FileManager1.ShowItems",
 			$"['{uri}']",
-			""
+			string.Empty
 		];
 
 		IProcessRunner processRunner = Substitute.For<IProcessRunner>();

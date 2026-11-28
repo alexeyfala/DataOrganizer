@@ -7,7 +7,10 @@ using DataOrganizer.UI.Controls;
 
 namespace DataOrganizer.UI.UnitTests.Controls;
 
-[TestFixture(Description = $@"Tests of ""{nameof(MaxSizeSwitchPanel)}"" type")]
+/// <summary>
+/// Tests of <see cref="MaxSizeSwitchPanel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class MaxSizeSwitchPanelTests
 {
 	#region Methods

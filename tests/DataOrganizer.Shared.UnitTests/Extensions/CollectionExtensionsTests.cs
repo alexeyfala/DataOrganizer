@@ -4,7 +4,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(Shared.Extensions.CollectionExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="Shared.Extensions.CollectionExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class CollectionExtensionsTests
 {
 	#region Methods

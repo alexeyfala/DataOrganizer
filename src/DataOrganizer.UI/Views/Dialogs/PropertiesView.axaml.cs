@@ -3,6 +3,9 @@ using DataOrganizer.UI.ViewModels.Dialogs;
 
 namespace DataOrganizer.UI.Views.Dialogs;
 
+/// <summary>
+/// Dialog that shows the properties of an object.
+/// </summary>
 internal sealed partial class PropertiesView : UserControl
 {
 	#region Constructors

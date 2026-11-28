@@ -36,7 +36,10 @@ using System.Windows.Input;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentEditorView)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocumentEditorView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocumentEditorViewTests
 {
 	#region Data
@@ -117,7 +120,7 @@ internal sealed class DocumentEditorViewTests
 	private static readonly TimeSpan PastThePause = TimeSpan.FromSeconds(1.0);
 	#endregion
 
-	#region Methods	
+	#region Methods
 	/// <summary>
 	/// <see cref="SplitDocumentEditor.ActiveEditor" />: every command of the context menu acts on the active half.
 	/// </summary>

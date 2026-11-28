@@ -8,8 +8,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Solution;
 
+/// <summary>
+/// Guards the layout of the MSBuild files of the repository.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the layout of the MSBuild files of the repository")]
+[TestFixture]
 internal sealed class ProjectFileLayoutTests
 {
 	#region Data

@@ -13,7 +13,10 @@ using ObservableExtensions = DataOrganizer.UI.Extensions.Views.ObservableExtensi
 
 namespace DataOrganizer.UI.UnitTests.Extensions.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ObservableExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="ObservableExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ObservableExtensionsTests
 {
 	#region Data

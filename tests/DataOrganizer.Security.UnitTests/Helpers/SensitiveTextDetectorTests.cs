@@ -3,7 +3,10 @@ using DataOrganizer.Security.Helpers;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SensitiveTextDetector)}"" type")]
+/// <summary>
+/// Tests of <see cref="SensitiveTextDetector" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SensitiveTextDetectorTests
 {
 	#region Methods

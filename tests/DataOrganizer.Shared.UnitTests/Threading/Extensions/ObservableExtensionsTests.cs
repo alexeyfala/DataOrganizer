@@ -8,7 +8,10 @@ using ObservableExtensions = DataOrganizer.Shared.Threading.Extensions.Observabl
 
 namespace DataOrganizer.Shared.UnitTests.Threading.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ObservableExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="ObservableExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ObservableExtensionsTests
 {
 	#region Methods

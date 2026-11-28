@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardTextWriter)}"" type")]
+/// <summary>
+/// Tests of <see cref="ClipboardTextWriter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ClipboardTextWriterTests
 {
 	#region Methods

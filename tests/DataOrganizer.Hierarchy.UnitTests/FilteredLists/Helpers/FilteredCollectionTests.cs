@@ -13,7 +13,10 @@ using System.Threading;
 
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FilteredCollection<>)}"" type")]
+/// <summary>
+/// Tests of <see cref="FilteredCollection{T}" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FilteredCollectionTests
 {
 	#region Methods

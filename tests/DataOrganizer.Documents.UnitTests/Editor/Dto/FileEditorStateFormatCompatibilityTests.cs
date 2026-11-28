@@ -7,7 +7,10 @@ using System.Text.Json.Nodes;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Dto;
 
-[TestFixture(Description = "Guards that an earlier build still opens the editor states written now")]
+/// <summary>
+/// Guards that an earlier build still opens the editor states written now.
+/// </summary>
+[TestFixture]
 internal sealed class FileEditorStateFormatCompatibilityTests
 {
 	#region Methods

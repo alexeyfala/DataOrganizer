@@ -12,7 +12,10 @@ using NSubstitute;
 
 namespace DataOrganizer.UI.UnitTests.Views.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PropertiesView)}"" type")]
+/// <summary>
+/// Tests of <see cref="PropertiesView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PropertiesViewTests
 {
 	#region Methods

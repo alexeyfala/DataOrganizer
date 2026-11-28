@@ -15,7 +15,10 @@ using NSubstitute;
 
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DesktopAccessor)}"" type")]
+/// <summary>
+/// Tests of <see cref="DesktopAccessor" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DesktopAccessorTests
 {
 	#region Methods

@@ -8,8 +8,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Localization;
 
+/// <summary>
+/// Guards the localized strings against keys that nothing uses and translations that miss or add keys.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the localized strings against keys that nothing uses and translations that miss or add keys")]
+[TestFixture]
 internal sealed partial class LocalizedStringKeysTests
 {
 	#region Data

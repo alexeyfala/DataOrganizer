@@ -23,7 +23,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
-[TestFixture(Description = "Guards that a clipboard history left by an earlier build still opens")]
+/// <summary>
+/// Guards that a clipboard history left by an earlier build still opens.
+/// </summary>
+[TestFixture]
 internal sealed class ClipboardLogFormatCompatibilityTests
 {
 	#region Data

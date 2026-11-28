@@ -7,7 +7,10 @@ using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UI.UnitTests.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AppWindowAutomationPeer)}"" type")]
+/// <summary>
+/// Tests of <see cref="AppWindowAutomationPeer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AppWindowAutomationPeerTests
 {
 	#region Methods

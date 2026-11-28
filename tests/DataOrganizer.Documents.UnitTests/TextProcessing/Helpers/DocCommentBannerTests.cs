@@ -4,7 +4,10 @@ using DataOrganizer.Shared.Constants;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocCommentBanner)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocCommentBanner" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocCommentBannerTests
 {
 	#region Data

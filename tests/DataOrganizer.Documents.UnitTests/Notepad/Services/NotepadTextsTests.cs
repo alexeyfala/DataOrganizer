@@ -17,7 +17,10 @@ using System.Text;
 
 namespace DataOrganizer.Documents.UnitTests.Notepad.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotepadTexts)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotepadTexts" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NotepadTextsTests
 {
 	#region Methods

@@ -42,7 +42,10 @@ using TimeProvider = System.TimeProvider;
 
 namespace DataOrganizer.Workflows.UnitTests.HierarchyExchange.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DataExchangeService)}"" type")]
+/// <summary>
+/// Tests of <see cref="DataExchangeService" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DataExchangeServiceTests
 {
 	#region Methods

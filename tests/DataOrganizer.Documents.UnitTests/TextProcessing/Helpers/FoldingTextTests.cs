@@ -5,7 +5,10 @@ using System.Linq;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FoldingText)}"" type")]
+/// <summary>
+/// Tests of <see cref="FoldingText" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FoldingTextTests
 {
 	#region Methods
@@ -61,7 +64,7 @@ internal sealed class FoldingTextTests
 	/// </summary>
 	private static string[] Texts() =>
 	[
-		"",
+		string.Empty,
 		"a",
 		"a\n",
 		"\n",

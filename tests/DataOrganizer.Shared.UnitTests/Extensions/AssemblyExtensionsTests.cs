@@ -4,7 +4,10 @@ using System.Reflection;
 
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(Shared.Extensions.AssemblyExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="Shared.Extensions.AssemblyExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AssemblyExtensionsTests
 {
 	#region Methods

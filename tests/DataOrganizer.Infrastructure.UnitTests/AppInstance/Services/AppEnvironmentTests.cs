@@ -10,7 +10,10 @@ using System.IO;
 
 namespace DataOrganizer.Infrastructure.UnitTests.AppInstance.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AppEnvironment)}"" type")]
+/// <summary>
+/// Tests of <see cref="AppEnvironment" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AppEnvironmentTests
 {
 	#region Data

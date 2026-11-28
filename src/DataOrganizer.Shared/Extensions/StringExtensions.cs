@@ -47,7 +47,7 @@ public static partial class StringExtensions
 	/// Performs text trimming.
 	/// </summary>
 	/// <param name="value">Original string.</param>
-	/// <param name="maxLength">Maximum length</param>
+	/// <param name="maxLength">Maximum length.</param>
 	/// <param name="suffix">Placeholder suffix for the trimmed string (usually an ellipsis ...)</param>
 	public static string Truncate(
 		this string value,
@@ -59,6 +59,9 @@ public static partial class StringExtensions
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Matches an HTML color: <c>#</c> followed by six or eight hex digits.
+	/// </summary>
 	[GeneratedRegex("^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")]
 	private static partial Regex HtmlColorRegex();
 	#endregion

@@ -229,7 +229,7 @@ internal static class PasswordStrengthEstimator
 	}
 	#endregion
 
-	#region Helpers	
+	#region Helpers
 	/// <summary>
 	/// <c>True</c> when the two letters or digits are neighbours in their alphabet.
 	/// </summary>

@@ -22,7 +22,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Services.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DialogCloser)}"" type")]
+/// <summary>
+/// Tests of <see cref="DialogCloser" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DialogCloserTests
 {
 	#region Methods
@@ -318,7 +321,6 @@ internal sealed class DialogCloserTests
 		isHidden
 			.Should()
 			.BeTrue();
-
 	}
 
 	/// <summary>

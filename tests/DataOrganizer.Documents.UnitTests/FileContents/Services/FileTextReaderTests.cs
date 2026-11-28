@@ -19,7 +19,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.FileContents.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileTextReader)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileTextReader" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileTextReaderTests
 {
 	#region Data

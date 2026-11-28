@@ -11,7 +11,10 @@ using System.Linq;
 
 namespace DataOrganizer.Security.UnitTests.Services;
 
-[TestFixture(Description = "Guards that blobs written by an earlier build still open, and that nothing in them can be altered unnoticed")]
+/// <summary>
+/// Guards that blobs written by an earlier build still open, and that nothing in them can be altered unnoticed.
+/// </summary>
+[TestFixture]
 internal sealed class EncryptionFormatCompatibilityTests
 {
 	#region Data

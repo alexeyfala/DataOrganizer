@@ -8,7 +8,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(LineBookmarks)}"" type")]
+/// <summary>
+/// Tests of <see cref="LineBookmarks" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class LineBookmarksTests
 {
 	#region Methods

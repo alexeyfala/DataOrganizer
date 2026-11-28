@@ -11,7 +11,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Views.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PasswordBoxView)}"" type")]
+/// <summary>
+/// Tests of <see cref="PasswordBoxView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PasswordBoxViewTests
 {
 	#region Methods

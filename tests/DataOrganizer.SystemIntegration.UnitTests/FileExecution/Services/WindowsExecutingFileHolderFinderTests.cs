@@ -4,8 +4,11 @@ using System.Runtime.Versioning;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
+/// <summary>
+/// Tests of <see cref="WindowsExecutingFileHolderFinder" /> type.
+/// </summary>
 [SupportedOSPlatform("windows")]
-[TestFixture(Description = $@"Tests of ""{nameof(WindowsExecutingFileHolderFinder)}"" type")]
+[TestFixture]
 internal sealed class WindowsExecutingFileHolderFinderTests
 {
 	#region Methods

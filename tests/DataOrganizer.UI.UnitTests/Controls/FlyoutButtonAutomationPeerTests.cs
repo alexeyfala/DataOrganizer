@@ -8,7 +8,10 @@ using Material.Icons;
 
 namespace DataOrganizer.UI.UnitTests.Controls;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FlyoutButtonAutomationPeer)}"" type")]
+/// <summary>
+/// Tests of <see cref="FlyoutButtonAutomationPeer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FlyoutButtonAutomationPeerTests
 {
 	#region Methods

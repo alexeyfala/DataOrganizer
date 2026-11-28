@@ -21,7 +21,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Workflows.UnitTests.HierarchyScenarios.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ProtectionScenarios)}"" type")]
+/// <summary>
+/// Tests of <see cref="ProtectionScenarios" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ProtectionScenariosTests
 {
 	#region Methods

@@ -4,6 +4,9 @@ using DataOrganizer.UI.ViewModels;
 
 namespace DataOrganizer.UI.Views;
 
+/// <summary>
+/// Editor of the records of a dataset opened in the built-in editor.
+/// </summary>
 internal partial class DatasetEditorView : UserControl
 {
 	#region Constructors

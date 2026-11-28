@@ -23,6 +23,9 @@ public static class Program
 
 	#region Helpers
 	// Avalonia configuration, don't remove; also used by visual designer.
+	/// <summary>
+	/// Builds the Avalonia application with its platform options.
+	/// </summary>
 	private static AppBuilder BuildAvaloniaApp()
 	{
 		return AppBuilder

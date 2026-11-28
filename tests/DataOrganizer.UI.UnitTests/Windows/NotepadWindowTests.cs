@@ -45,7 +45,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotepadWindow)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotepadWindow" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NotepadWindowTests
 {
 	#region Data

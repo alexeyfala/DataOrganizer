@@ -14,7 +14,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Views.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(KeyValueInputView)}"" type")]
+/// <summary>
+/// Tests of <see cref="KeyValueInputView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class KeyValueInputViewTests
 {
 	#region Methods

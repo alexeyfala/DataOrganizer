@@ -6,7 +6,10 @@ using System.Text;
 
 namespace DataOrganizer.Documents.UnitTests.DatasetRecords.Models;
 
-[TestFixture(Description = "Guards that the records of a dataset left by an earlier build still open and are written the same")]
+/// <summary>
+/// Guards that the records of a dataset left by an earlier build still open and are written the same.
+/// </summary>
+[TestFixture]
 internal sealed class DatasetRecordFormatCompatibilityTests
 {
 	#region Data

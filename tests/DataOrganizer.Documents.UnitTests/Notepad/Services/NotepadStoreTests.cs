@@ -18,7 +18,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Documents.UnitTests.Notepad.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotepadStore)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotepadStore" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NotepadStoreTests
 {
 	#region Data

@@ -19,7 +19,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Workflows.UnitTests.AppLifecycle.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(StartupDataLoader)}"" type")]
+/// <summary>
+/// Tests of <see cref="StartupDataLoader" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class StartupDataLoaderTests
 {
 	#region Methods

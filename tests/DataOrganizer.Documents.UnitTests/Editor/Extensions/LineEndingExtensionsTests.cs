@@ -4,7 +4,10 @@ using DataOrganizer.Documents.Editor.Extensions;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(LineEndingExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="LineEndingExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class LineEndingExtensionsTests
 {
 	#region Methods

@@ -4,7 +4,10 @@ using DataOrganizer.Documents.TextProcessing.Helpers;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ChoiceSearch)}"" type")]
+/// <summary>
+/// Tests of <see cref="ChoiceSearch" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ChoiceSearchTests
 {
 	#region Methods

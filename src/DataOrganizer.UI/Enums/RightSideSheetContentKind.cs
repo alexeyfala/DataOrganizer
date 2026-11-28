@@ -1,5 +1,3 @@
-
-
 namespace DataOrganizer.UI.Enums;
 
 /// <summary>

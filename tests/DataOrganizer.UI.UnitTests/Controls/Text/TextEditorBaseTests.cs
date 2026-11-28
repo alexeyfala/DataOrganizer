@@ -22,7 +22,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(TextEditorBase)}"" type")]
+/// <summary>
+/// Tests of <see cref="TextEditorBase" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class TextEditorBaseTests
 {
 	#region Data

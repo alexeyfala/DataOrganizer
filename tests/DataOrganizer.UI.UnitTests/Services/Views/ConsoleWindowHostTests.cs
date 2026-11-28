@@ -24,7 +24,10 @@ using NSubstitute;
 
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ConsoleWindowHost)}"" type")]
+/// <summary>
+/// Tests of <see cref="ConsoleWindowHost" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ConsoleWindowHostTests
 {
 	#region Methods

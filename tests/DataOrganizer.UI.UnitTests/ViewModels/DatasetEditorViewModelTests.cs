@@ -49,7 +49,10 @@ using System.Windows.Input;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DatasetEditorViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="DatasetEditorViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DatasetEditorViewModelTests
 {
 	#region Data

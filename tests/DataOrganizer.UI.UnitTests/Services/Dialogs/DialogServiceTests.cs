@@ -31,7 +31,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Services.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DialogService)}"" type")]
+/// <summary>
+/// Tests of <see cref="DialogService" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DialogServiceTests
 {
 	#region Methods

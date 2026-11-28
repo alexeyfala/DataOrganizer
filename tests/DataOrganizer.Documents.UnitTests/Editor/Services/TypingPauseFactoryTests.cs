@@ -10,7 +10,10 @@ using System;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(TypingPauseFactory)}"" type")]
+/// <summary>
+/// Tests of <see cref="TypingPauseFactory" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class TypingPauseFactoryTests
 {
 	#region Methods

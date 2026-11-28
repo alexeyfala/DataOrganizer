@@ -20,7 +20,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Services.Clipboard;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardAccessor)}"" type")]
+/// <summary>
+/// Tests of <see cref="ClipboardAccessor" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ClipboardAccessorTests
 {
 	#region Data

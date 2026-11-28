@@ -14,7 +14,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DatasetFieldView)}"" type")]
+/// <summary>
+/// Tests of <see cref="DatasetFieldView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DatasetFieldViewTests
 {
 	#region Methods

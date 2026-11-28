@@ -7,8 +7,11 @@ using System.Text.Json;
 
 namespace DataOrganizer.GuardTests.Guards.Versions;
 
+/// <summary>
+/// Guards that the dotnet-ef tool has the version of the EF Core packages of the projects.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the dotnet-ef tool has the version of the EF Core packages of the projects")]
+[TestFixture]
 internal sealed class EfToolVersionConsistencyTests
 {
 	#region Data

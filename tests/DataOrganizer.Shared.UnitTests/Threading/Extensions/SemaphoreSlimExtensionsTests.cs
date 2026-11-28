@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Shared.UnitTests.Threading.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SemaphoreSlimExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="SemaphoreSlimExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SemaphoreSlimExtensionsTests
 {
 	#region Methods

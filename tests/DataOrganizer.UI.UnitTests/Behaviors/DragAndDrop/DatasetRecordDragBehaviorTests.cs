@@ -21,7 +21,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.DragAndDrop;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DatasetRecordDragBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="DatasetRecordDragBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DatasetRecordDragBehaviorTests
 {
 	#region Data

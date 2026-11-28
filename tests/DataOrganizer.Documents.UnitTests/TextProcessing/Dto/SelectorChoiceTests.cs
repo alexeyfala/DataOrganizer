@@ -3,7 +3,10 @@ using DataOrganizer.Documents.TextProcessing.Dto;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SelectorChoice)}"" type")]
+/// <summary>
+/// Tests of <see cref="SelectorChoice" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SelectorChoiceTests
 {
 	#region Methods

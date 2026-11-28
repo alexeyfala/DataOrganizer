@@ -24,7 +24,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.Notes.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NoteEditor)}"" type")]
+/// <summary>
+/// Tests of <see cref="NoteEditor" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NoteEditorTests
 {
 	#region Methods

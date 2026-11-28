@@ -6,7 +6,10 @@ using NSubstitute;
 
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AppProcessExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="AppProcessExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AppProcessExtensionsTests
 {
 	#region Methods

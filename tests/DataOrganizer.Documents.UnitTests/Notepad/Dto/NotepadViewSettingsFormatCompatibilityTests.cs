@@ -5,7 +5,10 @@ using DataOrganizer.Shared.Services;
 
 namespace DataOrganizer.Documents.UnitTests.Notepad.Dto;
 
-[TestFixture(Description = "Guards that the notepad tabs left by an earlier build still open")]
+/// <summary>
+/// Guards that the notepad tabs left by an earlier build still open.
+/// </summary>
+[TestFixture]
 internal sealed class NotepadViewSettingsFormatCompatibilityTests
 {
 	#region Data

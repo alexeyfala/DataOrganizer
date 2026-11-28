@@ -10,7 +10,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AppPickerViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="AppPickerViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AppPickerViewModelTests
 {
 	#region Methods

@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ConsoleLog)}"" type")]
+/// <summary>
+/// Tests of <see cref="ConsoleLog" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ConsoleLogTests
 {
 	#region Methods

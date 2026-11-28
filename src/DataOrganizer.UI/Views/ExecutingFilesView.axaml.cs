@@ -2,6 +2,9 @@ using Avalonia.Controls;
 
 namespace DataOrganizer.UI.Views;
 
+/// <summary>
+/// View of the files executing in the operating system.
+/// </summary>
 internal sealed partial class ExecutingFilesView : UserControl
 {
 	#region Constructors

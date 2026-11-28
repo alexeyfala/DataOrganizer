@@ -32,7 +32,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Security.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EncryptedContentWriter)}"" type")]
+/// <summary>
+/// Tests of <see cref="EncryptedContentWriter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EncryptedContentWriterTests
 {
 	#region Methods

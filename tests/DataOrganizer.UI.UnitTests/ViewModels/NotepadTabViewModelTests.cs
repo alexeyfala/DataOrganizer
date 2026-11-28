@@ -5,7 +5,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotepadTabViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotepadTabViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NotepadTabViewModelTests
 {
 	#region Methods

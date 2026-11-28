@@ -81,9 +81,9 @@ public static class RepositoryServiceCollectionExtensions
 			// Pooled connections are reused, and the pragmas do not survive in the database file.
 			builder.AddInterceptors(new SqlitePragmaInterceptor());
 
-			//ILogger logger = provider.GetRequiredService<ILogger>();
+			// ILogger logger = provider.GetRequiredService<ILogger>();
 
-			//builder.LogTo(logger.LogDebugWithTemplate);
+			// builder.LogTo(logger.LogDebugWithTemplate);
 		}
 		catch (Exception ex)
 		{

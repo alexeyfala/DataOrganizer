@@ -10,7 +10,11 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards that the expander of a tree row is named for UI Automation by a tip of its state, and stays out of it in a row without children")]
+/// <summary>
+/// Guards that the expander of a tree row is named for UI Automation by a tip of its state, and stays out of it in a
+/// row without children.
+/// </summary>
+[TestFixture]
 internal sealed class TreeViewItemAutomationTests
 {
 	#region Methods

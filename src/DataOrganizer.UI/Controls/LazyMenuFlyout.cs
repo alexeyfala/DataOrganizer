@@ -33,6 +33,9 @@ internal sealed class LazyMenuFlyout : Flyout
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Lets a click outside the flyout reach the place it falls on.
+	/// </summary>
 	static LazyMenuFlyout()
 	{
 		// A click outside closes the menu and still reaches the place it falls on.

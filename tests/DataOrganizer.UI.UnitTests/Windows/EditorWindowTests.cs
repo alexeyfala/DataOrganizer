@@ -64,7 +64,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EditorWindow)}"" type")]
+/// <summary>
+/// Tests of <see cref="EditorWindow" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EditorWindowTests
 {
 	#region Data

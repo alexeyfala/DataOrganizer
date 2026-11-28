@@ -11,7 +11,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(JsonFileStore)}"" type")]
+/// <summary>
+/// Tests of <see cref="JsonFileStore" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class JsonFileStoreTests
 {
 	#region Data

@@ -6,7 +6,10 @@ using System;
 
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NameFilter)}"" type")]
+/// <summary>
+/// Tests of <see cref="NameFilter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NameFilterTests
 {
 	#region Methods

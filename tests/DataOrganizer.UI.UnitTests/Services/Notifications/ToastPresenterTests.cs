@@ -11,7 +11,10 @@ using NSubstitute;
 
 namespace DataOrganizer.UI.UnitTests.Services.Notifications;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ToastPresenter)}"" type")]
+/// <summary>
+/// Tests of <see cref="ToastPresenter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ToastPresenterTests
 {
 	#region Methods

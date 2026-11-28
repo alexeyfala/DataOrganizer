@@ -7,7 +7,10 @@ using Material.Icons.Avalonia;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards that an icon telling the state of an object shows to UI Automation as an image named by its tip")]
+/// <summary>
+/// Guards that an icon telling the state of an object shows to UI Automation as an image named by its tip.
+/// </summary>
+[TestFixture]
 internal sealed class StatusIconAutomationTests
 {
 	#region Data

@@ -21,7 +21,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Workflows.UnitTests.HierarchyExchange.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(XmlExchangeFormat)}"" type")]
+/// <summary>
+/// Tests of <see cref="XmlExchangeFormat" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class XmlExchangeFormatTests
 {
 	#region Data

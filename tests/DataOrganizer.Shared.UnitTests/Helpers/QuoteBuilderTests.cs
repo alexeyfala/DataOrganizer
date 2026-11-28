@@ -5,7 +5,10 @@ using System.Globalization;
 
 namespace DataOrganizer.Shared.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(QuoteBuilder)}"" type")]
+/// <summary>
+/// Tests of <see cref="QuoteBuilder" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class QuoteBuilderTests
 {
 	#region Data

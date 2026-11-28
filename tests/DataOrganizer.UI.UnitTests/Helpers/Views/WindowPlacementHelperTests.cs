@@ -11,7 +11,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.UI.UnitTests.Helpers.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(WindowPlacementHelper)}"" type")]
+/// <summary>
+/// Tests of <see cref="WindowPlacementHelper" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class WindowPlacementHelperTests
 {
 	#region Methods

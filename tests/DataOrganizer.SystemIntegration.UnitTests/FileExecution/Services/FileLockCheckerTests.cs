@@ -16,7 +16,10 @@ using TimeProvider = System.TimeProvider;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileLockChecker)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileLockChecker" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileLockCheckerTests
 {
 	#region Data

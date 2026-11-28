@@ -3,7 +3,10 @@ using DataOrganizer.Documents.DatasetRecords.Models;
 
 namespace DataOrganizer.Documents.UnitTests.DatasetRecords.Models;
 
-[TestFixture(Description = $@"Tests of ""{nameof(RecordsGroup)}"" type")]
+/// <summary>
+/// Tests of <see cref="RecordsGroup" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class RecordsGroupTests
 {
 	#region Methods

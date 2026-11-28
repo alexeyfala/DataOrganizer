@@ -10,7 +10,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards that the cards of the Material menus are outlined, as a white card blends into the light page")]
+/// <summary>
+/// Guards that the cards of the Material menus are outlined, as a white card blends into the light page.
+/// </summary>
+[TestFixture]
 internal sealed class FlyoutOutlineTests
 {
 	#region Data

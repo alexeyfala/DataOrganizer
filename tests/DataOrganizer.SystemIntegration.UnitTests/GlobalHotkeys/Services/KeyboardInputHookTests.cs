@@ -42,7 +42,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(KeyboardInputHook)}"" type")]
+/// <summary>
+/// Tests of <see cref="KeyboardInputHook" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class KeyboardInputHookTests
 {
 	#region Data

@@ -23,7 +23,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogService)}"" type")]
+/// <summary>
+/// Tests of <see cref="ClipboardLogService" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ClipboardLogServiceTests
 {
 	#region Data

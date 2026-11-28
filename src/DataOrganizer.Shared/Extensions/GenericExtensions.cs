@@ -193,16 +193,16 @@ public static class GenericExtensions
 	/// <c>True</c> when the value is the default value for its type.
 	/// </summary>
 	/// <remarks>
-	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
-	///</remarks>
+	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs.
+	/// </remarks>
 	public static bool IsDefault<T>([NotNullWhen(false)] this T value) => EqualityComparer<T>.Default.Equals(value, default);
 
 	/// <summary>
 	/// <c>True</c> when the value is not the default value for its type.
 	/// </summary>
 	/// <remarks>
-	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
-	///</remarks>
+	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs.
+	/// </remarks>
 	public static bool IsNotDefault<T>([NotNullWhen(true)] this T value) => !value.IsDefault();
 
 	/// <summary>
@@ -303,7 +303,6 @@ public static class GenericExtensions
 		targetProperty = property;
 
 		return true;
-
 	}
 	#endregion
 }

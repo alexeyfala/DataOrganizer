@@ -4,7 +4,10 @@ using System.Linq;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(StringWiper)}"" type")]
+/// <summary>
+/// Tests of <see cref="StringWiper" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class StringWiperTests
 {
 	#region Methods

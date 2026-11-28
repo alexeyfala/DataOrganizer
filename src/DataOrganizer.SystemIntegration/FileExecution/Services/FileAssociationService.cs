@@ -71,6 +71,9 @@ public sealed partial class FileAssociationService : IFileAssociationService
 	#endregion
 
 	#region Native
+	/// <summary>
+	/// Reads a string of a file association, such as the path of the program that opens the file type.
+	/// </summary>
 	[LibraryImport("Shlwapi.dll", EntryPoint = "AssocQueryStringW", StringMarshalling = StringMarshalling.Utf16)]
 	private static partial uint AssocQueryString(
 		AssocF flags,

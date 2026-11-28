@@ -55,7 +55,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FavoritesViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="FavoritesViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FavoritesViewModelTests
 {
 	#region Methods
@@ -141,7 +144,7 @@ internal sealed class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		sut.PopupContent = new();
+		sut.PopupContent = FavoritesPopupContentKind.None;
 
 		const int count = 5;
 

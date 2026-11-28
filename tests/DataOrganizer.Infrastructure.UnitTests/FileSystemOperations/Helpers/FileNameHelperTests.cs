@@ -2,7 +2,10 @@ using DataOrganizer.Infrastructure.FileSystemOperations.Helpers;
 
 namespace DataOrganizer.Infrastructure.UnitTests.FileSystemOperations.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileNameHelper)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileNameHelper" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileNameHelperTests
 {
 	#region Methods

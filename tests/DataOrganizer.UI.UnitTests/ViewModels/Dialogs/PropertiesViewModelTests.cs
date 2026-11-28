@@ -13,7 +13,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PropertiesViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="PropertiesViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PropertiesViewModelTests
 {
 	#region Methods

@@ -37,7 +37,7 @@ public static class RandomValues
 	/// Generates a random <see cref="double" /> number within a given range.
 	/// </summary>
 	/// <remarks>
-	/// <see href="https://code-maze.com/csharp-random-double-range" />
+	/// <see href="https://code-maze.com/csharp-random-double-range" />.
 	/// </remarks>
 	public static double CreateDouble(double minValue, double maxValue)
 	{

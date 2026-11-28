@@ -13,7 +13,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ConsoleLogViewer)}"" type")]
+/// <summary>
+/// Tests of <see cref="ConsoleLogViewer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ConsoleLogViewerTests
 {
 	#region Data

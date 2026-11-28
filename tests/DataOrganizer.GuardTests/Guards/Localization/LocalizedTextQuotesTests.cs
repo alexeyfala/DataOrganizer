@@ -9,8 +9,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.Localization;
 
+/// <summary>
+/// Guards the localized texts against quotes that the quote builder does not put.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the localized texts against quotes that the quote builder does not put")]
+[TestFixture]
 internal sealed partial class LocalizedTextQuotesTests
 {
 	#region Methods

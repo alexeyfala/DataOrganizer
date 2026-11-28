@@ -23,7 +23,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.FileContents.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileContentsWriter)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileContentsWriter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileContentsWriterTests
 {
 	#region Methods

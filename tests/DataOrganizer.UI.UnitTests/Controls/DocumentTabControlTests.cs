@@ -22,7 +22,10 @@ using System.Windows.Input;
 
 namespace DataOrganizer.UI.UnitTests.Controls;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentTabControl)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocumentTabControl" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocumentTabControlTests
 {
 	#region Methods

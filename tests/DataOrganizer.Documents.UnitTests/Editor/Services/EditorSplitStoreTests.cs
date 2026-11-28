@@ -4,7 +4,10 @@ using System;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EditorSplitStore)}"" type")]
+/// <summary>
+/// Tests of <see cref="EditorSplitStore" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EditorSplitStoreTests
 {
 	#region Methods

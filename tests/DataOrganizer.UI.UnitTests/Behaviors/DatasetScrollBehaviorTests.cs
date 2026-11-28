@@ -24,7 +24,10 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DatasetScrollBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="DatasetScrollBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DatasetScrollBehaviorTests
 {
 	#region Data

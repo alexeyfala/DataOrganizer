@@ -13,7 +13,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards that the copy of Material's side sheet theme still fits Material's side sheet")]
+/// <summary>
+/// Guards that the copy of Material's side sheet theme still fits Material's side sheet.
+/// </summary>
+[TestFixture]
 internal sealed class ScrollableSideSheetThemeTests
 {
 	#region Data

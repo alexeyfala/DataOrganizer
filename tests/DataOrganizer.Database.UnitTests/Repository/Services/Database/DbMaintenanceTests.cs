@@ -12,7 +12,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Services.Database;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DbMaintenance)}"" type")]
+/// <summary>
+/// Tests of <see cref="DbMaintenance" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DbMaintenanceTests
 {
 	#region Data

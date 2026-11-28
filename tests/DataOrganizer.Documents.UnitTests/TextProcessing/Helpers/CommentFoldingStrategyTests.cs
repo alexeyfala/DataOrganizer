@@ -10,7 +10,10 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(CommentFoldingStrategy)}"" type")]
+/// <summary>
+/// Tests of <see cref="CommentFoldingStrategy" /> type.
+/// </summary>
+[TestFixture]
 internal sealed partial class CommentFoldingStrategyTests
 {
 	#region Data

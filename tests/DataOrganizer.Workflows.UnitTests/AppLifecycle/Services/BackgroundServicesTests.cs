@@ -15,7 +15,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Workflows.UnitTests.AppLifecycle.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(BackgroundServices)}"" type")]
+/// <summary>
+/// Tests of <see cref="BackgroundServices" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class BackgroundServicesTests
 {
 	#region Methods

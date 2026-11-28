@@ -8,7 +8,10 @@ using SharpHook.Data;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(UnreadableHotkeysFinder)}"" type")]
+/// <summary>
+/// Tests of <see cref="UnreadableHotkeysFinder" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class UnreadableHotkeysFinderTests
 {
 	#region Methods

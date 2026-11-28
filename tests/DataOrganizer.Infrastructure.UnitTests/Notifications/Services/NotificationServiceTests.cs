@@ -15,7 +15,10 @@ using System;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Notifications.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotificationService)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotificationService" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NotificationServiceTests
 {
 	#region Data

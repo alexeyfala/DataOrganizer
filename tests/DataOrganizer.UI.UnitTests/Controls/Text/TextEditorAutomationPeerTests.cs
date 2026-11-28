@@ -10,7 +10,10 @@ using Action = System.Action;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(TextEditorAutomationPeer)}"" type")]
+/// <summary>
+/// Tests of <see cref="TextEditorAutomationPeer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class TextEditorAutomationPeerTests
 {
 	#region Methods

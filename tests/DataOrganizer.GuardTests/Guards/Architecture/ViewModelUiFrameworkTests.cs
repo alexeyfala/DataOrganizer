@@ -8,8 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.Architecture;
 
+/// <summary>
+/// Guards the view models against the types of the UI framework.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the view models against the types of the UI framework")]
+[TestFixture]
 internal sealed class ViewModelUiFrameworkTests
 {
 	#region Data

@@ -25,6 +25,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.ViewModels;
 
+/// <summary>
+/// Base of the view models of the editors that show a file opened in the built-in editor.
+/// </summary>
 public abstract partial class EmbeddedEditorViewModelBase :
 	ObservableDisposableBase,
 	IRecipient<EditorReadOnlyModeChangedMessage>,

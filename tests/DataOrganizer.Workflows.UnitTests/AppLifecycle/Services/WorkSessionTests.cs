@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Workflows.UnitTests.AppLifecycle.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(WorkSession)}"" type")]
+/// <summary>
+/// Tests of <see cref="WorkSession" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class WorkSessionTests
 {
 	#region Methods

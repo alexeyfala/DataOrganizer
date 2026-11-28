@@ -9,7 +9,10 @@ using System.Linq;
 
 namespace DataOrganizer.Hierarchy.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HierarchyExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="HierarchyExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class HierarchyExtensionsTests
 {
 	#region Methods

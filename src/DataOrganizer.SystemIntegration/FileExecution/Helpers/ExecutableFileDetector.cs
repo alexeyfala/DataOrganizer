@@ -193,7 +193,7 @@ public static class ExecutableFileDetector
 		".rb",					// Ruby
 		".lua",					// Lua
 		".php",					// PHP CLI scripts
-		".tcl"					// Tcl scripts
+		".tcl" // Tcl scripts
 	#endregion
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase).GetAlternateLookup<ReadOnlySpan<char>>();
 	// Stryker restore all

@@ -21,7 +21,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Security.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FolderContentsConverter)}"" type")]
+/// <summary>
+/// Tests of <see cref="FolderContentsConverter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FolderContentsConverterTests
 {
 	#region Methods

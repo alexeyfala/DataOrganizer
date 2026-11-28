@@ -82,7 +82,7 @@ public sealed class NoteCipher : INoteCipher
 		try
 		{
 			// A protected note can only be written while its keeper is unlocked;
-			// a failure here must not take the note editor down, the caller reports the refusal.			
+			// a failure here must not take the note editor down, the caller reports the refusal.
 			return item.FindUnlockedKeeper() is { } keeper
 				? _contentCipher.TryEncrypt(keeper.Id, ContentIdentity.Note, decoded)
 				: null;

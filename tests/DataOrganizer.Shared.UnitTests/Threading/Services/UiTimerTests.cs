@@ -12,7 +12,10 @@ using System.Threading;
 
 namespace DataOrganizer.Shared.UnitTests.Threading.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(UiTimer)}"" type")]
+/// <summary>
+/// Tests of <see cref="UiTimer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class UiTimerTests
 {
 	#region Data

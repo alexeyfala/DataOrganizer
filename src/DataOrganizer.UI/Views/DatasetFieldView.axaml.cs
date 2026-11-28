@@ -21,6 +21,9 @@ using System.Windows.Input;
 
 namespace DataOrganizer.UI.Views;
 
+/// <summary>
+/// Field of a record of a dataset that shows its value, which may be hidden, and its note.
+/// </summary>
 internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 {
 	#region Properties

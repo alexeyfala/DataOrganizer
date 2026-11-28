@@ -17,7 +17,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.FileContents.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileContentsOpener)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileContentsOpener" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileContentsOpenerTests
 {
 	#region Methods

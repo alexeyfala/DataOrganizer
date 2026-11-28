@@ -16,7 +16,10 @@ using System.IO.Abstractions;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(RepositoryServiceCollectionExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="RepositoryServiceCollectionExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class RepositoryServiceCollectionExtensionsTests
 {
 	#region Methods

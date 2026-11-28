@@ -12,7 +12,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(IconsBlock)}"" type")]
+/// <summary>
+/// Tests of <see cref="IconsBlock" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class IconsBlockTests
 {
 	#region Methods

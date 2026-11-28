@@ -10,7 +10,10 @@ using System;
 
 namespace DataOrganizer.UI.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AvaloniaLogForwarder)}"" type")]
+/// <summary>
+/// Tests of <see cref="AvaloniaLogForwarder" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AvaloniaLogForwarderTests
 {
 	#region Data

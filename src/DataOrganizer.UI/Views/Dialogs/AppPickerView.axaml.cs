@@ -3,6 +3,9 @@ using DataOrganizer.UI.ViewModels.Dialogs;
 
 namespace DataOrganizer.UI.Views.Dialogs;
 
+/// <summary>
+/// Dialog that chooses the application to open a file with.
+/// </summary>
 internal sealed partial class AppPickerView : UserControl
 {
 	#region Constructors

@@ -4,7 +4,10 @@ using DataOrganizer.Hierarchy.UnitTests.TestHelpers.Factories;
 
 namespace DataOrganizer.Hierarchy.UnitTests.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileDto)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileDto" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileDtoTests
 {
 	#region Methods

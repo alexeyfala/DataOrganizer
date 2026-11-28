@@ -9,7 +9,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards that the buttons Material puts into a text box have tips of the app, not the English ones of their themes")]
+/// <summary>
+/// Guards that the buttons Material puts into a text box have tips of the app, not the English ones of their themes.
+/// </summary>
+[TestFixture]
 internal sealed class TextBoxButtonTipTests
 {
 	#region Data

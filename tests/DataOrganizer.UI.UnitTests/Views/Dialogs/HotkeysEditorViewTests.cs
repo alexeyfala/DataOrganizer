@@ -12,7 +12,10 @@ using NSubstitute;
 
 namespace DataOrganizer.UI.UnitTests.Views.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HotkeysEditorView)}"" type")]
+/// <summary>
+/// Tests of <see cref="HotkeysEditorView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class HotkeysEditorViewTests
 {
 	#region Methods

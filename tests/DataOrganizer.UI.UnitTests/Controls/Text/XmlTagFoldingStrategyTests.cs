@@ -10,7 +10,10 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(XmlTagFoldingStrategy)}"" type")]
+/// <summary>
+/// Tests of <see cref="XmlTagFoldingStrategy" /> type.
+/// </summary>
+[TestFixture]
 internal sealed partial class XmlTagFoldingStrategyTests
 {
 	#region Data

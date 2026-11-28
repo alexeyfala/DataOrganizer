@@ -6,7 +6,10 @@ using System.Globalization;
 
 namespace DataOrganizer.UI.UnitTests.Converters;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PixelsToGridLengthConverter)}"" type")]
+/// <summary>
+/// Tests of <see cref="PixelsToGridLengthConverter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PixelsToGridLengthConverterTests
 {
 	#region Methods

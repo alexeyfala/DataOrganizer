@@ -372,11 +372,11 @@ internal sealed class DocumentTabControl : TabControl
 	}
 
 	/// <inheritdoc />
-	protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
+	protected override void PrepareContainerForItemOverride(Control element, object? item, int index)
 	{
-		base.PrepareContainerForItemOverride(container, item, index);
+		base.PrepareContainerForItemOverride(element, item, index);
 
-		if (container is not TabItem tabItem || TabHeaderTemplate is not { } template)
+		if (element is not TabItem tabItem || TabHeaderTemplate is not { } template)
 		{
 			return;
 		}

@@ -4,7 +4,10 @@ using DataOrganizer.Shared.Helpers;
 
 namespace DataOrganizer.Documents.UnitTests.FileContents.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileContentsMessages)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileContentsMessages" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileContentsMessagesTests
 {
 	#region Methods

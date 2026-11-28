@@ -7,7 +7,10 @@ using System.Collections.Generic;
 
 namespace Setup.CustomActions.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(OtherScopeInstallFinder)}"" type")]
+/// <summary>
+/// Tests of <see cref="OtherScopeInstallFinder" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class OtherScopeInstallFinderTests
 {
 	#region Data

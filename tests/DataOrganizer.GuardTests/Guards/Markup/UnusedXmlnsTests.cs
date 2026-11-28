@@ -9,8 +9,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Markup;
 
+/// <summary>
+/// Guards the markup against namespace prefixes that nothing in the file uses.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the markup against namespace prefixes that nothing in the file uses")]
+[TestFixture]
 internal sealed partial class UnusedXmlnsTests
 {
 	#region Methods

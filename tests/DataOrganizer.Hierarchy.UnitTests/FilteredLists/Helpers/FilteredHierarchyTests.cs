@@ -11,7 +11,10 @@ using System.Threading;
 
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FilteredHierarchy)}"" type")]
+/// <summary>
+/// Tests of <see cref="FilteredHierarchy" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FilteredHierarchyTests
 {
 	#region Methods

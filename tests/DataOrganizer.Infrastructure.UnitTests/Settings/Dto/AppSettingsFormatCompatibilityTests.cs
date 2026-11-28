@@ -6,7 +6,10 @@ using System;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Dto;
 
-[TestFixture(Description = "Guards that the application settings left by an earlier build still open")]
+/// <summary>
+/// Guards that the application settings left by an earlier build still open.
+/// </summary>
+[TestFixture]
 internal sealed class AppSettingsFormatCompatibilityTests
 {
 	#region Data

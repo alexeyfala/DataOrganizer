@@ -35,6 +35,7 @@ internal sealed class WordOccurrenceColorizer : DocumentColorizingTransformer
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
 	protected override void ColorizeLine(DocumentLine line)
 	{
 		int lineStartOffset = line.Offset;

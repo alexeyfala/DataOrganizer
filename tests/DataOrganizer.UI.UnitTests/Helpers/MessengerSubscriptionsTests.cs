@@ -5,7 +5,10 @@ using System;
 
 namespace DataOrganizer.UI.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(MessengerSubscriptions)}"" type")]
+/// <summary>
+/// Tests of <see cref="MessengerSubscriptions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class MessengerSubscriptionsTests
 {
 	#region Methods
@@ -79,10 +82,12 @@ internal sealed class MessengerSubscriptionsTests
 /// </summary>
 internal sealed class MultiSubscription : IRecipient<MessageA>, IRecipient<MessageB>
 {
+	/// <inheritdoc />
 	public void Receive(MessageA message)
 	{
 	}
 
+	/// <inheritdoc />
 	public void Receive(MessageB message)
 	{
 	}

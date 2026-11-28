@@ -7,8 +7,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.Tooling;
 
+/// <summary>
+/// Guards that every call the Stryker settings leave out is still made in the code.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that every call the Stryker settings leave out is still made in the code")]
+[TestFixture]
 internal sealed class StrykerIgnoreMethodsConsistencyTests
 {
 	#region Data

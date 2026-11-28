@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.Helpers.Views;
 
+/// <summary>
+/// Animations of the color of a brush.
+/// </summary>
 internal static class BrushAnimations
 {
 	#region Methods

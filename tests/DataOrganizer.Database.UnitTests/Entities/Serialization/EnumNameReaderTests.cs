@@ -4,7 +4,10 @@ using SharpHook.Data;
 
 namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EnumNameReader)}"" type")]
+/// <summary>
+/// Tests of <see cref="EnumNameReader" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EnumNameReaderTests
 {
 	#region Methods
@@ -66,8 +69,14 @@ internal sealed class EnumNameReaderTests
 	/// </summary>
 	private enum SignedValue
 	{
+		/// <summary>
+		/// No value.
+		/// </summary>
 		None = 0,
 
+		/// <summary>
+		/// First value.
+		/// </summary>
 		First = 1
 	}
 	#endregion

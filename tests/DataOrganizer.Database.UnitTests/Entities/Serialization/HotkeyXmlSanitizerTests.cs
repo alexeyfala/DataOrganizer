@@ -11,7 +11,10 @@ using System.Xml.Serialization;
 
 namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HotkeyXmlSanitizer)}"" type")]
+/// <summary>
+/// Tests of <see cref="HotkeyXmlSanitizer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class HotkeyXmlSanitizerTests
 {
 	#region Methods

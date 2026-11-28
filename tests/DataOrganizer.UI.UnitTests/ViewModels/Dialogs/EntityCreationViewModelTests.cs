@@ -10,7 +10,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EntityCreationViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="EntityCreationViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EntityCreationViewModelTests
 {
 	#region Methods

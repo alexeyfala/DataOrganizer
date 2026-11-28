@@ -7,8 +7,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.Architecture;
 
+/// <summary>
+/// Guards the code against reading the time past the time provider.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the code against reading the time past the time provider")]
+[TestFixture]
 internal sealed partial class SystemClockTests
 {
 	#region Data

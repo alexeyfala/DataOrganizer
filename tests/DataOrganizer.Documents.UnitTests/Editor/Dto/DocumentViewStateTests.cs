@@ -3,7 +3,10 @@ using DataOrganizer.Documents.Editor.Dto;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentViewState)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocumentViewState" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocumentViewStateTests
 {
 	#region Methods

@@ -118,6 +118,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	/// <summary>
 	/// Returns the longest value.
 	/// </summary>
-	private static int GetLongestValueLength(IEnumerable<string> values) => (values.MaxBy(x => x.Length)?.Length) ?? 0;
+	private static int GetLongestValueLength(IEnumerable<string> values) => values.MaxBy(x => x.Length)?.Length ?? 0;
 	#endregion
 }

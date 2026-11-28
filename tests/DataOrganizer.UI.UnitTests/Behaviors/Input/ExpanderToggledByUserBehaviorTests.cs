@@ -13,7 +13,10 @@ using System.Windows.Input;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExpanderToggledByUserBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="ExpanderToggledByUserBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExpanderToggledByUserBehaviorTests
 {
 	#region Methods

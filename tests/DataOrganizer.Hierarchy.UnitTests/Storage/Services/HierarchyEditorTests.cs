@@ -31,7 +31,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Hierarchy.UnitTests.Storage.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HierarchyEditor)}"" type")]
+/// <summary>
+/// Tests of <see cref="HierarchyEditor" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class HierarchyEditorTests
 {
 	#region Methods

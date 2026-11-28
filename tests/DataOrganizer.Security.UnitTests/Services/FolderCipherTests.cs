@@ -14,7 +14,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Security.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FolderCipher)}"" type")]
+/// <summary>
+/// Tests of <see cref="FolderCipher" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FolderCipherTests
 {
 	#region Methods

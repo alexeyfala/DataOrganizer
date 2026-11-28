@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.FileExecution.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AsyncRollbackScope)}"" type")]
+/// <summary>
+/// Tests of <see cref="AsyncRollbackScope" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AsyncRollbackScopeTests
 {
 	#region Methods

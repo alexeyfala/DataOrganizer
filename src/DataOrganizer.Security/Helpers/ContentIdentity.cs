@@ -7,6 +7,7 @@ namespace DataOrganizer.Security.Helpers;
 /// The field a ciphertext belongs to, rendered as authenticated associated data.
 /// Only the purpose is authenticated, so ciphertexts of one purpose stay interchangeable.
 /// </summary>
+/// <param name="Purpose">Field the ciphertext belongs to.</param>
 public readonly record struct ContentIdentity(ContentPurpose Purpose)
 {
 	#region Properties

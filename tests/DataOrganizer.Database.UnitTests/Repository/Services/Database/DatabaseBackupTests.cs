@@ -13,7 +13,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Services.Database;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DatabaseBackup)}"" type")]
+/// <summary>
+/// Tests of <see cref="DatabaseBackup" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DatabaseBackupTests
 {
 	#region Data

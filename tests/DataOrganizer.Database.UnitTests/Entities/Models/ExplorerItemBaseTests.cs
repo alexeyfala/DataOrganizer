@@ -3,7 +3,10 @@ using DataOrganizer.Database.Entities.Models;
 
 namespace DataOrganizer.Database.UnitTests.Entities.Models;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExplorerItemBase)}"" type")]
+/// <summary>
+/// Tests of <see cref="ExplorerItemBase" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExplorerItemBaseTests
 {
 	#region Methods

@@ -97,6 +97,9 @@ internal sealed class FlyoutButton : Button
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Sets the font, the alignment and the cursor of a menu item.
+	/// </summary>
 	public FlyoutButton()
 	{
 		FontWeight = FontWeight.Normal;

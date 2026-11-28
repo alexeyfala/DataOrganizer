@@ -18,7 +18,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(GlobalHookRunner)}"" type")]
+/// <summary>
+/// Tests of <see cref="GlobalHookRunner" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class GlobalHookRunnerTests
 {
 	#region Methods
@@ -355,7 +358,7 @@ internal sealed class GlobalHookRunnerTests
 				{
 					running.Set();
 
-					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(default));
 
 					released.Wait();
 				});
@@ -412,7 +415,7 @@ internal sealed class GlobalHookRunnerTests
 				{
 					running.Set();
 
-					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(default));
 
 					released.Wait();
 				});
@@ -473,7 +476,7 @@ internal sealed class GlobalHookRunnerTests
 				.When(x => x.Run(GlobalHookType.Keyboard))
 				.Do(_ =>
 				{
-					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(default));
 
 					released.Wait();
 				});
@@ -536,7 +539,7 @@ internal sealed class GlobalHookRunnerTests
 				{
 					running.Set();
 
-					hook.HookEnabled += Raise.EventWith(new HookEventArgs(new UioHookEvent()));
+					hook.HookEnabled += Raise.EventWith(new HookEventArgs(default));
 
 					released.Wait();
 				});

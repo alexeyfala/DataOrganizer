@@ -4,7 +4,10 @@ using System.Text;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileEncoding)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileEncoding" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileEncodingTests
 {
 	#region Methods

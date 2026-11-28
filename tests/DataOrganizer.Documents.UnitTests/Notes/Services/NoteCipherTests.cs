@@ -14,7 +14,10 @@ using System.Text;
 
 namespace DataOrganizer.Documents.UnitTests.Notes.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NoteCipher)}"" type")]
+/// <summary>
+/// Tests of <see cref="NoteCipher" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NoteCipherTests
 {
 	#region Methods

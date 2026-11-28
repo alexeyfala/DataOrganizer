@@ -19,7 +19,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SplitDocumentEditor)}"" type")]
+/// <summary>
+/// Tests of <see cref="SplitDocumentEditor" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SplitDocumentEditorTests
 {
 	#region Data

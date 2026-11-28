@@ -9,7 +9,10 @@ using NSubstitute;
 
 namespace DataOrganizer.UI.UnitTests.Services.Settings;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AutoLockSettings)}"" type")]
+/// <summary>
+/// Tests of <see cref="AutoLockSettings" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AutoLockSettingsTests
 {
 	#region Methods

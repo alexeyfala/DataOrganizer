@@ -2,6 +2,9 @@ using Avalonia.Controls;
 
 namespace DataOrganizer.UI.Views;
 
+/// <summary>
+/// View of the favorite files and their categories.
+/// </summary>
 internal sealed partial class SelectedFavoritesView : UserControl
 {
 	#region Constructors

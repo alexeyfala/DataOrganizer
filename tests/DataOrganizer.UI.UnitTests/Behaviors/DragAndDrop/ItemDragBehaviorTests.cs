@@ -13,7 +13,10 @@ using DataOrganizer.UI.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.DragAndDrop;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ItemDragBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="ItemDragBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ItemDragBehaviorTests
 {
 	#region Data

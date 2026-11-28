@@ -17,7 +17,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Hierarchy.UnitTests.Storage.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EntityPropertyWriter)}"" type")]
+/// <summary>
+/// Tests of <see cref="EntityPropertyWriter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EntityPropertyWriterTests
 {
 	#region Methods

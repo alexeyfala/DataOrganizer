@@ -8,7 +8,10 @@ using DataOrganizer.UI.Behaviors.Input;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClearOnEscapeAssist)}"" type")]
+/// <summary>
+/// Tests of <see cref="ClearOnEscapeAssist" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ClearOnEscapeAssistTests
 {
 	#region Methods

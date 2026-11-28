@@ -14,7 +14,10 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SelectionOccurrenceRenderer)}"" type")]
+/// <summary>
+/// Tests of <see cref="SelectionOccurrenceRenderer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SelectionOccurrenceRendererTests
 {
 	#region Methods

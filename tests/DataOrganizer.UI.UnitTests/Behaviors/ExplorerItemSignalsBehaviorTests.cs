@@ -16,7 +16,10 @@ using System.Windows.Input;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExplorerItemSignalsBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="ExplorerItemSignalsBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExplorerItemSignalsBehaviorTests
 {
 	#region Data

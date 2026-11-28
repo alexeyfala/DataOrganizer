@@ -20,7 +20,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Infrastructure.UnitTests.AppUpdates.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(UpdateCheckService)}"" type")]
+/// <summary>
+/// Tests of <see cref="UpdateCheckService" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class UpdateCheckServiceTests
 {
 	#region Methods

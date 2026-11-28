@@ -6,7 +6,10 @@ using DataOrganizer.TestSupport.Common;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FolderProtectionRules)}"" type")]
+/// <summary>
+/// Tests of <see cref="FolderProtectionRules" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FolderProtectionRulesTests
 {
 	#region Methods

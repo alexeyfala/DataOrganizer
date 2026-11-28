@@ -7,8 +7,11 @@ using System.Reflection;
 
 namespace DataOrganizer.GuardTests.Guards.Versions;
 
+/// <summary>
+/// Guards that the Russian satellite of AvaloniaEdit has the version of AvaloniaEdit.dll.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the Russian satellite of AvaloniaEdit has the version of AvaloniaEdit.dll")]
+[TestFixture]
 internal sealed class AvaloniaEditSatelliteVersionTests
 {
 	#region Methods

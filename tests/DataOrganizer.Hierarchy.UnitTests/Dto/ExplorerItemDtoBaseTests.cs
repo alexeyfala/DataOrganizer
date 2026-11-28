@@ -8,7 +8,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Hierarchy.UnitTests.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExplorerItemDtoBase)}"" type")]
+/// <summary>
+/// Tests of <see cref="ExplorerItemDtoBase" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExplorerItemDtoBaseTests
 {
 	#region Methods

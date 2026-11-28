@@ -15,7 +15,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Templates;
 
-[TestFixture(Description = @"Tests of ""FileListTemplates.axaml"" resources")]
+/// <summary>
+/// Tests of <c>FileListTemplates.axaml</c> resources.
+/// </summary>
+[TestFixture]
 internal sealed class FileListTemplatesTests
 {
 	#region Data

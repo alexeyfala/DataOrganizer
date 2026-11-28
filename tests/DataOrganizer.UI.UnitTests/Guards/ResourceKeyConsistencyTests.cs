@@ -11,8 +11,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
+/// <summary>
+/// Guards that every resource key the markup references can still be resolved.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that every resource key the markup references can still be resolved")]
+[TestFixture]
 internal sealed partial class ResourceKeyConsistencyTests
 {
 	#region Data

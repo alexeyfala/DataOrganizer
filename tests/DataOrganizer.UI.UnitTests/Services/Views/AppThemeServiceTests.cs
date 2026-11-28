@@ -16,7 +16,10 @@ using NSubstitute;
 
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AppThemeService)}"" type")]
+/// <summary>
+/// Tests of <see cref="AppThemeService" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AppThemeServiceTests
 {
 	#region Data

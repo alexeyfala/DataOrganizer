@@ -6,6 +6,9 @@ using DataOrganizer.Hierarchy.Enums;
 
 namespace DataOrganizer.UI.Views;
 
+/// <summary>
+/// Row of icons that show the state of an object: its note, encryption, hotkeys and whether the file is open.
+/// </summary>
 internal sealed partial class IconsBlock : UserControl
 {
 	#region Properties

@@ -10,10 +10,16 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Infrastructure.UnitTests.AppUpdates.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(UpdateNotifier)}"" type")]
+/// <summary>
+/// Tests of <see cref="UpdateNotifier" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class UpdateNotifierTests
 {
 	#region Data
+	/// <summary>
+	/// Address of the release page.
+	/// </summary>
 	private const string ReleaseUrl = "https://example.test/release";
 	#endregion
 

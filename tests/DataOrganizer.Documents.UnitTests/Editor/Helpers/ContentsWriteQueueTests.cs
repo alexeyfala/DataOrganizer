@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ContentsWriteQueue)}"" type")]
+/// <summary>
+/// Tests of <see cref="ContentsWriteQueue" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ContentsWriteQueueTests
 {
 	#region Methods

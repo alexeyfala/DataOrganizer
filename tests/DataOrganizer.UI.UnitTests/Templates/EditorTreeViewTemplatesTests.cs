@@ -17,7 +17,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Templates;
 
-[TestFixture(Description = @"Tests of ""EditorTreeViewTemplates.axaml"" resources")]
+/// <summary>
+/// Tests of <c>EditorTreeViewTemplates.axaml</c> resources.
+/// </summary>
+[TestFixture]
 internal sealed class EditorTreeViewTemplatesTests
 {
 	#region Data

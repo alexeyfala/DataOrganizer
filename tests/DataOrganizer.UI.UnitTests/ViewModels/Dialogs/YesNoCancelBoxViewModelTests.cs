@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(YesNoCancelBoxViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="YesNoCancelBoxViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class YesNoCancelBoxViewModelTests
 {
 	#region Methods

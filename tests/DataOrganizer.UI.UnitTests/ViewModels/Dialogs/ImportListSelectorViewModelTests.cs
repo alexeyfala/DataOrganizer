@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ImportListSelectorViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="ImportListSelectorViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ImportListSelectorViewModelTests
 {
 	#region Methods

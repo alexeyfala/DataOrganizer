@@ -8,8 +8,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Solution;
 
+/// <summary>
+/// Guards that the solution files reference describes every non-code file it covers.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the solution files reference describes every non-code file it covers")]
+[TestFixture]
 internal sealed class SolutionFilesReferenceTests
 {
 	#region Data

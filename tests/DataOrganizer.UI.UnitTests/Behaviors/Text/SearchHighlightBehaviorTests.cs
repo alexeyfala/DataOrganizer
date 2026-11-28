@@ -9,7 +9,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.Text;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SearchHighlightBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="SearchHighlightBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SearchHighlightBehaviorTests
 {
 	#region Methods

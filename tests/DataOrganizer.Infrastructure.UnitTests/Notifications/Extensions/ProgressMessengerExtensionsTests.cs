@@ -7,7 +7,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Notifications.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ProgressMessengerExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="ProgressMessengerExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ProgressMessengerExtensionsTests
 {
 	#region Methods

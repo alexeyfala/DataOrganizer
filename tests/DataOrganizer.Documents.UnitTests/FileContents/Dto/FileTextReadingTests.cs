@@ -4,7 +4,10 @@ using DataOrganizer.Documents.FileContents.Enums;
 
 namespace DataOrganizer.Documents.UnitTests.FileContents.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileTextReading)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileTextReading" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileTextReadingTests
 {
 	#region Methods

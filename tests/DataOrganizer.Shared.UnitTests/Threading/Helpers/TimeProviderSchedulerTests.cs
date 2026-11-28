@@ -9,7 +9,10 @@ using System.Reactive.Disposables;
 
 namespace DataOrganizer.Shared.UnitTests.Threading.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(TimeProviderScheduler)}"" type")]
+/// <summary>
+/// Tests of <see cref="TimeProviderScheduler" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class TimeProviderSchedulerTests
 {
 	#region Data

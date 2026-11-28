@@ -5,7 +5,10 @@ using EventMaskExtensions = DataOrganizer.SystemIntegration.GlobalHotkeys.Extens
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EventMaskExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="EventMaskExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EventMaskExtensionsTests
 {
 	#region Methods

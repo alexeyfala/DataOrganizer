@@ -187,9 +187,15 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 	#endregion
 
 	#region Native
+	/// <summary>
+	/// Ends a session of the Restart Manager.
+	/// </summary>
 	[LibraryImport("rstrtmgr.dll")]
 	private static partial int RmEndSession(uint dwSessionHandle);
 
+	/// <summary>
+	/// Lists the processes that use the resources registered with the session.
+	/// </summary>
 	[LibraryImport("rstrtmgr.dll")]
 	private static unsafe partial int RmGetList(
 		uint dwSessionHandle,
@@ -198,6 +204,9 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 		RM_PROCESS_INFO* rgAffectedApps,
 		out uint lpdwRebootReasons);
 
+	/// <summary>
+	/// Registers files, processes and services as resources of the session.
+	/// </summary>
 	[LibraryImport("rstrtmgr.dll", StringMarshalling = StringMarshalling.Utf16)]
 	private static partial int RmRegisterResources(
 		uint dwSessionHandle,
@@ -208,6 +217,9 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 		uint nServices,
 		nint rgsServiceNames);
 
+	/// <summary>
+	/// Starts a new session of the Restart Manager.
+	/// </summary>
 	[LibraryImport("rstrtmgr.dll")]
 	private static unsafe partial int RmStartSession(
 		out uint pSessionHandle,
@@ -222,18 +234,39 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 	[StructLayout(LayoutKind.Sequential)]
 	private unsafe struct RM_PROCESS_INFO
 	{
+		/// <summary>
+		/// Id and start time of the process.
+		/// </summary>
 		public RM_UNIQUE_PROCESS Process;
 
+		/// <summary>
+		/// Display name of the application.
+		/// </summary>
 		public fixed char strAppName[256];
 
+		/// <summary>
+		/// Short name of the service, when the process is a service.
+		/// </summary>
 		public fixed char strServiceShortName[64];
 
+		/// <summary>
+		/// Kind of the application, such as a window application, a service or Explorer.
+		/// </summary>
 		public int ApplicationType;
 
+		/// <summary>
+		/// Status of the application as flags.
+		/// </summary>
 		public int AppStatus;
 
+		/// <summary>
+		/// Id of the Terminal Services session the process runs in.
+		/// </summary>
 		public int TSSessionId;
 
+		/// <summary>
+		/// Whether the Restart Manager can restart the application.
+		/// </summary>
 		public int bRestartable;
 	}
 
@@ -243,10 +276,19 @@ public sealed partial class WindowsExecutingFileHolderFinder : IExecutingFileHol
 	[StructLayout(LayoutKind.Sequential)]
 	private struct RM_UNIQUE_PROCESS
 	{
+		/// <summary>
+		/// Id of the process.
+		/// </summary>
 		public int dwProcessId;
 
+		/// <summary>
+		/// Low half of the start time of the process.
+		/// </summary>
 		public uint ProcessStartTimeLow;
 
+		/// <summary>
+		/// High half of the start time of the process.
+		/// </summary>
 		public uint ProcessStartTimeHigh;
 	}
 	#endregion

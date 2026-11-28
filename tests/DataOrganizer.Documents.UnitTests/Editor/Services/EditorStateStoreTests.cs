@@ -11,7 +11,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EditorStateStore)}"" type")]
+/// <summary>
+/// Tests of <see cref="EditorStateStore" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EditorStateStoreTests
 {
 	#region Methods

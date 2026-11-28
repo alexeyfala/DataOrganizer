@@ -30,6 +30,9 @@ internal static class ClearOnEscapeAssist
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Follows the changes of <see cref="IsEnabledProperty" />.
+	/// </summary>
 	static ClearOnEscapeAssist()
 	{
 		IsEnabledProperty

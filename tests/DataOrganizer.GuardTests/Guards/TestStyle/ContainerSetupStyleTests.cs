@@ -9,8 +9,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
+/// <summary>
+/// Guards the containers of the tests against setups that the test style rules out.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the containers of the tests against setups that the test style rules out")]
+[TestFixture]
 internal sealed partial class ContainerSetupStyleTests
 {
 	#region Data

@@ -5,7 +5,10 @@ using System.Threading;
 
 namespace DataOrganizer.Shared.UnitTests.Threading.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SemaphoreLock)}"" type")]
+/// <summary>
+/// Tests of <see cref="SemaphoreLock" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SemaphoreLockTests
 {
 	#region Methods

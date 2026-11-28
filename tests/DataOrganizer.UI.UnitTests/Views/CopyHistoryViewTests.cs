@@ -32,7 +32,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(CopyHistoryView)}"" type")]
+/// <summary>
+/// Tests of <see cref="CopyHistoryView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class CopyHistoryViewTests
 {
 	#region Data

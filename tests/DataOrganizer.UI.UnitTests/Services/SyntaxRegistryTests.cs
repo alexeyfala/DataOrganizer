@@ -13,7 +13,10 @@ using TextMateSharp.Themes;
 
 namespace DataOrganizer.UI.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SyntaxRegistry)}"" type")]
+/// <summary>
+/// Tests of <see cref="SyntaxRegistry" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SyntaxRegistryTests
 {
 	#region Methods

@@ -4,7 +4,10 @@ using DataOrganizer.SystemIntegration.UnitTests.Clipboard.TestHelpers.Factories;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Models;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardUrlEntry)}"" type")]
+/// <summary>
+/// Tests of <see cref="ClipboardUrlEntry" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ClipboardUrlEntryTests
 {
 	#region Methods

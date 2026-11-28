@@ -17,7 +17,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Infrastructure.UnitTests.FileSystemOperations.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DirectoryAccessor)}"" type")]
+/// <summary>
+/// Tests of <see cref="DirectoryAccessor" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DirectoryAccessorTests
 {
 	#region Data

@@ -9,6 +9,9 @@ namespace DataOrganizer.UI.UnitTests;
 internal static class TestAppBuilder
 {
 	#region Methods
+	/// <summary>
+	/// Builds the application the headless tests run in.
+	/// </summary>
 	public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>();
 	#endregion
 }

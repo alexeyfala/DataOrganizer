@@ -11,7 +11,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Infrastructure.UnitTests.AppInstance.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(InstanceRegistry)}"" type")]
+/// <summary>
+/// Tests of <see cref="InstanceRegistry" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class InstanceRegistryTests
 {
 	#region Data

@@ -8,8 +8,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Versions;
 
+/// <summary>
+/// Guards that the WiX extensions of each installer project match the version of its WiX SDK.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the WiX extensions of each installer project match the version of its WiX SDK")]
+[TestFixture]
 internal sealed class WixVersionConsistencyTests
 {
 	#region Data

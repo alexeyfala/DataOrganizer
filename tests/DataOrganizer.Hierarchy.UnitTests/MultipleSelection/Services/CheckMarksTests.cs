@@ -15,7 +15,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Hierarchy.UnitTests.MultipleSelection.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(CheckMarks)}"" type")]
+/// <summary>
+/// Tests of <see cref="CheckMarks" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class CheckMarksTests
 {
 	#region Methods

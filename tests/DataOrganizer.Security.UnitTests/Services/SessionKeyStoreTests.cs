@@ -13,7 +13,10 @@ using System.Security.Cryptography;
 
 namespace DataOrganizer.Security.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SessionKeyStore)}"" type")]
+/// <summary>
+/// Tests of <see cref="SessionKeyStore" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SessionKeyStoreTests
 {
 	#region Data

@@ -18,6 +18,9 @@ public sealed class TestDatabase : IDisposable
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Open connection that keeps the in-memory database alive.
+	/// </summary>
 	private readonly SqliteConnection _connection;
 	#endregion
 

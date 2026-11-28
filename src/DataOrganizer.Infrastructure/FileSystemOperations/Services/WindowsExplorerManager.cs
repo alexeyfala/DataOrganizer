@@ -20,12 +20,12 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 {
 	#region Data
 	/// <summary>
-	/// "kernel32.dll"
+	/// Name of the Windows kernel library.
 	/// </summary>
 	private const string Kernel32Dll = "kernel32.dll";
 
 	/// <summary>
-	/// "user32.dll"
+	/// Name of the Windows user interface library.
 	/// </summary>
 	private const string User32Dll = "user32.dll";
 
@@ -279,12 +279,24 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 	#endregion
 
 	#region Native
+	/// <summary>
+	/// Shell view flags that select an item, deselect the others, scroll it into view and focus it.
+	/// </summary>
 	private const int SVSI_SELECT_ITEM = 0x001D;
 
+	/// <summary>
+	/// <c>ShowWindow</c> command that restores a minimized or maximized window.
+	/// </summary>
 	private const int SW_RESTORE = 9;
 
+	/// <summary>
+	/// <c>ShowWindow</c> command that shows a window in its current size and position.
+	/// </summary>
 	private const int SW_SHOW = 5;
 
+	/// <summary>
+	/// Attaches or detaches the input of one thread to that of another.
+	/// </summary>
 	[LibraryImport(User32Dll)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool AttachThreadInput(
@@ -292,23 +304,41 @@ public sealed partial class WindowsExplorerManager : IExplorerManager
 		uint idAttachTo,
 		[MarshalAs(UnmanagedType.Bool)] bool fAttach);
 
+	/// <summary>
+	/// Returns the id of the calling thread.
+	/// </summary>
 	[LibraryImport(Kernel32Dll)]
 	private static partial uint GetCurrentThreadId();
 
+	/// <summary>
+	/// Returns the handle of the foreground window.
+	/// </summary>
 	[LibraryImport(User32Dll)]
 	private static partial IntPtr GetForegroundWindow();
 
+	/// <summary>
+	/// Returns the id of the thread that created the window and the id of its process.
+	/// </summary>
 	[LibraryImport(User32Dll)]
 	private static partial uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
+	/// <summary>
+	/// Tells whether the window is minimized.
+	/// </summary>
 	[LibraryImport(User32Dll)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool IsIconic(IntPtr hWnd);
 
+	/// <summary>
+	/// Brings the window to the foreground and activates it.
+	/// </summary>
 	[LibraryImport(User32Dll)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool SetForegroundWindow(IntPtr hWnd);
 
+	/// <summary>
+	/// Sets the show state of the window.
+	/// </summary>
 	[LibraryImport(User32Dll)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool ShowWindow(IntPtr hWnd, int nCmdShow);

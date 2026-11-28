@@ -5,7 +5,10 @@ using System.Globalization;
 
 namespace DataOrganizer.UI.UnitTests.Converters;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EnumToBoolConverter)}"" type")]
+/// <summary>
+/// Tests of <see cref="EnumToBoolConverter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EnumToBoolConverterTests
 {
 	#region Methods
@@ -124,8 +127,14 @@ internal sealed class EnumToBoolConverterTests
 	/// </summary>
 	private enum Sample
 	{
+		/// <summary>
+		/// First value.
+		/// </summary>
 		A,
 
+		/// <summary>
+		/// Second value.
+		/// </summary>
 		B
 	}
 	#endregion

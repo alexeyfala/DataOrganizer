@@ -9,6 +9,9 @@ using System.ComponentModel;
 
 namespace DataOrganizer.UI.Views;
 
+/// <summary>
+/// Icon of the note of an object that shows the note in a popup.
+/// </summary>
 internal sealed partial class NoteView : UserControl
 {
 	#region Properties

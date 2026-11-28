@@ -19,7 +19,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ConsoleViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="ConsoleViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ConsoleViewModelTests
 {
 	#region Methods

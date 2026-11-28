@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EnumerableExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="EnumerableExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EnumerableExtensionsTests
 {
 	#region Methods
@@ -338,6 +341,8 @@ internal sealed class EnumerableExtensionsTests
 	/// <summary>
 	/// Item with an ordering key and a label for sequence-ordering tests.
 	/// </summary>
+	/// <param name="Id">Ordering key.</param>
+	/// <param name="Name">Label of the item.</param>
 	private sealed record Item(int Id, string Name);
 	#endregion
 }

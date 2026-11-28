@@ -7,7 +7,10 @@ using WixToolset.Dtf.WindowsInstaller;
 
 namespace Setup.CustomActions.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(RelatedProductMatcher)}"" type")]
+/// <summary>
+/// Tests of <see cref="RelatedProductMatcher" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class RelatedProductMatcherTests
 {
 	#region Data

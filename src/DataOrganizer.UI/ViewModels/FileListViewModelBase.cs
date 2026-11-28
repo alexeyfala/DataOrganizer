@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.ViewModels;
 
+/// <summary>
+/// Base of the view models of the lists of files, such as the copy history and the selected favorites.
+/// </summary>
 public abstract partial class FileListViewModelBase : ObservableDisposableBase
 {
 	#region Properties

@@ -8,7 +8,10 @@ using System.Globalization;
 
 namespace DataOrganizer.UI.UnitTests.Converters;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentConverters)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocumentConverters" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocumentConvertersTests
 {
 	#region Methods

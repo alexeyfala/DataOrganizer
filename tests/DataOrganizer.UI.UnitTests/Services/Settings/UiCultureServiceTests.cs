@@ -10,7 +10,10 @@ using System.Resources;
 
 namespace DataOrganizer.UI.UnitTests.Services.Settings;
 
-[TestFixture(Description = $@"Tests of ""{nameof(UiCultureService)}"" type")]
+/// <summary>
+/// Tests of <see cref="UiCultureService" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class UiCultureServiceTests
 {
 	#region Data
@@ -157,6 +160,9 @@ internal sealed class UiCultureServiceTests
 			.BeSameAs(CultureInfo.CurrentUICulture);
 	}
 
+	/// <summary>
+	/// Saves the cultures that the tests change.
+	/// </summary>
 	[SetUp]
 	public void SetUp()
 	{
@@ -169,6 +175,9 @@ internal sealed class UiCultureServiceTests
 		_currentThreadCulture = CultureInfo.CurrentUICulture;
 	}
 
+	/// <summary>
+	/// Restores the cultures that the tests changed.
+	/// </summary>
 	[TearDown]
 	public void TearDown()
 	{

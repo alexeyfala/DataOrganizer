@@ -8,7 +8,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotifyPropertyChangedExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotifyPropertyChangedExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed partial class NotifyPropertyChangedExtensionsTests
 {
 	#region Methods
@@ -74,6 +77,7 @@ internal sealed partial class NotifyPropertyChangedExtensionsTests
 		/// </summary>
 		public NameHolder(string name) => Name = name;
 
+		/// <inheritdoc />
 		public string Name { get; }
 	}
 
@@ -82,6 +86,9 @@ internal sealed partial class NotifyPropertyChangedExtensionsTests
 	/// </summary>
 	private sealed partial class Source : ObservableObject
 	{
+		/// <summary>
+		/// Search text the predicates follow.
+		/// </summary>
 		[ObservableProperty]
 		public partial string? Search { get; set; }
 	}

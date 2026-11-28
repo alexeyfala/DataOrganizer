@@ -5,7 +5,10 @@ using System.IO;
 
 namespace DataOrganizer.Database.IntegrationTests.Repository.TestHelpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(TempSqliteFile)}"" type")]
+/// <summary>
+/// Tests of <see cref="TempSqliteFile" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class TempSqliteFileTests
 {
 	#region Methods

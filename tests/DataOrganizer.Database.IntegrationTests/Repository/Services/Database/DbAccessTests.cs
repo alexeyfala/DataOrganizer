@@ -25,7 +25,10 @@ using Testably.Abstractions;
 
 namespace DataOrganizer.Database.IntegrationTests.Repository.Services.Database;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
+/// <summary>
+/// Tests of <see cref="DbAccess" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DbAccessTests
 {
 	#region Methods

@@ -6,7 +6,10 @@ using System.Linq;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Converters;
 
-[TestFixture(Description = $@"Tests of ""{nameof(KeyCodeNameConverter)}"" type")]
+/// <summary>
+/// Tests of <see cref="KeyCodeNameConverter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class KeyCodeNameConverterTests
 {
 	#region Methods

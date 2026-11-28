@@ -8,8 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.GuardTests.Guards.Architecture;
 
+/// <summary>
+/// Guards the order of the topics inside each layer project.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the order of the topics inside each layer project")]
+[TestFixture]
 internal sealed class TopicOrderTests
 {
 	#region Data

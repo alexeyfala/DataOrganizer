@@ -7,6 +7,7 @@ namespace DataOrganizer.Shared.Threading.Helpers;
 /// A held semaphore that its disposal gives back, also when the semaphore has been disposed meanwhile; without a
 /// semaphore, a wait that held nothing.
 /// </summary>
+/// <param name="Semaphore">Held semaphore; <c>null</c> when the wait held nothing.</param>
 public readonly record struct SemaphoreLock(SemaphoreSlim? Semaphore) : IDisposable
 {
 	#region Properties

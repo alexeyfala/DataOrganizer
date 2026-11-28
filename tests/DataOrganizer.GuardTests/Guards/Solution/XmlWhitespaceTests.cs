@@ -6,8 +6,11 @@ using System.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Solution;
 
+/// <summary>
+/// Guards the whitespace of the XML documents edited by hand.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the whitespace of the XML documents edited by hand")]
+[TestFixture]
 internal sealed class XmlWhitespaceTests
 {
 	#region Data

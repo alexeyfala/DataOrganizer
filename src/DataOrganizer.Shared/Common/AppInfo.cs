@@ -35,6 +35,9 @@ public static class AppInfo
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Reads the names of the application from the metadata of the assembly.
+	/// </summary>
 	static AppInfo()
 	{
 		AssemblyMetadataAttribute[] attributes = [.. Assembly

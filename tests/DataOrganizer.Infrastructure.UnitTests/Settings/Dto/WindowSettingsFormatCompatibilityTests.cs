@@ -5,7 +5,10 @@ using DataOrganizer.Shared.Services;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Dto;
 
-[TestFixture(Description = "Guards that the window settings left by an earlier build still open")]
+/// <summary>
+/// Guards that the window settings left by an earlier build still open.
+/// </summary>
+[TestFixture]
 internal sealed class WindowSettingsFormatCompatibilityTests
 {
 	#region Data

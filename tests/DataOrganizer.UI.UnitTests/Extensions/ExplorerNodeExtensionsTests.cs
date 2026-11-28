@@ -13,7 +13,10 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExplorerNodeExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="ExplorerNodeExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExplorerNodeExtensionsTests
 {
 	#region Data

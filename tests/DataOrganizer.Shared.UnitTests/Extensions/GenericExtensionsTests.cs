@@ -5,7 +5,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Shared.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(GenericExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="GenericExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class GenericExtensionsTests
 {
 	#region Methods
@@ -300,8 +303,14 @@ internal sealed class GenericExtensionsTests
 	/// </summary>
 	public sealed class PartlyWritable
 	{
+		/// <summary>
+		/// Writable name.
+		/// </summary>
 		public string? Name { get; set; }
 
+		/// <summary>
+		/// Read-only stamp.
+		/// </summary>
 		public string Stamp { get; } = "fixed";
 	}
 
@@ -315,6 +324,9 @@ internal sealed class GenericExtensionsTests
 		/// </summary>
 		public ReadOnlyTarget(string name) => Name = name;
 
+		/// <summary>
+		/// Read-only name.
+		/// </summary>
 		public string Name { get; }
 	}
 
@@ -323,10 +335,19 @@ internal sealed class GenericExtensionsTests
 	/// </summary>
 	public sealed class Source
 	{
+		/// <summary>
+		/// Name, which <see cref="Target" /> has too.
+		/// </summary>
 		public string? Name { get; set; }
 
+		/// <summary>
+		/// Note, which <see cref="Target" /> lacks.
+		/// </summary>
 		public string? Note { get; set; }
 
+		/// <summary>
+		/// Number, which <see cref="Target" /> has too.
+		/// </summary>
 		public int Number { get; set; }
 	}
 
@@ -335,10 +356,19 @@ internal sealed class GenericExtensionsTests
 	/// </summary>
 	public sealed class Target
 	{
+		/// <summary>
+		/// Comment, which <see cref="Source" /> lacks.
+		/// </summary>
 		public string? Comment { get; set; }
 
+		/// <summary>
+		/// Name, which <see cref="Source" /> has too.
+		/// </summary>
 		public string? Name { get; set; }
 
+		/// <summary>
+		/// Number, which <see cref="Source" /> has too.
+		/// </summary>
 		public int Number { get; set; }
 	}
 	#endregion

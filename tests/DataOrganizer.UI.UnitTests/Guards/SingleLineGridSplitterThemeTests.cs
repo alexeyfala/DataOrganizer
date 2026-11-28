@@ -10,7 +10,11 @@ using DataOrganizer.UI.UnitTests.TestHelpers;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards the look of the single line splitter: a hairline with a grip that shows on hover and takes the primary brush when pressed")]
+/// <summary>
+/// Guards the look of the single line splitter: a hairline with a grip that shows on hover and takes the primary brush
+/// when pressed.
+/// </summary>
+[TestFixture]
 internal sealed class SingleLineGridSplitterThemeTests
 {
 	#region Data

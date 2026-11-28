@@ -14,7 +14,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NoteView)}"" type")]
+/// <summary>
+/// Tests of <see cref="NoteView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NoteViewTests
 {
 	#region Methods

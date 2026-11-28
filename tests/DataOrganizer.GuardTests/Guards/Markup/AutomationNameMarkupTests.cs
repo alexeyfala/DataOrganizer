@@ -10,8 +10,12 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Markup;
 
+/// <summary>
+/// Guards that the markup gives UI Automation a name for every interactive element and a state of meaning for every
+/// toggle.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the markup gives UI Automation a name for every interactive element and a state of meaning for every toggle")]
+[TestFixture]
 internal sealed partial class AutomationNameMarkupTests
 {
 	#region Data

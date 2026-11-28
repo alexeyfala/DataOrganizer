@@ -10,7 +10,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Controls;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DialogButtons)}"" type")]
+/// <summary>
+/// Tests of <see cref="DialogButtons" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DialogButtonsTests
 {
 	#region Methods

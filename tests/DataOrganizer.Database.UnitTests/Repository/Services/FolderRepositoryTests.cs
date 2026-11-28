@@ -11,7 +11,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Database.UnitTests.Repository.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FolderRepository)}"" type")]
+/// <summary>
+/// Tests of <see cref="FolderRepository" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FolderRepositoryTests
 {
 	#region Methods

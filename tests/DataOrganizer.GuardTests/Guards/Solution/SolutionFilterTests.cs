@@ -8,8 +8,11 @@ using System.Text.Json;
 
 namespace DataOrganizer.GuardTests.Guards.Solution;
 
+/// <summary>
+/// Guards that the solution filter of the test run lists every test project.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the solution filter of the test run lists every test project")]
+[TestFixture]
 internal sealed class SolutionFilterTests
 {
 	#region Data

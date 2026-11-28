@@ -14,7 +14,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Documents.UnitTests.Editor.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DocumentEncodingSwitcher)}"" type")]
+/// <summary>
+/// Tests of <see cref="DocumentEncodingSwitcher" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DocumentEncodingSwitcherTests
 {
 	#region Methods

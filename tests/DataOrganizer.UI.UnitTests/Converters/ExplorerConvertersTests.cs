@@ -9,7 +9,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Converters;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExplorerConverters)}"" type")]
+/// <summary>
+/// Tests of <see cref="ExplorerConverters" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExplorerConvertersTests
 {
 	#region Methods

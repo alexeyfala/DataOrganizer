@@ -10,7 +10,10 @@ using NSubstitute;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Settings.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(WindowSettingsStore)}"" type")]
+/// <summary>
+/// Tests of <see cref="WindowSettingsStore" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class WindowSettingsStoreTests
 {
 	#region Data

@@ -8,7 +8,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards that the arrows of a button spinner are named for UI Automation by tips of their own")]
+/// <summary>
+/// Guards that the arrows of a button spinner are named for UI Automation by tips of their own.
+/// </summary>
+[TestFixture]
 internal sealed class ButtonSpinnerAutomationTests
 {
 	#region Methods

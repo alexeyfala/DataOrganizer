@@ -5,7 +5,10 @@ using System.Linq;
 
 namespace DataOrganizer.GuardTests.SelfTests;
 
-[TestFixture(Description = $@"Tests of ""{nameof(CodeLiteralReader)}"" type")]
+/// <summary>
+/// Tests of <see cref="CodeLiteralReader" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class CodeLiteralReaderTests
 {
 	#region Methods

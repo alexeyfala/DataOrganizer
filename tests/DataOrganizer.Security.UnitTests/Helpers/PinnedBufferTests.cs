@@ -6,7 +6,10 @@ using System.Linq;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PinnedBuffer)}"" type")]
+/// <summary>
+/// Tests of <see cref="PinnedBuffer" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PinnedBufferTests
 {
 	#region Methods

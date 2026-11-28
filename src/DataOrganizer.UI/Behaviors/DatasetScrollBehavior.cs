@@ -90,12 +90,18 @@ internal sealed class DatasetScrollBehavior : StyledElementBehavior<ScrollViewer
 	#endregion
 
 	#region Constructors
+	/// <summary>
+	/// Makes the behavior disabled by default.
+	/// </summary>
 	static DatasetScrollBehavior()
 	{
 		// Nothing starts before the binding tells that the records are read.
 		IsEnabledProperty.OverrideDefaultValue<DatasetScrollBehavior>(false);
 	}
 
+	/// <summary>
+	/// Creates the scroll commands and follows <see cref="StyledElementBehavior.IsEnabledProperty" />.
+	/// </summary>
 	public DatasetScrollBehavior()
 	{
 		ScrollToEndCommand = new(token => ScrollToEdgeAsync(toEnd: true, token), CanScrollToEnd);

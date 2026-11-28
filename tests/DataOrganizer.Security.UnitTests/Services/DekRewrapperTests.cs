@@ -17,7 +17,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Security.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DekRewrapper)}"" type")]
+/// <summary>
+/// Tests of <see cref="DekRewrapper" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DekRewrapperTests
 {
 	#region Methods

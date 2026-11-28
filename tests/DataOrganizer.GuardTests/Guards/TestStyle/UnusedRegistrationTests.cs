@@ -8,8 +8,11 @@ using System.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.TestStyle;
 
+/// <summary>
+/// Guards the tests against registering services that nothing they build takes.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards the tests against registering services that nothing they build takes")]
+[TestFixture]
 internal sealed class UnusedRegistrationTests
 {
 	#region Data

@@ -11,7 +11,10 @@ using Testably.Abstractions.Testing;
 
 namespace DataOrganizer.Shared.UnitTests.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AtomicFileWriter)}"" type")]
+/// <summary>
+/// Tests of <see cref="AtomicFileWriter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AtomicFileWriterTests
 {
 	#region Data

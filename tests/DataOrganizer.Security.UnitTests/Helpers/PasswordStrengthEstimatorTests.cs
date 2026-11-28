@@ -4,7 +4,10 @@ using DataOrganizer.Security.Helpers;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PasswordStrengthEstimator)}"" type")]
+/// <summary>
+/// Tests of <see cref="PasswordStrengthEstimator" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PasswordStrengthEstimatorTests
 {
 	#region Methods

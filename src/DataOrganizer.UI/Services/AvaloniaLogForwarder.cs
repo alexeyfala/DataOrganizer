@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace DataOrganizer.UI.Services;
 
+/// <inheritdoc cref="IAvaloniaLogForwarder" />
 internal sealed partial class AvaloniaLogForwarder :
 	IAvaloniaLogForwarder,
 	IDisposable,

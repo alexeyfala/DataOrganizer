@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(KeyValueInputViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="KeyValueInputViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class KeyValueInputViewModelTests
 {
 	#region Methods

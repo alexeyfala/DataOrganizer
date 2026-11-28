@@ -84,20 +84,44 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// <c>True</c> while the pointer is captured for the drag.
+	/// </summary>
 	private bool _captured;
 
+	/// <summary>
+	/// Container of the dragged item.
+	/// </summary>
 	private Control? _draggedContainer;
 
+	/// <summary>
+	/// Index of the dragged item.
+	/// </summary>
 	private int _draggedIndex;
 
+	/// <summary>
+	/// <c>True</c> once the pointer has moved past the drag threshold.
+	/// </summary>
 	private bool _dragStarted;
 
+	/// <summary>
+	/// <c>True</c> from the press of the left button until the drag ends.
+	/// </summary>
 	private bool _enableDrag;
 
+	/// <summary>
+	/// Items control whose item is dragged.
+	/// </summary>
 	private ItemsControl? _itemsControl;
 
+	/// <summary>
+	/// Point where the left button was pressed.
+	/// </summary>
 	private Point _start;
 
+	/// <summary>
+	/// Index where the dragged item would be dropped.
+	/// </summary>
 	private int _targetIndex;
 	#endregion
 
@@ -400,6 +424,9 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Moves every item container back to its place.
+	/// </summary>
 	private static void ApplyTransforms(ItemsControl? itemsControl)
 	{
 		if (itemsControl?.Items is not { } items)
@@ -419,6 +446,9 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 		}
 	}
 
+	/// <summary>
+	/// Sets or clears the <c>:dragging</c> pseudo-class of the control.
+	/// </summary>
 	private static void SetDraggingPseudoClasses(Control control, bool isDragging)
 	{
 		if (isDragging)
@@ -431,6 +461,9 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 		}
 	}
 
+	/// <summary>
+	/// Shifts the rendered control by the given offset.
+	/// </summary>
 	private static void SetTranslateTransform(
 		Control control,
 		double x,
@@ -443,6 +476,9 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 		control.RenderTransform = builder.Build();
 	}
 
+	/// <summary>
+	/// Ends the drag: puts the items back in place and reports the move of the dragged item.
+	/// </summary>
 	private void Released()
 	{
 		if (!_enableDrag)

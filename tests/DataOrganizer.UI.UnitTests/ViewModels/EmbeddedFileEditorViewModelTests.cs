@@ -46,7 +46,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.ViewModels;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EmbeddedFileEditorViewModel)}"" type")]
+/// <summary>
+/// Tests of <see cref="EmbeddedFileEditorViewModel" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class EmbeddedFileEditorViewModelTests
 {
 	#region Data

@@ -23,7 +23,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Views.Settings;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SettingsView)}"" type")]
+/// <summary>
+/// Tests of <see cref="SettingsView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SettingsViewTests
 {
 	#region Data

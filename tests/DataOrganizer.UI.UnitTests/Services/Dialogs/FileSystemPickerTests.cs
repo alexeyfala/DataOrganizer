@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Services.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FileSystemPicker)}"" type")]
+/// <summary>
+/// Tests of <see cref="FileSystemPicker" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FileSystemPickerTests
 {
 	#region Methods

@@ -5,7 +5,10 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.Documents.UnitTests.TextProcessing.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SearchHighlight)}"" type")]
+/// <summary>
+/// Tests of <see cref="SearchHighlight" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class SearchHighlightTests
 {
 	#region Methods

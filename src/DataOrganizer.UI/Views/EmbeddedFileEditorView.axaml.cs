@@ -4,6 +4,9 @@ using System;
 
 namespace DataOrganizer.UI.Views;
 
+/// <summary>
+/// Text editor of a file opened in the built-in editor.
+/// </summary>
 internal partial class EmbeddedFileEditorView : UserControl, IDisposable
 {
 	#region Constructors

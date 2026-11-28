@@ -14,7 +14,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.GlobalHotkeys.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HotkeysEditingScenario)}"" type")]
+/// <summary>
+/// Tests of <see cref="HotkeysEditingScenario" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class HotkeysEditingScenarioTests
 {
 	#region Methods

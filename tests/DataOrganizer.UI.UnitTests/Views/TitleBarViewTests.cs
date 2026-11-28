@@ -12,7 +12,10 @@ using System;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(TitleBarView)}"" type")]
+/// <summary>
+/// Tests of <see cref="TitleBarView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class TitleBarViewTests
 {
 	#region Methods

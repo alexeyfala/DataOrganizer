@@ -5,7 +5,10 @@ using System.Globalization;
 
 namespace DataOrganizer.UI.UnitTests.Converters;
 
-[TestFixture(Description = $@"Tests of ""{nameof(WindowStateToBoolConverter)}"" type")]
+/// <summary>
+/// Tests of <see cref="WindowStateToBoolConverter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class WindowStateToBoolConverterTests
 {
 	#region Methods

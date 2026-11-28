@@ -15,7 +15,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Guards;
 
-[TestFixture(Description = "Guards that the records group expander still finds its way around Material's expander")]
+/// <summary>
+/// Guards that the records group expander still finds its way around Material's expander.
+/// </summary>
+[TestFixture]
 internal sealed class RecordsGroupExpanderContractTests
 {
 	#region Data

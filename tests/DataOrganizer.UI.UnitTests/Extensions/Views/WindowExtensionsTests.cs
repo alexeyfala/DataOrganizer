@@ -5,7 +5,10 @@ using DataOrganizer.UI.Extensions.Views;
 
 namespace DataOrganizer.UI.UnitTests.Extensions.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(WindowExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="WindowExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class WindowExtensionsTests
 {
 	#region Methods

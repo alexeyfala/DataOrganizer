@@ -5,7 +5,10 @@ using System.Linq.Expressions;
 
 namespace DataOrganizer.UI.UnitTests.Extensions;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExpressionExtensions)}"" type")]
+/// <summary>
+/// Tests of <see cref="UI.Extensions.ExpressionExtensions" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ExpressionExtensionsTests
 {
 	#region Methods
@@ -96,10 +99,19 @@ internal sealed class ExpressionExtensionsTests
 	/// </summary>
 	private sealed class Holder
 	{
+		/// <summary>
+		/// Nested owner.
+		/// </summary>
 		public Inner Child { get; } = new();
 
+		/// <summary>
+		/// Reference-typed property.
+		/// </summary>
 		public string? Name { get; set; }
 
+		/// <summary>
+		/// Value-typed property.
+		/// </summary>
 		public int Number { get; set; }
 	}
 
@@ -108,6 +120,9 @@ internal sealed class ExpressionExtensionsTests
 	/// </summary>
 	private sealed class Inner
 	{
+		/// <summary>
+		/// Property of the nested owner.
+		/// </summary>
 		public string? Name { get; set; }
 	}
 	#endregion

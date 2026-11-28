@@ -10,7 +10,10 @@ using System.Linq;
 
 namespace DataOrganizer.Documents.UnitTests.DatasetRecords.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DatasetRecordTree)}"" type")]
+/// <summary>
+/// Tests of <see cref="DatasetRecordTree" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class DatasetRecordTreeTests
 {
 	#region Methods

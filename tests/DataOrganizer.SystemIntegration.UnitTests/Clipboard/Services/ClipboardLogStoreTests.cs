@@ -30,7 +30,10 @@ using IFile = System.IO.Abstractions.IFile;
 
 namespace DataOrganizer.SystemIntegration.UnitTests.Clipboard.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogStore)}"" type")]
+/// <summary>
+/// Tests of <see cref="ClipboardLogStore" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ClipboardLogStoreTests
 {
 	#region Data

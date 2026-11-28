@@ -1,7 +1,7 @@
-using System;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
+using System;
 
 namespace DataOrganizer.UI.Behaviors.Windows;
 

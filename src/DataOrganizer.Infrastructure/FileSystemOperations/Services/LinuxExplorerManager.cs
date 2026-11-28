@@ -63,7 +63,7 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	private const string FileManager1Service = "org.freedesktop.FileManager1";
 
 	/// <summary>
-	/// "libX11.so.6"
+	/// Name of the X11 client library.
 	/// </summary>
 	private const string LibX11 = "libX11.so.6";
 
@@ -278,12 +278,12 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 			"gdbus",
 			[
 				"call",
-					"--session",
-					"--dest", FileManager1Service,
-					"--object-path", FileManager1ObjectPath,
-					"--method", FileManager1Method,
-					$"['{uri}']",
-					""
+				"--session",
+				"--dest", FileManager1Service,
+				"--object-path", FileManager1ObjectPath,
+				"--method", FileManager1Method,
+				$"['{uri}']",
+				string.Empty
 			]))
 		{
 			return true;
@@ -294,12 +294,12 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 			"dbus-send",
 			[
 				"--session",
-					$"--dest={FileManager1Service}",
-					"--type=method_call",
-					FileManager1ObjectPath,
-					FileManager1Method,
-					$"array:string:{uri}",
-					"string:"
+				$"--dest={FileManager1Service}",
+				"--type=method_call",
+				FileManager1ObjectPath,
+				FileManager1Method,
+				$"array:string:{uri}",
+				"string:"
 			]);
 	}
 
@@ -559,18 +559,33 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 	#endregion
 
 	#region Native
+	/// <summary>
+	/// Closes the connection to the X server.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial int XCloseDisplay(IntPtr display);
 
+	/// <summary>
+	/// Returns the root window of the default screen.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial IntPtr XDefaultRootWindow(IntPtr display);
 
+	/// <summary>
+	/// Sends the buffered requests to the X server.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial int XFlush(IntPtr display);
 
+	/// <summary>
+	/// Frees data that Xlib allocated.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial int XFree(IntPtr data);
 
+	/// <summary>
+	/// Reads the type, format and data of a window property.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial int XGetWindowProperty(
 		IntPtr display,
@@ -586,18 +601,30 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		out IntPtr bytesAfter,
 		out IntPtr prop);
 
+	/// <summary>
+	/// Returns the atom of the given name.
+	/// </summary>
 	[LibraryImport(LibX11, StringMarshalling = StringMarshalling.Custom, StringMarshallingCustomType = typeof(AnsiStringMarshaller))]
 	private static partial IntPtr XInternAtom(
 		IntPtr display,
 		string atomName,
 		[MarshalAs(UnmanagedType.Bool)] bool onlyIfExists);
 
+	/// <summary>
+	/// Opens a connection to the X server.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial IntPtr XOpenDisplay(IntPtr displayName);
 
+	/// <summary>
+	/// Raises the window to the top of the stack.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial int XRaiseWindow(IntPtr display, IntPtr window);
 
+	/// <summary>
+	/// Sends an event to the window.
+	/// </summary>
 	[LibraryImport(LibX11)]
 	private static partial int XSendEvent(
 		IntPtr display,
@@ -606,31 +633,70 @@ public sealed partial class LinuxExplorerManager : IExplorerManager
 		IntPtr eventMask,
 		ref XClientMessageEvent eventSend);
 
+	/// <summary>
+	/// X11 <c>XClientMessageEvent</c> structure with its data as five longs.
+	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	private struct XClientMessageEvent
 	{
+		/// <summary>
+		/// Type of the event.
+		/// </summary>
 		public int type;
 
+		/// <summary>
+		/// Number of the last request the server processed.
+		/// </summary>
 		public IntPtr serial;
 
+		/// <summary>
+		/// Whether the event came from a <c>SendEvent</c> request.
+		/// </summary>
 		public int send_event;
 
+		/// <summary>
+		/// Display the event was read from.
+		/// </summary>
 		public IntPtr display;
 
+		/// <summary>
+		/// Window the event is about.
+		/// </summary>
 		public IntPtr window;
 
+		/// <summary>
+		/// Atom that tells how to read the data.
+		/// </summary>
 		public IntPtr message_type;
 
+		/// <summary>
+		/// Size in bits of each data item.
+		/// </summary>
 		public int format;
 
+		/// <summary>
+		/// First data item.
+		/// </summary>
 		public IntPtr data0;
 
+		/// <summary>
+		/// Second data item.
+		/// </summary>
 		public IntPtr data1;
 
+		/// <summary>
+		/// Third data item.
+		/// </summary>
 		public IntPtr data2;
 
+		/// <summary>
+		/// Fourth data item.
+		/// </summary>
 		public IntPtr data3;
 
+		/// <summary>
+		/// Fifth data item.
+		/// </summary>
 		public IntPtr data4;
 	}
 	#endregion

@@ -8,7 +8,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Helpers.Clipboard;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardSensitivityMarkerWriter)}"" type")]
+/// <summary>
+/// Tests of <see cref="ClipboardSensitivityMarkerWriter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ClipboardSensitivityMarkerWriterTests
 {
 	#region Methods

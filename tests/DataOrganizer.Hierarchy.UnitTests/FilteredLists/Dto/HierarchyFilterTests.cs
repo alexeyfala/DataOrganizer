@@ -6,7 +6,10 @@ using System.Linq;
 
 namespace DataOrganizer.Hierarchy.UnitTests.FilteredLists.Dto;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HierarchyFilter)}"" type")]
+/// <summary>
+/// Tests of <see cref="HierarchyFilter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class HierarchyFilterTests
 {
 	#region Methods

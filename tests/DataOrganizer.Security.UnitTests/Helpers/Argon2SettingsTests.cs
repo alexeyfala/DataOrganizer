@@ -6,7 +6,10 @@ using System.Security.Cryptography;
 
 namespace DataOrganizer.Security.UnitTests.Helpers;
 
-[TestFixture(Description = $@"Tests of ""{nameof(Argon2Settings)}"" type")]
+/// <summary>
+/// Tests of <see cref="Argon2Settings" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class Argon2SettingsTests
 {
 	#region Methods

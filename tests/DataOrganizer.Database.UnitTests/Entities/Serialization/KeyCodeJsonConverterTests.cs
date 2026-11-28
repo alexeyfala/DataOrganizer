@@ -7,7 +7,10 @@ using System.Text.Json;
 
 namespace DataOrganizer.Database.UnitTests.Entities.Serialization;
 
-[TestFixture(Description = $@"Tests of ""{nameof(KeyCodeJsonConverter)}"" type")]
+/// <summary>
+/// Tests of <see cref="KeyCodeJsonConverter" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class KeyCodeJsonConverterTests
 {
 	#region Data

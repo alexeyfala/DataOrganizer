@@ -11,7 +11,10 @@ using System.Linq;
 
 namespace DataOrganizer.UI.UnitTests.Views.Dialogs;
 
-[TestFixture(Description = $@"Tests of ""{nameof(MultilineTextEditView)}"" type")]
+/// <summary>
+/// Tests of <see cref="MultilineTextEditView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class MultilineTextEditViewTests
 {
 	#region Methods

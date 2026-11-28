@@ -8,8 +8,11 @@ using System.Xml.Linq;
 
 namespace DataOrganizer.GuardTests.Guards.Versions;
 
+/// <summary>
+/// Guards that the third-party notices list the packages of the application with their versions.
+/// </summary>
 [Guard]
-[TestFixture(Description = "Guards that the third-party notices list the packages of the application with their versions")]
+[TestFixture]
 internal sealed partial class ThirdPartyNoticesVersionConsistencyTests
 {
 	#region Data

@@ -14,7 +14,10 @@ using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UI.UnitTests.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ConsoleWindow)}"" type")]
+/// <summary>
+/// Tests of <see cref="ConsoleWindow" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ConsoleWindowTests
 {
 	#region Methods

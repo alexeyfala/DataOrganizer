@@ -6,7 +6,10 @@ using System;
 
 namespace DataOrganizer.Infrastructure.UnitTests.Diagnostics.Services;
 
-[TestFixture(Description = $@"Tests of ""{nameof(LogCallbackSink)}"" type")]
+/// <summary>
+/// Tests of <see cref="LogCallbackSink" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class LogCallbackSinkTests
 {
 	#region Methods

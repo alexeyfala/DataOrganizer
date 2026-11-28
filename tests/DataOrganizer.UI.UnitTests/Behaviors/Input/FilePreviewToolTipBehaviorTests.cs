@@ -18,7 +18,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FilePreviewToolTipBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="FilePreviewToolTipBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class FilePreviewToolTipBehaviorTests
 {
 	#region Data

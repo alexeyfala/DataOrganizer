@@ -6,7 +6,10 @@ using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UI.UnitTests.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(WindowPlacementTracker)}"" type")]
+/// <summary>
+/// Tests of <see cref="WindowPlacementTracker" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class WindowPlacementTrackerTests
 {
 	#region Methods

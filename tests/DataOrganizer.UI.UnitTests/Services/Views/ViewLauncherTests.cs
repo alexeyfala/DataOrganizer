@@ -69,7 +69,10 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UI.UnitTests.Services.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ViewLauncher)}"" type")]
+/// <summary>
+/// Tests of <see cref="ViewLauncher" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class ViewLauncherTests
 {
 	#region Methods

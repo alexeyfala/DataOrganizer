@@ -10,7 +10,10 @@ using System.Text;
 
 namespace DataOrganizer.UI.UnitTests.Views;
 
-[TestFixture(Description = $@"Tests of ""{nameof(NotepadTabView)}"" type")]
+/// <summary>
+/// Tests of <see cref="NotepadTabView" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class NotepadTabViewTests
 {
 	#region Data

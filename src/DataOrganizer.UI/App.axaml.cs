@@ -359,7 +359,7 @@ public sealed class App : Application
 			return
 			[
 				.. args,
-				//CommandLineOptions.HelpArg,
+				// CommandLineOptions.HelpArg,
 				CommandLineOptions.ConsoleArg,
 				CommandLineOptions.DebugArg
 			];

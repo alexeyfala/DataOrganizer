@@ -9,7 +9,10 @@ using DataOrganizer.UI.Windows;
 
 namespace DataOrganizer.UI.UnitTests.Windows;
 
-[TestFixture(Description = $@"Tests of ""{nameof(AppWindowBase)}"" type")]
+/// <summary>
+/// Tests of <see cref="AppWindowBase" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class AppWindowBaseTests
 {
 	#region Methods

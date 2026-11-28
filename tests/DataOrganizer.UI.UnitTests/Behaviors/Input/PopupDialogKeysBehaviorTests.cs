@@ -12,7 +12,10 @@ using System.Reflection;
 
 namespace DataOrganizer.UI.UnitTests.Behaviors.Input;
 
-[TestFixture(Description = $@"Tests of ""{nameof(PopupDialogKeysBehavior)}"" type")]
+/// <summary>
+/// Tests of <see cref="PopupDialogKeysBehavior" /> type.
+/// </summary>
+[TestFixture]
 internal sealed class PopupDialogKeysBehaviorTests
 {
 	#region Methods
