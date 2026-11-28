@@ -63,6 +63,7 @@
   - ⚖️ [`NOTICE`](../NOTICE) — the notice Apache 2.0 requires.
   - ⚙️ [`nuget.config`](../nuget.config) — the package source.
   - 📄 [`README.md`](../README.md) — the repository front page.
+  - ⚙️ [`ResXManager.config.xml`](../ResXManager.config.xml) — settings of the ResXManager extension for this solution: it leaves out the AvaloniaEdit texts, which have no neutral file here.
   - ⚙️ [`Settings.XamlStyler`](../Settings.XamlStyler) — XAML formatting rules.
   - ⚙️ [`stryker-config.json`](../stryker-config.json) — shared settings of the mutation runs.
   - ⚙️ [`stylecop.json`](../stylecop.json) — how the StyleCop rules check: the documentation of non-public members, the order and placement of usings.

@@ -59,6 +59,7 @@
     <File Path="NOTICE" />
     <File Path="nuget.config" />
     <File Path="README.md" />
+    <File Path="ResXManager.config.xml" />
     <File Path="Settings.XamlStyler" />
     <File Path="stryker-config.json" />
     <File Path="stylecop.json" />
