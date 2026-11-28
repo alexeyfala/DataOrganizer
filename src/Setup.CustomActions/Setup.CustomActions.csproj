@@ -12,7 +12,7 @@
 	<ItemGroup>
 		<PackageReference Include="PolySharp">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<IncludeAssets>$(DevelopmentDependencyAssets)</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="WixToolset.Dtf.CustomAction" />
 	</ItemGroup>

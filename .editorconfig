@@ -397,3 +397,102 @@ dotnet_diagnostic.RCS1238.severity = silent
 
 # Flag values of enums use the shift operator (RCS1254 needs this option).
 roslynator_enum_flag_value_style = shift_operator
+
+# StyleCop
+
+# Every rule the package enables is a warning; stylecop.json sets how the rules check. The rules below are off because
+# the style of the solution decides otherwise.
+
+# SA1027 (tabs and spaces): it also reports the spaces inside raw strings, which are data.
+dotnet_diagnostic.SA1027.severity = none
+
+# SA1101 (prefix members with this): members are written without the prefix.
+dotnet_diagnostic.SA1101.severity = none
+
+# SA1116, SA1117, SA1118 (layout of parameters): a lambda argument opens on the line of the call, and the arguments
+# after it follow its closing brace.
+dotnet_diagnostic.SA1116.severity = none
+dotnet_diagnostic.SA1117.severity = none
+dotnet_diagnostic.SA1118.severity = none
+
+# SA1121 (built-in type aliases): native interop keeps IntPtr, the type of the native signatures.
+dotnet_diagnostic.SA1121.severity = none
+
+# SA1123, SA1124 (regions): regions group the members of a type and the steps of a long method.
+dotnet_diagnostic.SA1123.severity = none
+dotnet_diagnostic.SA1124.severity = none
+
+# SA1127, SA1128 (constraints and constructor initializers on their own line): both stay on the line of the declaration.
+dotnet_diagnostic.SA1127.severity = none
+dotnet_diagnostic.SA1128.severity = none
+
+# SA1143 (layout of conditional expressions): a conditional expression that spans lines keeps the layout of the code.
+dotnet_diagnostic.SA1143.severity = none
+
+# SA1201, SA1202, SA1203, SA1204 (order of members): the members follow the order of CodeMaid's Reorganize inside each
+# region, which a guard test checks; these rules ignore regions.
+dotnet_diagnostic.SA1201.severity = none
+dotnet_diagnostic.SA1202.severity = none
+dotnet_diagnostic.SA1203.severity = none
+dotnet_diagnostic.SA1204.severity = none
+
+# SA1307, SA1310 (names of accessible fields): the fields of native structures keep their native names.
+dotnet_diagnostic.SA1307.severity = none
+dotnet_diagnostic.SA1310.severity = none
+
+# SA1309 (field names without a leading underscore): private instance fields start with an underscore.
+dotnet_diagnostic.SA1309.severity = none
+
+# SA1313 (parameter names): a parameter that nothing reads is named with underscores.
+dotnet_diagnostic.SA1313.severity = none
+
+# SA1401 (private fields): as with CA1051, base classes give their heirs protected fields.
+dotnet_diagnostic.SA1401.severity = none
+
+# SA1413 (trailing commas): lists end without a comma.
+dotnet_diagnostic.SA1413.severity = none
+
+# SA1500 (braces on lines of their own): a collection expression that wraps a chain closes on the last line of the
+# chain.
+dotnet_diagnostic.SA1500.severity = none
+
+# SA1504 (accessors all on one line or all on several): a short getter stays on one line next to a longer setter.
+dotnet_diagnostic.SA1504.severity = none
+
+# SA1512, SA1513, SA1515 (blank lines around comments and closing braces): a comment stands next to the code it
+# explains, a Stryker comment between a block and its finally included.
+dotnet_diagnostic.SA1512.severity = none
+dotnet_diagnostic.SA1513.severity = none
+dotnet_diagnostic.SA1515.severity = none
+
+# SA1514 (blank line before a documentation header): the header of the first member of a region follows the region
+# marker.
+dotnet_diagnostic.SA1514.severity = none
+
+# SA1611, SA1615, SA1618 (param, returns and typeparam tags): a summary states the purpose, the other tags are not
+# written.
+dotnet_diagnostic.SA1611.severity = none
+dotnet_diagnostic.SA1615.severity = none
+dotnet_diagnostic.SA1618.severity = none
+
+# SA1623 (property summary begins with Gets): a summary names what the property is.
+dotnet_diagnostic.SA1623.severity = none
+
+# SA1633 (file header): files carry no header.
+dotnet_diagnostic.SA1633.severity = none
+
+# SA1642 (constructor summary begins with the standard text): a constructor that does more than keep its parameters
+# says what it does.
+dotnet_diagnostic.SA1642.severity = none
+
+# Tests
+[tests/**.cs]
+
+# SA1402 (one type per file): a small helper type of a fixture may stay in its file.
+dotnet_diagnostic.SA1402.severity = none
+
+# EF Core migrations
+[src/DataOrganizer.Database.Migrations/Migrations/**.cs]
+
+# EF Core writes them: the analyzers that skip generated code skip them too.
+generated_code = true

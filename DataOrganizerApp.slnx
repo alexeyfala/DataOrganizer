@@ -61,6 +61,7 @@
     <File Path="README.md" />
     <File Path="Settings.XamlStyler" />
     <File Path="stryker-config.json" />
+    <File Path="stylecop.json" />
     <File Path="THIRD-PARTY-NOTICES.txt" />
   </Folder>
   <Folder Name="/Solution Items/.config/">

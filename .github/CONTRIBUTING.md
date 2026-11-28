@@ -58,9 +58,9 @@ dotnet test DataOrganizerApp.Tests.slnf --filter "TestCategory!=Integration&Test
   [`.editorconfig`](../.editorconfig) — most editors apply it automatically.
 - Keep the members of a type in the order that the Reorganize command (Ctrl+M, Z) of
   [CodeMaid](https://marketplace.visualstudio.com/items?itemName=SteveCadwallader.CodeMaidVS2022) gives with its
-  default settings, with one blank line between them; guard tests check both.
-- The build runs the .NET, NUnit and [Roslynator](https://github.com/dotnet/roslynator) analyzers; a change adds
-  no warning. [`docs/Development/Code_Analysis.md`](../docs/Development/Code_Analysis.md) shows how to list the
+  default settings, with one blank line between them; guard tests and StyleCop check both.
+- The build runs the .NET, NUnit, [Roslynator](https://github.com/dotnet/roslynator) and
+  [StyleCop](https://github.com/DotNetAnalyzers/StyleCopAnalyzers) analyzers; a change adds no warning. [`docs/Development/Code_Analysis.md`](../docs/Development/Code_Analysis.md) shows how to list the
   findings and change the level of a rule.
 - Write source-code comments in **English**.
 - Match the patterns already used in the surrounding code (naming, structure,

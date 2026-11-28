@@ -1,15 +1,19 @@
 ﻿# Code analysis
 
-The build runs the .NET, NUnit and Roslynator analyzers; a change adds no warning.
+The build runs the .NET, NUnit, Roslynator and StyleCop analyzers; a change adds no warning.
 
 ## Levels of the rules
 
 - The levels live in [`.editorconfig`](../../.editorconfig), section `[*.cs]`. A rule that does not fit is switched
-  off there as a whole; the code holds no suppressions.
+  off there as a whole; the code holds no suppressions. A level that differs for the tests or for the EF Core
+  migrations sits in a section of its own at the end of the file.
 - The .NET analyzers run in the `Recommended` mode (`AnalysisMode` in `Directory.Build.props`), which reports more of
   their rules as warnings.
 - Every Roslynator rule is a warning, except the hidden rules listed there as `silent`. When another hidden rule
   fires, fix the code or add the rule to that list.
+- Every StyleCop rule is a warning, except those switched off there, each with its reason.
+  [`stylecop.json`](../../stylecop.json) sets how the rules check: the documentation of non-public members, the order
+  and placement of usings.
 
 ## Build
 

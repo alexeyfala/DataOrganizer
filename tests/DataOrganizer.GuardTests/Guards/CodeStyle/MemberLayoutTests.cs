@@ -11,7 +11,7 @@ using System.Linq;
 namespace DataOrganizer.GuardTests.Guards.CodeStyle;
 
 [Guard]
-[TestFixture(Description = "Guards the layout of the members of a type: their order and the blank lines around them")]
+[TestFixture(Description = "Guards the layout of the members of a type: their order and the blank line between them")]
 internal sealed class MemberLayoutTests
 {
 	#region Methods
@@ -66,59 +66,6 @@ internal sealed class MemberLayoutTests
 			.NotBeEmpty();
 
 		touching
-			.Should()
-			.HaveCount(0);
-	}
-
-	/// <summary>
-	/// Neighbouring members of a type and neighbouring values of an enum have no more than one blank line in a row between
-	/// them.
-	/// </summary>
-	[Test]
-	public void Neighbours_Stand_No_More_Than_One_Blank_Line_Apart()
-	{
-		// Act
-		(SyntaxNode Previous, SyntaxNode Next)[] neighbours = [.. EnumerateNeighbours()];
-
-		string[] distant =
-		[
-			.. neighbours
-				.Where(HasDoubleBlankLine)
-				.Select(static x => $"{Describe(x.Next)} stands more than one blank line below {GetName(x.Previous)}")
-		];
-
-		// Assert
-		neighbours
-			.Should()
-			.NotBeEmpty();
-
-		distant
-			.Should()
-			.HaveCount(0);
-	}
-
-	/// <summary>
-	/// The summary of a member of a type or of a value of an enum stands right above it, with no blank line between.
-	/// </summary>
-	[Test]
-	public void Summary_Stands_Right_Above_Its_Member()
-	{
-		// Act
-		SyntaxNode[] members = [.. EnumerateMemberLists().SelectMany(static x => x)];
-
-		string[] parted =
-		[
-			.. members
-				.Where(IsPartedFromSummary)
-				.Select(static x => $"{Describe(x)} stands apart from its summary")
-		];
-
-		// Assert
-		members
-			.Should()
-			.NotBeEmpty();
-
-		parted
 			.Should()
 			.HaveCount(0);
 	}
@@ -255,43 +202,6 @@ internal sealed class MemberLayoutTests
 		SyntaxTrivia summary = FindSummary(member);
 
 		return GetLine(member, summary.IsKind(SyntaxKind.None) ? member.SpanStart : summary.SpanStart);
-	}
-
-	/// <summary>
-	/// Tells whether two blank lines in a row stand between two neighbours.
-	/// </summary>
-	private static bool HasDoubleBlankLine((SyntaxNode Previous, SyntaxNode Next) neighbours)
-	{
-		int first = GetEndLine(neighbours.Previous) + 1;
-		int last = GetLine(neighbours.Next, neighbours.Next.SpanStart) - 1;
-
-		string[] lines = [.. ReadLines(neighbours.Next, first, last)];
-
-		for (int i = 1; i < lines.Length; i++)
-		{
-			if (string.IsNullOrWhiteSpace(lines[i - 1]) && string.IsNullOrWhiteSpace(lines[i]))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/// <summary>
-	/// Tells whether a blank line stands between a member and its summary.
-	/// </summary>
-	private static bool IsPartedFromSummary(SyntaxNode member)
-	{
-		SyntaxTrivia summary = FindSummary(member);
-
-		if (summary.IsKind(SyntaxKind.None))
-		{
-			return false;
-		}
-
-		return ReadLines(member, GetLine(member, summary.Span.End - 1) + 1, GetLine(member, member.SpanStart) - 1)
-			.Any(string.IsNullOrWhiteSpace);
 	}
 
 	/// <summary>

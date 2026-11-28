@@ -23,6 +23,8 @@
 		<Version>$(AppVersion)</Version>
 		<!-- Keeps the commit hash out of the product version. -->
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<!-- The assets of a package that only the build uses, such as an analyzer: all but its reference assemblies. -->
+		<DevelopmentDependencyAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</DevelopmentDependencyAssets>
 	</PropertyGroup>
 
 	<!--
@@ -71,8 +73,20 @@
 	<ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
 		<PackageReference Include="Roslynator.Analyzers">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<IncludeAssets>$(DevelopmentDependencyAssets)</IncludeAssets>
 		</PackageReference>
+	</ItemGroup>
+
+	<!--
+		StyleCop analyzers for every C# project: stylecop.json sets how their rules check, .editorconfig sets
+		their levels. Like Roslynator, they run only at build time.
+	-->
+	<ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+		<PackageReference Include="StyleCop.Analyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>$(DevelopmentDependencyAssets)</IncludeAssets>
+		</PackageReference>
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Visible="false" />
 	</ItemGroup>
 	<!--#endregion-->
 </Project>

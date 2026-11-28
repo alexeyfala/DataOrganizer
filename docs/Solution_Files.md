@@ -65,6 +65,7 @@
   - 📄 [`README.md`](../README.md) — the repository front page.
   - ⚙️ [`Settings.XamlStyler`](../Settings.XamlStyler) — XAML formatting rules.
   - ⚙️ [`stryker-config.json`](../stryker-config.json) — shared settings of the mutation runs.
+  - ⚙️ [`stylecop.json`](../stylecop.json) — how the StyleCop rules check: the documentation of non-public members, the order and placement of usings.
   - ⚖️ [`THIRD-PARTY-NOTICES.txt`](../THIRD-PARTY-NOTICES.txt) — third-party licences; generated, never edited by hand.
 - 📁 **`tests/`** — the test projects.
   - ⚙️ [`Directory.Build.props`](../tests/Directory.Build.props) — packages and settings shared by the test projects.
